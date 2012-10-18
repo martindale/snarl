@@ -67,7 +67,7 @@ function define() {
 			var block = thisFlow.blocks[blockIdx];
 			
 			if (block === undefined) {
-				deff.resolve(retVal);
+				deferr.resolve(retVal);
 				return;
 			}
 			else {
@@ -188,7 +188,7 @@ jarPlug = window.jarPlug = {
 		'main': {
 			dependencies: [],
 			// something else? Think of more options!
-			url: baseUrl + "moduleloader.js"
+			url: baseUrl + "main.js"
 		}
 	},
 	define: define,
@@ -196,6 +196,7 @@ jarPlug = window.jarPlug = {
 	serialForEach: serialForEach,
 	baseUrl: baseUrl,
 	loadModule: function(name) {
+		console.log('Loading ' + name);
 		if (loadedModules[name])
 			return loadedModules[name];
 		var deferr = loadedModules[name] = new $.Deferred;
@@ -205,15 +206,18 @@ jarPlug = window.jarPlug = {
 		var module = jarPlug.modules[name];
 
 		exec(function() {
+			console.log('Flow step one');
 			var flow = this;
 			$.each(module.dependencies, function(i, dep) {
 				jarPlug.loadModule(dep).done(flow.MULTI(dep));
 			});
-			flow.MULTI();
+			flow.MULTI()();
 		},function() {
+			console.log('Flow step two');
 			var flow = this;
 
 			loadScript(module.url).done(function() {
+			console.log('Flow step three');
 				deferr.resolve();
 			});
 		})
