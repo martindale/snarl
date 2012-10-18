@@ -23,6 +23,16 @@ I am not responsible for any cat exploits
 (function($, undefined) {
 if (!jarPlug) return;
 
+jarPlug.modules = $.extend(jarPlug.modules, {
+	// STOCK MODULES
+	ui: {
+		dependencies: [],
+		url: jarPlug.baseUrl + "ui.js",
+		load: true,
+		unload: true,
+	}
+});
+
 jarPlug.main = {
 	settings: {
 		workmode: false

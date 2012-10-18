@@ -202,8 +202,10 @@ jarPlug = window.jarPlug = {
 	baseUrl: baseUrl,
 	loadModule: function(name) {
 		console.log('Loading ' + name);
-		if (loadedModules[name])
+		if (name in loadedModules) {
+			console.log('Already loaded')
 			return loadedModules[name];
+		}
 		var deferr = loadedModules[name] = new $.Deferred;
 		if (!(name in jarPlug.modules)) {
 			throw new Error("Module must be in jarPlug.modules before loading");
@@ -230,6 +232,29 @@ jarPlug = window.jarPlug = {
 		})
 
 		return deferr;
+	},
+	unloadModule: function(name) {
+		if (!(name in loadedModules) || !(name in jarPlug.modules)) {
+			return false;
+		}
+
+		var module = jarPlug.modules[name];
+		delete loadedModules[name];
+
+		if (module.unload === true)
+			return jarPlug[name].unload();
+		else
+			return true;
+	},
+	reloadModule: function(name) {
+		var ret = jarPlug.unloadModule(name);
+		if (ret === true || ret === false || ret === undefined)
+			return jarPlug.loadModule(name);
+		var d = new $.Deferred;
+		ret.done(function() {
+			jarPlug.loadModule(name).done(d.resolve);
+		});
+		return d.promise();
 	}
 	// PROFIT
 }
