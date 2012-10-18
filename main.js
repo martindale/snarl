@@ -24,6 +24,9 @@ I am not responsible for any cat exploits
 if (!jarPlug) return;
 
 jarPlug.main = {
+	settings: {
+		workmode: false
+	},
 	load: function() {
 		console.log('Hey look, I loaded!')
 	}

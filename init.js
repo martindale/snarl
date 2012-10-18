@@ -18,12 +18,15 @@ I am not responsible for any anal troubles
 
 */
 
+// LOAD FIRST, YEAH!
+setTimeout(function(){jarPlug.loadModule('main')},0);
+
 // jarPlug
 
 (function($, undefined) {
 
 // Don't edit this directly in source. Use the localStorage.jarplug_devurl value instead.
-var baseUrl = "https://raw.github.com/chrisinajar/jarTT/master/";
+var baseUrl = "https://raw.github.com/chrisinajar/jarPlug/master/";
 
 // Yeah, this one.
 if (typeof localStorage.jarplug_devurl === 'string')
@@ -278,6 +281,6 @@ var loadScript = (function(url) {
 
 	return deferr.promise();
 });
-	
+
 })(jQuery);
 
