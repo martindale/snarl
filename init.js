@@ -188,7 +188,9 @@ jarPlug = window.jarPlug = {
 		'main': {
 			dependencies: [],
 			// something else? Think of more options!
-			url: baseUrl + "main.js"
+			url: baseUrl + "main.js",
+			load: true, // i have a load function!
+			unload: false, // fuck unloading, fuck you!
 		}
 	},
 	define: define,
@@ -217,7 +219,9 @@ jarPlug = window.jarPlug = {
 			var flow = this;
 
 			loadScript(module.url).done(function() {
-			console.log('Flow step three');
+				console.log('Flow step three');
+				if (module.load === true)
+					jarPlug[name].load(); // example: jarPlug.main.load()
 				deferr.resolve();
 			});
 		})
@@ -241,7 +245,6 @@ var loadScript = (function(url) {
 		deferr.resolve(url);
 	};
 
-	// Basically everything after this is stolen from LABjs, I never checked their license but lets just pretend it's definitely something friendly like GPL
 	setTimeout(function () {
 		if ("item" in head) { // check if ref is still a live node list
 			if (!head[0]) { // append_to node not yet ready

@@ -23,7 +23,11 @@ I am not responsible for any cat exploits
 (function($, undefined) {
 if (!jarPlug) return;
 
-console.log('Hey look, I loaded!')
+jarPlug.main = {
+	load: function() {
+		console.log('Hey look, I loaded!')
+	}
+}
 
 })(jQuery);
 
