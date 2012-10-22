@@ -19,11 +19,14 @@ I am not responsible for any anal troubles
 */
 
 // LOAD FIRST, YEAH!
-setTimeout(function(){jarPlug.loadModule('main')},0);
 
 // jarPlug
 
 (function($, undefined) {
+var _jarPlug = window.jarPlug;
+
+if ("jarPlug" in window)
+	delete window.jarPlug;
 
 // Don't edit this directly in source. Use the localStorage.jarplug_devurl value instead.
 var baseUrl = "https://raw.github.com/chrisinajar/jarPlug/master/";
@@ -149,7 +152,7 @@ function define() {
 
 // defines a flow and evaluates it immediately. The first flow function won't receive any arguments.
 function exec() {
-	applyArgs(jarPlug.define, jarPlug, arguments)();
+	return applyArgs(jarPlug.define, jarPlug, arguments)();
 }
 
 // a very useful flow for serial execution of asynchronous functions over a list of values
@@ -185,8 +188,7 @@ var serialForEach = define(
 var loadedModules = {};
 
 // define global object
-var jarPlug;
-jarPlug = window.jarPlug = {
+var jarPlug = window.jarPlug = {
 	modules: {
 		'main': {
 			dependencies: [],
@@ -225,9 +227,13 @@ jarPlug = window.jarPlug = {
 
 			loadScript(module.url).done(function() {
 				console.log('Flow step three');
-				if (module.load === true)
-					jarPlug[name].load(); // example: jarPlug.main.load()
-				deferr.resolve();
+				if (module.load === true) {
+					var ret = jarPlug[name].load(); // example: jarPlug.main.load()
+					if (typeof ret === 'object')
+						ret.done(deferr.resolve);
+				} else {
+					deferr.resolve();
+				}
 			});
 		})
 
@@ -255,6 +261,20 @@ jarPlug = window.jarPlug = {
 			jarPlug.loadModule(name).done(d.resolve);
 		});
 		return d.promise();
+	},
+	// unload everything!
+	unload: function() {
+		return exec(function() {
+			var flow = this;
+			$.each(loadedModules, function(name, deff) {
+				console.log('Unloading ' + name);
+				var callback = flow.MULTI();
+				deff.done(function() {
+					console.log(name + ' is done loading, unloading now');
+					jarPlug.unloadModule(name).done(callback);
+				})
+			})
+		})
 	}
 	// PROFIT
 }
@@ -306,6 +326,20 @@ var loadScript = (function(url) {
 
 	return deferr.promise();
 });
+
+// unload old jarPlug if it's there
+// Load main and get this party started
+if (_jarPlug !== undefined) {
+	if (typeof _jarPlug.unload === 'function') {
+		_jarPlug.unload().done(function() {
+			jarPlug.loadModule('main');
+		})
+	} else {
+		jarPlug.loadModule('main');
+	}
+} else {
+	jarPlug.loadModule('main');
+}
 
 })(jQuery);
 

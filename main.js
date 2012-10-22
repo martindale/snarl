@@ -33,12 +33,77 @@ jarPlug.modules = $.extend(jarPlug.modules, {
 	}
 });
 
-jarPlug.main = {
+var defaultModules = [
+	'ui'
+];
+var keyPrefix = "jarplug_";
+
+var main = jarPlug.main = {
 	settings: {
 		workmode: false
 	},
 	load: function() {
 		console.log('Hey look, I loaded!')
+
+		main.autoLoadPlugins();
+
+		return true;
+	},
+	getValue: function(key) {
+		key = keyPrefix + key;
+		var value = localStorage[key];
+		if (typeof value !== 'string')
+			return value;
+		try {
+			value = JSON.parse(value);
+		} catch (e) {
+		}
+		return value;
+	},
+	putValue: function(key, value) {
+		key = keyPrefix + key;
+		if (typeof value !== 'string')
+			value = JSON.stringify(value);
+
+		localStorage[key] = value;
+	},
+	addModule: function(name) {
+		jarPlug.loadModule(name);
+
+		var autoLoad = main.getValue('autoload');
+		if (typeof autoLoad !== 'array')
+			autoLoad = defaultModules;
+
+		if ($.inArray(autoLoad, name) !== -1)
+			autoLoad.push(name);
+
+		main.putValue('autoload', autoLoad);
+	},
+	removeModule: function(name) {
+		jarPlug.unloadModule(name);
+
+		var autoLoad = main.getValue('autoload');
+		if (typeof autoLoad === 'array') {
+			autoLoad = $.grep(autoLoad, function(value) {
+				return value !== name;
+			});
+		}
+		main.putValue('autoload', autoLoad);
+	},
+	autoLoadPlugins: function() {
+		var autoLoad = main.getValue('autoload');
+		if (typeof autoLoad !== 'array') {
+			autoLoad = defaultModules;
+			main.putValue('autoload', autoLoad);
+		}
+
+		return jarPlug.exec(function() {
+			var flow = this;
+			$.each(autoLoad, function(i, module) {
+				jarPlug.loadModule(module).done(flow.MULTI());
+			})
+			flow.MULTI()();
+		});
 	}
 }
 
