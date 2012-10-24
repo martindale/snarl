@@ -3,7 +3,7 @@ Copyright 2012, Coding Soundtrack
 All rights reserved.
 
 Authors:
-
+Chris Vickery <chrisinajar@gmail.com>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met: 
@@ -26,8 +26,14 @@ if (!jarPlug) return;
 jarPlug.modules = $.extend(jarPlug.modules, {
 	// STOCK MODULES
 	ui: {
-		dependencies: [],
+		dependencies: ['main'],
 		url: jarPlug.baseUrl + "ui.js",
+		load: true,
+		unload: true,
+	},
+	autowoot: {
+		dependencies: [],
+		url: jarPlug.baseUrl + "autowoot.js",
 		load: true,
 		unload: true,
 	}
@@ -38,6 +44,19 @@ var defaultModules = [
 ];
 var keyPrefix = "jarplug_";
 
+var defaultSettings = {
+	hidevideo: false
+}
+
+try {
+	if (localStorage.jarplug_settings)
+		jarPlug.settings = JSON.parse(localStorage.jarplug_settings)
+	else
+		jarPlug.settings = defaultSettings
+} catch(e) {
+	jarPlug.settings = defaultSettings
+}
+
 var main = jarPlug.main = {
 	settings: {
 		workmode: false
@@ -47,7 +66,34 @@ var main = jarPlug.main = {
 
 		main.autoLoadPlugins();
 
+		$(jarPlug).on('settingsChanged', main.settingsChanged);
+		$.each(jarPlug.settings, function(key, value) {
+			main.settingsChanged(false, key);
+		})
 		return true;
+	},
+	settingsChanged: function(event, name) {
+		if (event)
+			main.putValue('settings', jarPlug.settings)
+		switch (name) {
+			case 'hidevideo':
+				if (jarPlug.settings[name])
+					$("#playback").hide();
+				else
+					$("#playback").show();
+
+		}
+	},
+	getSettings: function() {
+		return {
+			name: 'General',
+			options: {
+				'Hide Video Player': jarPlug.ui.createSettingsElement('hidevideo', 'checkbox')
+				, 'Auto Woot': 	jarPlug.ui.createSettingsElement('module:autowoot', 'checkbox')
+				, ' ': 			jarPlug.ui.createSettingsElement(jarPlug.reload, 'button')
+													.text("Reload jarPlug")
+			}
+		}
 	},
 	getValue: function(key) {
 		key = keyPrefix + key;
@@ -71,28 +117,37 @@ var main = jarPlug.main = {
 		jarPlug.loadModule(name);
 
 		var autoLoad = main.getValue('autoload');
-		if (typeof autoLoad !== 'array')
+		if (!(autoLoad instanceof Array))
 			autoLoad = defaultModules;
 
-		if ($.inArray(autoLoad, name) !== -1)
+		if ($.inArray(name, autoLoad) === -1)
 			autoLoad.push(name);
 
 		main.putValue('autoload', autoLoad);
 	},
 	removeModule: function(name) {
 		jarPlug.unloadModule(name);
-
+		console.log('Yo, fuck "' + name + '"')
 		var autoLoad = main.getValue('autoload');
-		if (typeof autoLoad === 'array') {
+		if (autoLoad instanceof Array) {
 			autoLoad = $.grep(autoLoad, function(value) {
 				return value !== name;
 			});
 		}
 		main.putValue('autoload', autoLoad);
 	},
+	hasModule: function(name) {
+		var autoLoad = main.getValue('autoload');
+
+		if (autoLoad instanceof Array) {
+			return ($.inArray(name, autoLoad) !== -1)
+		} else {
+			return ($.inArray(name, defaultModules) !== -1)
+		}
+	},
 	autoLoadPlugins: function() {
 		var autoLoad = main.getValue('autoload');
-		if (typeof autoLoad !== 'array') {
+		if (!(autoLoad instanceof Array)) {
 			autoLoad = defaultModules;
 			main.putValue('autoload', autoLoad);
 		}

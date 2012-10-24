@@ -3,7 +3,7 @@ Copyright 2012, Coding Soundtrack
 All rights reserved.
 
 Authors:
-
+Chris Vickery <chrisinajar@gmail.com>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met: 
@@ -231,13 +231,15 @@ var jarPlug = window.jarPlug = {
 					var ret = jarPlug[name].load(); // example: jarPlug.main.load()
 					if (typeof ret === 'object')
 						ret.done(deferr.resolve);
+					else
+						deferr.resolve();
 				} else {
 					deferr.resolve();
 				}
 			});
 		})
 
-		return deferr;
+		return deferr.promise();
 	},
 	unloadModule: function(name) {
 		if (!(name in loadedModules) || !(name in jarPlug.modules)) {
@@ -269,12 +271,17 @@ var jarPlug = window.jarPlug = {
 			$.each(loadedModules, function(name, deff) {
 				console.log('Unloading ' + name);
 				var callback = flow.MULTI();
-				deff.done(function() {
-					console.log(name + ' is done loading, unloading now');
-					jarPlug.unloadModule(name).done(callback);
-				})
+				var ret = jarPlug.unloadModule(name);
+				if (ret === true || ret === false || ret === undefined)
+					callback();
+				else
+					ret.done(callback);
 			})
+			flow.MULTI()();
 		})
+	},
+	reload: function() {
+		$.getScript(jarPlug.baseUrl + "/init.js");
 	}
 	// PROFIT
 }
