@@ -249,7 +249,7 @@ var jarPlug = window.jarPlug = {
 		var module = jarPlug.modules[name];
 		delete loadedModules[name];
 
-		if (module.unload === true)
+		if (module.unload === true && jarPlug[name] && typeof jarPlug[name].unload === 'function')
 			return jarPlug[name].unload();
 		else
 			return true;

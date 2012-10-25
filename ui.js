@@ -137,7 +137,14 @@ var ui = jarPlug.ui = {
 				dialog.append(
 					$("<div />")
 						.append(widget)
-						.append(name)
+						.append($("<span />", {
+								text: name
+							})
+							// careful, really easy to make infinite loops :3
+							.click(function() {
+								widget.click()
+							})
+						)
 				)
 			});
 		});
@@ -186,7 +193,11 @@ var ui = jarPlug.ui = {
 			case 'button':
 				if (!isFunction)
 					throw new Error('Button elements only work with callback functions')
-				widget = $("<button />")
+				widget = $("<button />", {
+						css: {
+							cursor: 'pointer'
+						}
+					})
 					.click(name);
 		}
 
@@ -204,7 +215,7 @@ var ui = jarPlug.ui = {
 					jarPlug.main.removeModule(name)
 					$(jarPlug).trigger('settingsChanged', name, false);
 				}
-			})
+			});
 			$(jarPlug).on('settingsChanged', function(event, eventName, value) {
 				if (name !== eventName)
 					return;

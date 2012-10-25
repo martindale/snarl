@@ -81,6 +81,12 @@ var main = jarPlug.main = {
 					$("#playback").hide();
 				else
 					$("#playback").show();
+				break;
+			case 'disableAnimations':
+				if (jarPlug.settings[name])
+					animSpeed = 99999;
+				else
+					animSpeed = 83;
 
 		}
 	},
@@ -89,6 +95,7 @@ var main = jarPlug.main = {
 			name: 'General',
 			options: {
 				'Hide Video Player': jarPlug.ui.createSettingsElement('hidevideo', 'checkbox')
+				, 'Disable Animations': jarPlug.ui.createSettingsElement('disableAnimations', 'checkbox')
 				, 'Auto Woot': 	jarPlug.ui.createSettingsElement('module:autowoot', 'checkbox')
 				, ' ': 			jarPlug.ui.createSettingsElement(jarPlug.reload, 'button')
 													.text("Reload jarPlug")
