@@ -36,11 +36,24 @@ jarPlug.modules = $.extend(jarPlug.modules, {
 		url: jarPlug.baseUrl + "autowoot.js",
 		load: true,
 		unload: true,
+	},
+	doublemeh: {
+		dependencies: [],
+		url: jarPlug.baseUrl + "doublemeh.js",
+		load: true,
+		unload: true,
+	},
+	idle: {
+		dependencies: [],
+		url: jarPlug.baseUrl + "idle.js",
+		load: true,
+		unload: true,
 	}
 });
 
 var defaultModules = [
-	'ui'
+	'ui',
+	'idle'
 ];
 var keyPrefix = "jarplug_";
 
@@ -97,6 +110,8 @@ var main = jarPlug.main = {
 				'Hide Video Player': jarPlug.ui.createSettingsElement('hidevideo', 'checkbox')
 				, 'Disable Animations': jarPlug.ui.createSettingsElement('disableAnimations', 'checkbox')
 				, 'Auto Woot': 	jarPlug.ui.createSettingsElement('module:autowoot', 'checkbox')
+				, 'Double-Meh to Mute': jarPlug.ui.createSettingsElement('module:doublemeh', 'checkbox')
+				, 'Idle Timers': jarPlug.ui.createSettingsElement('module:idle', 'checkbox')
 				, ' ': 			jarPlug.ui.createSettingsElement(jarPlug.reload, 'button')
 													.text("Reload jarPlug")
 			}
