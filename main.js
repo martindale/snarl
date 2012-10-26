@@ -95,6 +95,12 @@ var main = jarPlug.main = {
 				else
 					$("#playback").show();
 				break;
+			case 'hidechat':
+				if (jarPlug.settings[name])
+					$("#chat").hide();
+				else
+					$("#chat").show();
+				break;
 			case 'disableAnimations':
 				if (jarPlug.settings[name])
 					animSpeed = 99999;
@@ -108,6 +114,7 @@ var main = jarPlug.main = {
 			name: 'General',
 			options: {
 				'Hide Video Player': jarPlug.ui.createSettingsElement('hidevideo', 'checkbox')
+				, 'Hide Chat': jarPlug.ui.createSettingsElement('hidechat', 'checkbox')
 				, 'Disable Animations': jarPlug.ui.createSettingsElement('disableAnimations', 'checkbox')
 				, 'Auto Woot': 	jarPlug.ui.createSettingsElement('module:autowoot', 'checkbox')
 				, 'Double-Meh to Mute': jarPlug.ui.createSettingsElement('module:doublemeh', 'checkbox')
