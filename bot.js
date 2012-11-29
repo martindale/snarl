@@ -65,7 +65,7 @@ bot.on('chat', function(data) {
 
           person.karma++;
           person.save(function(err) {
-
+            if (err) { console.log(err); }
           });
         });
       }

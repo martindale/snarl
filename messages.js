@@ -5,6 +5,7 @@ var rest = require('restler')
 
 var personSchema = mongoose.Schema({
         name: String
+      , plugID: String
       , karma: { type: Number, default: 0 }
     });
 var Person = db.model('Person', personSchema);
@@ -30,11 +31,25 @@ module.exports = {
         }
       });
     }
+  , popular: function(data) {
+      var self = this;
+      Person.find().sort('-karma').limit(3).exec(function(err, people) {
+        var names = people.map(function(person) {
+          return '@' + person.name;
+        });
+      
+        self.chat(oxfordJoin(names) + ' are all the rage these days.');
+      });
+    }
   , karma: function(data) {
       var self = this;
-      Person.findOne({ name: data.from }).exec(function(err, person) {
+      Person.findOne({ $or: [ { plugID: data.fromID }, { name: data.from } ] }).exec(function(err, person) {
         if (!person) {
-          var person = new Person({ name: data.from });
+          var person = new Person({
+              name: data.from
+            , plugID: data.fromID
+          });
+
           person.save(function(err) {
             self.chat(data.from + ' has 0 karma.');
           });
@@ -59,4 +74,14 @@ module.exports = {
         self.chat('No query provided.');
       }
     }
+}
+
+function oxfordJoin(array) {
+  var string = '';
+  if (array.length <= 1) {
+    string = array.join();
+  } else {
+    string = array.slice(0, -1).join(", ") + ", and " + array[array.length-1];
+  }
+  return string;
 }
