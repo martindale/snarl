@@ -1,6 +1,13 @@
 var config = require('./config')
-  , messages = require('./messages');
+  , messages = require('./messages')
+  , mongoose = require('mongoose')
+  , db = mongoose.createConnection('localhost', 'snarl');
 
+var personSchema = mongoose.Schema({
+        name: String
+      , karma: { type: Number, default: 0 }
+    });
+var Person = db.model('Person', personSchema);
 
 var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
 var ROOM = config.room;
@@ -13,6 +20,8 @@ bot.connect(ROOM);
 
 bot.on('chat', function(data) {
 
+  var self = this;
+
   if (data.type == 'emote') {
     console.log(data.from+data.message);
   } else {
@@ -21,6 +30,8 @@ bot.on('chat', function(data) {
 
   var cmd = data.message;
   var tokens = cmd.split(" ");
+
+
   tokens.forEach(function(token) {
     if (token.substr(0, 1) === '!') {
       data.trigger = token.substr(1);
@@ -42,6 +53,21 @@ bot.on('chat', function(data) {
           break;
         }
 
+      }
+    } else {
+      if (token.indexOf('++') != -1) {
+        var target = token.substr(0, token.indexOf('++'));
+
+        Person.findOne({ name: target }).exec(function(err, person) {
+          if (!person) {
+            var person = new Person({ name: target });
+          }
+
+          person.karma++;
+          person.save(function(err) {
+
+          });
+        });
       }
     }
   });

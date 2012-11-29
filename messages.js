@@ -1,9 +1,18 @@
 var rest = require('restler')
-  , google = require('google');
+  , google = require('google')
+  , mongoose = require('mongoose')
+  , db = mongoose.createConnection('localhost', 'snarl');
+
+var personSchema = mongoose.Schema({
+        name: String
+      , karma: { type: Number, default: 0 }
+    });
+var Person = db.model('Person', personSchema);
 
 module.exports = {
     snarl: "Ohaithar.  I'm a bot created by @remæus.  Blame him for any of my supposed mistakes."
-  , snarlSource: "You can see all my insides (and submit modifications) here: http://github.com/martindale/snarl"    
+  , snarlSource: "You can see all my insides (and submit modifications) here: http://github.com/martindale/snarl"
+  , debug: function(data) { this.chat(JSON.stringify(data)) }
   , video: 'dat video.'
   , awesome: function(data) {
       var self = this;
@@ -18,6 +27,19 @@ module.exports = {
         response = JSON.parse(response);
         if (response.facts && response.facts.length > 0) {
           self.chat(response.facts[0]);
+        }
+      });
+    }
+  , karma: function(data) {
+      var self = this;
+      Person.findOne({ name: data.from }).exec(function(err, person) {
+        if (!person) {
+          var person = new Person({ name: data.from });
+          person.save(function(err) {
+            self.chat(data.from + ' has 0 karma.');
+          });
+        } else {
+          self.chat(data.from + ' has ' + person.karma + ' karma.');
         }
       });
     }
