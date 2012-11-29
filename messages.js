@@ -3,6 +3,8 @@ var rest = require('restler')
 
 module.exports = {
     snarl: "Ohaithar.  I'm a bot created by @remæus.  Blame him for any of my supposed mistakes."
+  , snarlSource: "You can see all my insides (and submit modifications) here: http://github.com/martindale/snarl"    
+  , video: 'dat video.'
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
@@ -20,7 +22,7 @@ module.exports = {
       });
     }
   , trout: function(data) {
-      this.chat('/me slaps ' + data.from + ' around with a trout.');
+      this.chat('/me slaps ' + data.from + ' around a bit with a large trout.');
     }
   , google: function(data) {
       var self = this;
