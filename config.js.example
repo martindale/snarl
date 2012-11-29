@@ -1,0 +1,7 @@
+module.exports = {
+    username : '' //TWITTER USERNAME GOES HERE
+  , password : '' //TWITTER PASSWORD GOES HERE
+  , adminIds : ["14022630"] //Array of users who have access to admin commands
+  , auth : "sdH4wfhWSEthrS6za3dfHs6df2k=?_expires=SADshDfEhe3SfHa6Hs==&user_id=UFasdgsdgjSdfGSgtFDt7asgw3sHfdsg7zaasFg6afs=" // fake key, lololololol
+  , room : 'coding-soundtrack'
+}
