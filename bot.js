@@ -1,22 +1,90 @@
 var config = require('./config')
   , messages = require('./messages')
+  , express = require('express')
+  , app = express()
   , mongoose = require('mongoose')
+  , ObjectId = mongoose.Schema.Types.ObjectId
   , db = mongoose.createConnection('localhost', 'snarl');
 
 var personSchema = mongoose.Schema({
-        name: String
+        name: { type: String, index: true }
+      , plugID: { type: String, unique: true, sparse: true }
       , karma: { type: Number, default: 0 }
     });
-var Person = db.model('Person', personSchema);
+var songSchema = mongoose.Schema({
+      author: String
+    , id: { type: String, index: true }
+    , cid: String
+    , plugID: String
+    , format: String
+    , title: String
+    , duration: Number
+    , lastPlay: Date
+});
+var historySchema = mongoose.Schema({
+    _song: { type: ObjectId, ref: 'Song', required: true }
+  , timestamp: { type: Date }
+})
+
+var Person  = db.model('Person',  personSchema);
+var Song    = db.model('Song',    songSchema);
+var History = db.model('History', historySchema);
 
 var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
 var ROOM = config.room;
+
+app.get('/history', function(req, res) {
+  History.find().limit(10).populate('_song').exec(function(err,  history) {
+    res.send(history);
+  });
+});
+
+app.get('/popular', function(req, res) {
+  Person.find().sort('-karma').limit(10).exec(function(err, people) {
+    res.send(people);
+  });
+});
+
+app.listen(43001);
 
 var PlugAPI = require('plugapi'),
     repl = require('repl');
 
 var bot = new PlugAPI(AUTH);
+bot.currentSong = {};
 bot.connect(ROOM);
+
+app.get('/', function(req, res) {
+  res.send('snarlbot web interface.<br><br>Now Playing: ' + bot.currentSong.title);
+});
+
+bot.on('djAdvance', function(data) {
+  console.log('New song: ' + JSON.stringify(data));
+  
+  bot.currentSong = data.media;
+  
+  Song.findOne({ id: data.media.id }).exec(function(err, song) {
+    if (!song) {
+      var song = new Song(data.media);
+    }
+    
+    var now = new Date();
+    
+    song.lastPlay = now;
+  
+    song.save(function(err) {
+    
+      var history = new History({
+          _song: song._id
+        , timestamp: now
+      });
+      history.save(function(err) {
+      
+      });
+    });
+  
+  });
+});
 
 bot.on('chat', function(data) {
 
@@ -31,7 +99,6 @@ bot.on('chat', function(data) {
   var cmd = data.message;
   var tokens = cmd.split(" ");
 
-
   tokens.forEach(function(token) {
     if (token.substr(0, 1) === '!') {
       data.trigger = token.substr(1);
@@ -39,7 +106,7 @@ bot.on('chat', function(data) {
       if (data.trigger == 'commands') {
         bot.chat('Available commands are: ' + Object.keys(messages).join(', '));
       } else {
-      
+
         if (tokens.indexOf(token) === 0) {
           data.params = tokens.slice(1).join(' ');
         }
@@ -57,17 +124,22 @@ bot.on('chat', function(data) {
     } else {
       if (token.indexOf('++') != -1) {
         var target = token.substr(0, token.indexOf('++'));
+        
+        if (target == data.from) {
+          self.chat('Don\'t be a whore.');
+        } else {
 
-        Person.findOne({ name: target }).exec(function(err, person) {
-          if (!person) {
-            var person = new Person({ name: target });
-          }
+          Person.findOne({ name: target }).exec(function(err, person) {
+            if (!person) {
+              var person = new Person({ name: target });
+            }
 
-          person.karma++;
-          person.save(function(err) {
-            if (err) { console.log(err); }
+            person.karma++;
+            person.save(function(err) {
+              if (err) { console.log(err); }
+            });
           });
-        });
+        }
       }
     }
   });

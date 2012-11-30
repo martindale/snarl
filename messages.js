@@ -1,14 +1,32 @@
 var rest = require('restler')
   , google = require('google')
   , mongoose = require('mongoose')
+  , ObjectId = mongoose.Schema.Types.ObjectId
   , db = mongoose.createConnection('localhost', 'snarl');
 
 var personSchema = mongoose.Schema({
-        name: String
-      , plugID: String
+        name: { type: String, index: true }
+      , plugID: { type: String, unique: true, sparse: true }
       , karma: { type: Number, default: 0 }
     });
-var Person = db.model('Person', personSchema);
+var songSchema = mongoose.Schema({
+      author: String
+    , id: { type: String, index: true }
+    , cid: String
+    , plugID: String
+    , format: String
+    , title: String
+    , duration: Number
+    , lastPlay: Date
+});
+var historySchema = mongoose.Schema({
+    _song: { type: ObjectId, ref: 'Song', required: true }
+  , timestamp: { type: Date }
+})
+
+var Person  = db.model('Person',  personSchema);
+var Song    = db.model('Song',    songSchema);
+var History = db.model('History', historySchema);
 
 module.exports = {
     snarl: "Ohaithar.  I'm a bot created by @remæus.  Blame him for any of my supposed mistakes."
@@ -29,6 +47,40 @@ module.exports = {
         if (response.facts && response.facts.length > 0) {
           self.chat(response.facts[0]);
         }
+      });
+    }
+  , songPlays: function(data) {
+      var self = this;
+      console.log('looking up: ' + JSON.stringify(self.currentSong));
+      
+      Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+        if (err) { console.log(err); } else {
+        
+        
+          History.count({ _song: song._id }, function(err, count) {
+            self.chat('This song has been played ' + count + ' times in recorded history.');
+          });
+        }
+      });
+    }
+  , lastPlayed: function(data) {
+      var self = this;
+    }
+  , lastSong: function(data) {
+      var self = this;
+      History.find({}).sort('-timestamp').limit(2).populate('_song').exec(function(err, history) {
+        if (history.length <= 1) {
+          self.chat("I've not been alive long enough to know that, Dave.");
+        } else {
+          var lastSong = history[1]._song;
+          self.chat('The last song was “'+ lastSong.title +'” by '+ lastSong.author + '.');
+        }
+      });
+    }
+  , history: function(data) {
+      var self = this;
+      History.count({}, function(err, count) {
+        self.chat('There are ' + count + ' songs in recorded history.');
       });
     }
   , popular: function(data) {
@@ -66,9 +118,11 @@ module.exports = {
       if (typeof(data.params) != 'undefined') {
         google(data.params, function(err, next, links) {
           if (err) { console.log(err); }
-          
-          self.chat(links[0].title + ': ' + links[0].link);
-          
+
+          if (typeof(links[0]) != 'undefined') {
+            self.chat(links[0].title + ': ' + links[0].link);
+          }
+
         });
       } else {
         self.chat('No query provided.');
