@@ -6,6 +6,9 @@ var config = require('./config')
   , ObjectId = mongoose.Schema.Types.ObjectId
   , db = mongoose.createConnection('localhost', 'snarl');
 
+var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
+var ROOM = config.room;
+
 var personSchema = mongoose.Schema({
         name: { type: String, index: true }
       , plugID: { type: String, unique: true, sparse: true }
@@ -30,22 +33,22 @@ var Person  = db.model('Person',  personSchema);
 var Song    = db.model('Song',    songSchema);
 var History = db.model('History', historySchema);
 
-var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
-var ROOM = config.room;
+app.use(app.router);
+app.use(express.static(__dirname + '/public'));
+app.use(express.errorHandler());
+app.set('view engine', 'jade');
 
 app.get('/history', function(req, res) {
-  History.find().limit(10).populate('_song').exec(function(err,  history) {
+  History.find().sort('-timestamp').limit(10).populate('_song').exec(function(err,  history) {
     res.send(history);
   });
 });
 
-app.get('/popular', function(req, res) {
+app.get('/djs', function(req, res) {
   Person.find().sort('-karma').limit(10).exec(function(err, people) {
     res.send(people);
   });
 });
-
-app.listen(43001);
 
 var PlugAPI = require('plugapi'),
     repl = require('repl');
@@ -55,7 +58,13 @@ bot.currentSong = {};
 bot.connect(ROOM);
 
 app.get('/', function(req, res) {
-  res.send('snarlbot web interface.<br><br>Now Playing: ' + bot.currentSong.title);
+  History.find().sort('-timestamp').limit(10).populate('_song').exec(function(err,  history) {
+    res.render('index', {
+        currentSong: bot.currentSong
+      , history: history
+    });
+  });
+
 });
 
 bot.on('djAdvance', function(data) {
@@ -145,6 +154,8 @@ bot.on('chat', function(data) {
   });
 
 });
+
+app.listen(43001);
 
 var _reconnect = function() { bot.connect('coding-soundtrack'); };
 var reconnect = function() { setTimeout(_reconnect, 500); };

@@ -1,0 +1,15 @@
+
+extends layout
+
+block content
+  h1 Coding Soundtrack
+  h2 Currently playing &ldquo;
+    a(href="/songs/#{currentSong.id}") #{currentSong.title}
+    | &rdquo; by #{currentSong.author}
+
+  #history
+    h2 Track History
+    ul
+      - for song in history
+        include blocks/song
+  

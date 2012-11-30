@@ -1,0 +1,32 @@
+!!! 5
+html
+  head
+    meta(charset="utf-8")
+    title Jade Example
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+
+    link(rel="stylesheet", href="/css/bootstrap.css")
+    link(rel="stylesheet", href="/css/bootstrap-responsive.css")
+    style
+      body {
+        padding-top: 60px;
+      }
+
+  body
+    .navbar.navbar-inverse.navbar-fixed-top
+      .navbar-inner
+        .container
+          a.brand(href="/") Coding Soundtrack
+          ul.nav
+            li.active
+              a(href="/") Home
+            li
+              a(href="/history") History
+            li
+              a(href="/djs") DJs
+
+    .container
+      block content
+
+    script(src="http://code.jquery.com/jquery-1.8.3.min.js")
+    script(src="/js/bootstrap.js")
