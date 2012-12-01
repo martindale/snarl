@@ -198,15 +198,11 @@ app.get('/djs/:plugID', function(req, res) {
         dj: dj
       });
     });
-
   });
 });
 
 app.get('/', function(req, res) {
   History.find().sort('-timestamp').limit(10).populate('_song').populate('_dj').exec(function(err,  history) {
-
-    console.log(history[0]);
-
     res.render('index', {
         currentSong: bot.currentSong
       , history: history
@@ -245,6 +241,24 @@ bot.on('djAdvance', function(data) {
             console.log("in callback, finished: ", result);
           }
       });
+
+      var scrobbleDuration = 60000;
+      if (data.media.duration > 120000) {
+        scrobbleDuration = 240000;
+      } else {
+        scrobbleDuration = data.media.duration * 1000 / 2;
+      }
+
+      bot.room.track.scrobbleTimer = setTimeout(function() {
+        lastfm.scrobbleTrack({
+            artist: data.media.author,
+            track: data.media.title,
+            callback: function(result) {
+                console.log("in callback, finished: ", result);
+            }
+        });
+      }, scrobbleDuration);
+
     } else {
       console.log("Error: " + result.error);
     }
