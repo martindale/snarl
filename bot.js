@@ -196,7 +196,7 @@ bot.on('djAdvance', function(data) {
 
     song.save(function(err) {
 
-      bot.room.song = song;
+      bot.room.track = song;
       bot.currentSongMongoose = song;
 
       findOrCreatePerson({
