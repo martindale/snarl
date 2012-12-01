@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  h1 #{dj.name} 
+    small <strong>#{dj.karma}</strong> karma
+
+  h3 Play History
+  - for song in dj.playHistory
+    li
+      a(href="/history/#{song.id}") #{song.timestamp}
+      |  
+      a(href="/songs/#{song._song.id}") #{song._song.title}

@@ -105,11 +105,17 @@ app.get('/history/:songInstance', function(req, res) {
 app.get('/songs/:songID', function(req, res) {
   Song.findOne({ id: req.param('songID') }).exec(function(err, song) {
     song._song = song; // hack to simplify templates for now. this is the History schema, technically
-    res.render('song', {
-      song: song
+    History.count({ _song: song._id }, function(err, playCount) {
+      song.playCount = playCount;
+      History.findOne({ _song: song._id }).sort('-timestamp').populate('_dj').exec(function(err, lastPlay) {
+        song.mostRecently = lastPlay;
+        res.render('song', {
+          song: song
+        });
+      });
     });
-  })
-})
+  });
+});
 
 app.get('/djs', function(req, res) {
   Person.find().sort('-karma').limit(10).exec(function(err, people) {
@@ -121,9 +127,13 @@ app.get('/djs', function(req, res) {
 
 app.get('/djs/:plugID', function(req, res) {
   Person.findOne({ plugID: req.param('plugID') }).exec(function(err, dj) {
-    res.render('dj', {
-      dj: dj
+    History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
+      dj.playHistory = djHistory;
+      res.render('dj', {
+        dj: dj
+      });
     });
+
   });
 });
 

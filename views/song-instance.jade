@@ -1,0 +1,8 @@
+extends layout
+
+block content
+  - if (typeof(song._dj) != 'undefined')
+    small
+      a(href="/djs/#{song._dj.plugID}") #{song._dj.name}
+      |  played 
+  include blocks/song

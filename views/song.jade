@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  include blocks/song
+  - if (typeof(song.mostRecently._dj) != 'undefined' && typeof(song.mostRecently._dj.name) != 'undefined')
+    p Last played on 
+      a(href="/history/#{song.mostRecently._id}") #{song.mostRecently.timestamp}
+      |  by 
+      a(href="/djs/#{song.mostRecently._dj.plugID}") #{song.mostRecently._dj.name}
+      | .
+  - else
+    p Last played on #{song.mostRecently.timestamp}.
+
+  p This song has been played <strong>#{song.playCount}</strong> times.
