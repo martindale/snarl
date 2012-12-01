@@ -1,5 +1,6 @@
  rest = require('restler')
   , google = require('google')
+  , _ = require('underscore')
   , mongoose = require('mongoose')
   , ObjectId = mongoose.Schema.Types.ObjectId
   , db = mongoose.createConnection('localhost', 'snarl');
@@ -8,6 +9,7 @@ var personSchema = mongoose.Schema({
         name: { type: String, index: true }
       , plugID: { type: String, unique: true, sparse: true }
       , karma: { type: Number, default: 0 }
+      , lastChat: { type: Date }
     });
 var songSchema = mongoose.Schema({
       author: String
@@ -50,14 +52,41 @@ module.exports = {
         }
       });
     }
+  /*, djs: function(data) {
+      var self = this;
+      var now = new Date();
+
+      var idleDJs = [];
+      _.toArray(self.room.djs).forEach(function(dj) {
+
+        if (dj.lastChat.getTime() <= (now.getTime() - 300000)) {
+          dj.idleTime = dj.lastChat.getTime() <= (now.getTime() - 300000) / 1000;
+          idleDJs.push(dj);
+        }
+      });
+
+      idleDJs = idleDJs.map(function(item) {
+        var idleTime = secondsToTime(item.idleTime);
+        return '@' + item.name + ' ('+ secondsToTime(item.idleTime) +')';
+      });
+
+      if (idleDJs.length > 0) {
+        self.chat('Idle: ' + oxfordJoin(idleDJs));
+      } else {
+        self.chat('No idle DJs!');
+      }
+
+    } */
+  , permalink: function(data) {
+      var self = this;
+      self.chat('Song: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+    }
   , songPlays: function(data) {
       var self = this;
       console.log('looking up: ' + JSON.stringify(self.currentSong));
       
       Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
         if (err) { console.log(err); } else {
-        
-        
           History.count({ _song: song._id }, function(err, count) {
             self.chat('This song has been played ' + count + ' times in recorded history.');
           });
@@ -141,6 +170,14 @@ module.exports = {
 }
 
 function oxfordJoin(array) {
+  if (array instanceof Array) {
+
+  } else {
+    array = _.toArray(array).map(function(item) {
+      return item.name;
+    });
+  }
+
   var string = '';
   if (array.length <= 1) {
     string = array.join();
@@ -148,4 +185,21 @@ function oxfordJoin(array) {
     string = array.slice(0, -1).join(", ") + ", and " + array[array.length-1];
   }
   return string;
+}
+
+function secondsToTime(secs) {
+  var hours = Math.floor(secs / (60 * 60));
+  
+  var divisor_for_minutes = secs % (60 * 60);
+  var minutes = Math.floor(divisor_for_minutes / 60);
+
+  var divisor_for_seconds = divisor_for_minutes % 60;
+  var seconds = Math.ceil(divisor_for_seconds);
+  
+  var obj = {
+    "h": hours,
+    "m": minutes,
+    "s": seconds
+  };
+  return obj;
 }

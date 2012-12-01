@@ -2,7 +2,7 @@
 extends layout
 
 block content
-  h1 <a href="http://plug.dj">&#9835;</a> Coding Soundtrack
+  h1 <a href="http://plug.dj/coding-soundtrack">&#9835;</a> Coding Soundtrack
   h2 Currently playing &ldquo;
     a(href="/songs/#{currentSong.id}") #{currentSong.title}
     | &rdquo; by #{currentSong.author}
@@ -13,7 +13,7 @@ block content
       - for dj in room.djs
         .djCard.span2
           a(href="/djs/#{dj.plugID}") #{dj.name}
-  
+
   .row-fluid
     #history
       h2 Track History

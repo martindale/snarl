@@ -26,6 +26,7 @@ var personSchema = mongoose.Schema({
         name: { type: String, index: true }
       , plugID: { type: String, unique: true, sparse: true }
       , karma: { type: Number, default: 0 }
+      , lastChat: { type: Date }
     });
 var songSchema = mongoose.Schema({
       author: String
@@ -153,18 +154,22 @@ app.get('/songs', function(req, res) {
 
 });
 
-app.get('/songs/:songID', function(req, res) {
+app.get('/songs/:songID', function(req, res, next) {
   Song.findOne({ id: req.param('songID') }).exec(function(err, song) {
-    song._song = song; // hack to simplify templates for now. this is the History schema, technically
-    History.count({ _song: song._id }, function(err, playCount) {
-      song.playCount = playCount;
-      History.findOne({ _song: song._id }).sort('-timestamp').populate('_dj').exec(function(err, lastPlay) {
-        song.mostRecently = lastPlay;
-        res.render('song', {
-          song: song
+    if (song) {
+      song._song = song; // hack to simplify templates for now. this is the History schema, technically
+      History.count({ _song: song._id }, function(err, playCount) {
+        song.playCount = playCount;
+        History.findOne({ _song: song._id }).sort('-timestamp').populate('_dj').exec(function(err, lastPlay) {
+          song.mostRecently = lastPlay;
+          res.render('song', {
+            song: song
+          });
         });
       });
-    });
+    } else {
+      next();
+    }
   });
 });
 
@@ -266,6 +271,7 @@ bot.on('djAdvance', function(data) {
 
 bot.on('chat', function(data) {
   var self = this;
+  var now = new Date();
 
   if (data.type == 'emote') {
     console.log(data.from+data.message);
@@ -277,8 +283,13 @@ bot.on('chat', function(data) {
       name: data.from
     , plugID: data.fromID
   }, function(person) {
-    console.log('User ' + person._id + ' joined.  Added to database.');
+    person.lastChat = now;
+    person.save();
   });
+
+  if (typeof(bot.room.djs[data.fromID]) != 'undefined') {
+    bot.room.djs[data.fromID].lastChat = now;
+  }
 
   var cmd = data.message;
   var tokens = cmd.split(" ");
