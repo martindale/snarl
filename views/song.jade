@@ -2,6 +2,7 @@ extends layout
 
 block content
   include blocks/song
+
   - if (typeof(song.mostRecently._dj) != 'undefined' && typeof(song.mostRecently._dj.name) != 'undefined')
     p Last played on 
       a(href="/history/#{song.mostRecently._id}") #{song.mostRecently.timestamp}
@@ -12,3 +13,10 @@ block content
     p Last played on #{song.mostRecently.timestamp}.
 
   p This song has been played <strong>#{song.playCount}</strong> times.
+
+
+  case song.format
+    when '1'
+      iframe(width="560", height="315", src="http://www.youtube.com/embed/#{song.cid}", frameborder="0", allowfullscreen)
+    when '2'
+      iframe(width="100%", height="166", scrolling="no", frameborder="no", src="http://w.soundcloud.com/player/?url=http%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F#{song.cid}&show_artwork=true")
