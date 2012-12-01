@@ -2,6 +2,7 @@ var config = require('./config')
   , PlugAPI = require('plugapi')
   , repl = require('repl')
   , messages = require('./messages')
+  , _ = require('underscore')
   , express = require('express')
   , app = express()
   , mongoose = require('mongoose')
@@ -48,10 +49,11 @@ app.set('view engine', 'jade');
 
 function findOrCreatePerson(user, callback) {
   Person.findOne({ $or: [ { plugID: user.plugID }, { name: user.name } ] }).exec(function(err, person) {
+
     if (!person) {
       var person = new Person({
-          name: user.name ? user.name : undefined
-        , plugID: user.plugID ? user.plugID : undefined
+          name: user.name
+        , plugID: user.plugID
       });
     }
 
@@ -137,14 +139,14 @@ app.get('/', function(req, res) {
   });
 });
 
-bot.on('userJoin', function(data) {
+/* bot.on('userJoin', function(data) {
   findOrCreatePerson({
       name: data.username
     , plugID: data.id
   }, function(person) {
     console.log('User ' + person._id + ' joined.  Added to database.');
   });
-});
+}); */
 
 bot.on('djAdvance', function(data) {
   console.log('New song: ' + JSON.stringify(data));
@@ -181,7 +183,6 @@ bot.on('djAdvance', function(data) {
 });
 
 bot.on('chat', function(data) {
-
   var self = this;
 
   if (data.type == 'emote') {
@@ -189,6 +190,13 @@ bot.on('chat', function(data) {
   } else {
     console.log(data.from+"> "+data.message);
   }
+
+  findOrCreatePerson({
+      name: data.from
+    , plugID: data.fromID
+  }, function(person) {
+    console.log('User ' + person._id + ' joined.  Added to database.');
+  });
 
   var cmd = data.message;
   var tokens = cmd.split(" ");
@@ -223,10 +231,8 @@ bot.on('chat', function(data) {
           self.chat('Don\'t be a whore.');
         } else {
 
-          Person.findOne({ name: target }).exec(function(err, person) {
-            if (!person) {
-              var person = new Person({ name: target });
-            }
+          findOrCreatePerson({ name: target }, function(person) {
+            console.log(person);
 
             person.karma++;
             person.save(function(err) {
