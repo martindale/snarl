@@ -9,6 +9,13 @@ block content
 
   #history
     h2 Track History
-    ul
+    ol
       - for song in history
-        include blocks/song
+        li
+          a(href="/history/#{song.id}") #{song.timestamp}
+          |  
+          a(href="/songs/#{song._song.id}") #{song._song.title}
+          - if (typeof(song._dj) != 'undefined')
+            |  was played by 
+            a(href="/djs/#{song._dj.plugID}") #{song._dj.name}
+  

@@ -1,4 +1,4 @@
-var rest = require('restler')
+ rest = require('restler')
   , google = require('google')
   , mongoose = require('mongoose')
   , ObjectId = mongoose.Schema.Types.ObjectId
@@ -21,6 +21,7 @@ var songSchema = mongoose.Schema({
 });
 var historySchema = mongoose.Schema({
     _song: { type: ObjectId, ref: 'Song', required: true }
+  , _dj: { type: ObjectId, ref: 'Person', required: true }
   , timestamp: { type: Date }
 })
 
@@ -103,10 +104,10 @@ module.exports = {
           });
 
           person.save(function(err) {
-            self.chat(data.from + ' has 0 karma.');
+            self.chat('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://snarl.ericmartindale.com/djs/' + data.fromID );
           });
         } else {
-          self.chat(data.from + ' has ' + person.karma + ' karma.');
+          self.chat('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://snarl.ericmartindale.com/djs/' + data.fromID );
         }
       });
     }

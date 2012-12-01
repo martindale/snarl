@@ -32,6 +32,7 @@ var songSchema = mongoose.Schema({
 });
 var historySchema = mongoose.Schema({
     _song: { type: ObjectId, ref: 'Song', required: true }
+  , _dj: { type: ObjectId, ref: 'Person', required: true }
   , timestamp: { type: Date }
 })
 
@@ -44,6 +45,45 @@ app.use(express.static(__dirname + '/public'));
 app.use(express.errorHandler());
 app.set('view engine', 'jade');
 
+
+function findOrCreatePerson(user, callback) {
+  Person.findOne({ $or: [ { plugID: user.plugID }, { name: user.name } ] }).exec(function(err, person) {
+    if (!person) {
+      var person = new Person({
+          name: user.name ? user.name : undefined
+        , plugID: user.plugID ? user.plugID : undefined
+      });
+    }
+
+    if (typeof(user.name) != 'undefined') {
+      person.name = user.name;
+    }
+
+    if (typeof(user.plugID) != 'undefined') {
+      person.plugID = user.plugID;
+    }
+
+    person.save(function(err) {
+      callback(person);
+    });
+  });
+}
+
+
+app.get('/search/name/:name', function(req, res) {
+  Person.findOne({ name: req.param('name') }).exec(function(err, person) {
+    if (!person) {
+      res.send('No such DJ found!');
+    } else {
+      if (typeof(person.plugID) != 'undefined') {
+        res.redirect('/djs/' + person.plugID);
+      } else {
+        res.send('DJ located, but no known plug.dj ID.');
+      }
+    }
+  })
+});
+
 app.get('/history', function(req, res) {
   History.find().sort('-timestamp').limit(10).populate('_song').exec(function(err,  history) {
     res.render('history', {
@@ -53,7 +93,7 @@ app.get('/history', function(req, res) {
 });
 
 app.get('/history/:songInstance', function(req, res) {
-  History.findOne({ _id: req.param('songInstance') }).populate('_song').exec(function(err, songInstance) {
+  History.findOne({ _id: req.param('songInstance') }).populate('_song').populate('_dj').exec(function(err, songInstance) {
     res.render('song-instance', {
       song: songInstance
     });
@@ -86,7 +126,10 @@ app.get('/djs/:plugID', function(req, res) {
 });
 
 app.get('/', function(req, res) {
-  History.find().sort('-timestamp').limit(10).populate('_song').exec(function(err,  history) {
+  History.find().sort('-timestamp').limit(10).populate('_song').populate('_dj').exec(function(err,  history) {
+
+    console.log(history[0]);
+
     res.render('index', {
         currentSong: bot.currentSong
       , history: history
@@ -94,31 +137,46 @@ app.get('/', function(req, res) {
   });
 });
 
+bot.on('userJoin', function(data) {
+  findOrCreatePerson({
+      name: data.username
+    , plugID: data.id
+  }, function(person) {
+    console.log('User ' + person._id + ' joined.  Added to database.');
+  });
+});
+
 bot.on('djAdvance', function(data) {
   console.log('New song: ' + JSON.stringify(data));
-  
+
   bot.currentSong = data.media;
-  
+
   Song.findOne({ id: data.media.id }).exec(function(err, song) {
     if (!song) {
       var song = new Song(data.media);
     }
-    
+
     var now = new Date();
-    
+
     song.lastPlay = now;
-  
+
     song.save(function(err) {
-    
-      var history = new History({
-          _song: song._id
-        , timestamp: now
-      });
-      history.save(function(err) {
-      
-      });
+
+      findOrCreatePerson({
+        plugID: data.currentDJ
+      }, function(dj) {
+        var history = new History({
+            _song: song._id
+          , _dj: dj._id
+          , timestamp: now
+        });
+        history.save(function(err) {
+
+        });
+      })
+
     });
-  
+
   });
 });
 
