@@ -1,2 +1,6 @@
-h3 #{song._song.title}
-  small  @ #{song.timestamp}
+h3 
+  a(href="/songs/#{song._song.id}") # 
+  | #{song._song.title}
+  - if (typeof(song.timestamp) != 'undefined')
+    small 
+      a(href="/history/#{song._id}") #{song.timestamp}

@@ -1,4 +1,6 @@
 var config = require('./config')
+  , PlugAPI = require('plugapi')
+  , repl = require('repl')
   , messages = require('./messages')
   , express = require('express')
   , app = express()
@@ -8,6 +10,10 @@ var config = require('./config')
 
 var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
 var ROOM = config.room;
+
+var bot = new PlugAPI(AUTH);
+bot.currentSong = {};
+bot.connect(ROOM);
 
 var personSchema = mongoose.Schema({
         name: { type: String, index: true }
@@ -40,22 +46,44 @@ app.set('view engine', 'jade');
 
 app.get('/history', function(req, res) {
   History.find().sort('-timestamp').limit(10).populate('_song').exec(function(err,  history) {
-    res.send(history);
+    res.render('history', {
+      history: history
+    });
   });
 });
+
+app.get('/history/:songInstance', function(req, res) {
+  History.findOne({ _id: req.param('songInstance') }).populate('_song').exec(function(err, songInstance) {
+    res.render('song-instance', {
+      song: songInstance
+    });
+  })
+});
+
+app.get('/songs/:songID', function(req, res) {
+  Song.findOne({ id: req.param('songID') }).exec(function(err, song) {
+    song._song = song; // hack to simplify templates for now. this is the History schema, technically
+    res.render('song', {
+      song: song
+    });
+  })
+})
 
 app.get('/djs', function(req, res) {
   Person.find().sort('-karma').limit(10).exec(function(err, people) {
-    res.send(people);
+    res.render('djs', {
+      djs: people
+    });
   });
 });
 
-var PlugAPI = require('plugapi'),
-    repl = require('repl');
-
-var bot = new PlugAPI(AUTH);
-bot.currentSong = {};
-bot.connect(ROOM);
+app.get('/djs/:plugID', function(req, res) {
+  Person.findOne({ plugID: req.param('plugID') }).exec(function(err, dj) {
+    res.render('dj', {
+      dj: dj
+    });
+  });
+});
 
 app.get('/', function(req, res) {
   History.find().sort('-timestamp').limit(10).populate('_song').exec(function(err,  history) {
@@ -64,7 +92,6 @@ app.get('/', function(req, res) {
       , history: history
     });
   });
-
 });
 
 bot.on('djAdvance', function(data) {
