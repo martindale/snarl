@@ -3,6 +3,7 @@ var config = require('./config')
   , repl = require('repl')
   , messages = require('./messages')
   , _ = require('underscore')
+  , async = require('async')
   , express = require('express')
   , app = express()
   , mongoose = require('mongoose')
@@ -107,6 +108,51 @@ app.get('/history/:songInstance', function(req, res) {
   })
 });
 
+app.get('/songs', function(req, res) {
+
+  var map = function() { //map function
+    emit(this._song, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
+  } 
+
+  var reduce = function(previous, current) { //reduce function
+    var count = 0;
+    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
+      count += current[index]; //increments the counter by the 'value' of 1
+    }
+    return count;
+  };
+
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+  }, function(err, songs) {
+
+    /* sort the results */
+    songs.sort(function(a, b) {
+      return a.value - b.value;
+    });
+
+    /* clip the top 25 */
+    songs = songs.slice(0, 25);
+
+    /* now get the real records for these songs */
+    async.parallel(songs.map(function(song) {
+      return function(callback) {
+        Song.findOne({ _id: song._id }).exec(function(err, realSong) {
+          realSong.plays = song.value;
+          callback(null, realSong);
+        });
+      };
+    }), function(err, results) {
+      res.render('songs', {
+        songs: results
+      });
+    });
+  });
+
+});
+
 app.get('/songs/:songID', function(req, res) {
   Song.findOne({ id: req.param('songID') }).exec(function(err, song) {
     song._song = song; // hack to simplify templates for now. this is the History schema, technically
@@ -150,6 +196,7 @@ app.get('/', function(req, res) {
     res.render('index', {
         currentSong: bot.currentSong
       , history: history
+      , room: bot.room
     });
   });
 });
@@ -262,6 +309,11 @@ bot.on('chat', function(data) {
       if (token.indexOf('++') != -1) {
         var target = token.substr(0, token.indexOf('++'));
         
+        // remove leading @ if it exists
+        if (target.indexOf('@') === 0) {
+          target = target.substr(1);
+        }
+
         if (target == data.from) {
           self.chat('Don\'t be a whore.');
         } else {

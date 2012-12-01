@@ -66,6 +66,15 @@ module.exports = {
     }
   , lastPlayed: function(data) {
       var self = this;
+      History.find({ _song: self.room.track._id }).sort('-timestamp').limit(2).populate('_dj').exec(function(err, history) {
+        var lastPlay = history[1];
+
+        if (lastPlay) {
+          self.chat('This song was last played on ' + lastPlay.timestamp + ' by ' + lastPlay._dj.name + '.');
+        } else {
+          self.chat('I haven\'t heard this song before.');
+        }
+      });
     }
   , lastSong: function(data) {
       var self = this;
