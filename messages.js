@@ -81,7 +81,7 @@ module.exports = {
   , history: function(data) {
       var self = this;
       History.count({}, function(err, count) {
-        self.chat('There are ' + count + ' songs in recorded history.');
+        self.chat('There are ' + count + ' songs in recorded history: http://snarl.ericmartindale.com/history');
       });
     }
   , popular: function(data) {
@@ -91,7 +91,7 @@ module.exports = {
           return '@' + person.name;
         });
       
-        self.chat(oxfordJoin(names) + ' are all the rage these days.');
+        self.chat(oxfordJoin(names) + ' are all the rage these days. See more: http://snarl.ericmartindale.com/djs');
       });
     }
   , karma: function(data) {
