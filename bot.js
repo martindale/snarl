@@ -3,6 +3,7 @@ var config = require('./config')
   , repl = require('repl')
   , messages = require('./messages')
   , _ = require('underscore')
+  , LastFM = require('./lib/simple-lastfm')
   , async = require('async')
   , express = require('express')
   , app = express()
@@ -21,6 +22,14 @@ bot.room = {
   , track: {}
 };
 bot.connect(ROOM);
+
+var lastfm = new LastFM({
+    api_key:    config.lastfm.key
+  , api_secret: config.lastfm.secret
+  , username:   config.lastfm.username
+  , password:   config.lastfm.password
+  , debug: true
+});
 
 var personSchema = mongoose.Schema({
         name: { type: String, index: true }
@@ -225,6 +234,21 @@ bot.on('voteUpdate', function(data) {
 
 bot.on('djAdvance', function(data) {
   console.log('New song: ' + JSON.stringify(data));
+
+  lastfm.getSessionKey(function(result) {
+    console.log("session key = " + result.session_key);
+    if (result.success) {
+      lastfm.scrobbleNowPlayingTrack({
+          artist: data.media.author
+        , track: data.media.title
+        , callback: function(result) {
+            console.log("in callback, finished: ", result);
+          }
+      });
+    } else {
+      console.log("Error: " + result.error);
+    }
+  });
 
   bot.room.djs = {};
   data.djs.forEach(function(dj) {
