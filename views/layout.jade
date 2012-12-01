@@ -11,7 +11,6 @@ html
       body {
         padding-top: 60px;
       }
-
   body
     .navbar.navbar-inverse.navbar-fixed-top
       .navbar-inner
@@ -31,13 +30,14 @@ html
     script(src="http://code.jquery.com/jquery-1.8.3.min.js")
     script(src="/js/bootstrap.js")
 
-    script
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-36741605-1']);
-      _gaq.push(['_trackPageview']);
+    - if (typeof(config.ga.config) != 'undefined' && config.ga.config.length > 0)
+      script
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', #{config.ga.account}]);
+        _gaq.push(['_trackPageview']);
 
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+          ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();

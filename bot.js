@@ -14,6 +14,11 @@ var ROOM = config.room;
 
 var bot = new PlugAPI(AUTH);
 bot.currentSong = {};
+bot.currentRoom = {};
+bot.room = {
+    djs: {}
+  , track: {}
+};
 bot.connect(ROOM);
 
 var personSchema = mongoose.Schema({
@@ -45,7 +50,8 @@ app.use(app.router);
 app.use(express.static(__dirname + '/public'));
 app.use(express.errorHandler());
 app.set('view engine', 'jade');
-
+app.locals.config = config; // WARNING: this exposes your config to jade! be careful not to render your bot's cookie.
+app.locals.pretty = true;
 
 function findOrCreatePerson(user, callback) {
   Person.findOne({ $or: [ { plugID: user.plugID }, { name: user.name } ] }).exec(function(err, person) {
@@ -70,7 +76,6 @@ function findOrCreatePerson(user, callback) {
     });
   });
 }
-
 
 app.get('/search/name/:name', function(req, res) {
   Person.findOne({ name: req.param('name') }).exec(function(err, person) {
@@ -158,8 +163,25 @@ app.get('/', function(req, res) {
   });
 }); */
 
+bot.on('voteUpdate', function(data) {
+  findOrCreatePerson({
+    plugID: data.id
+  }, function(person) {
+
+  });
+});
+
 bot.on('djAdvance', function(data) {
   console.log('New song: ' + JSON.stringify(data));
+
+  bot.room.djs = {};
+  data.djs.forEach(function(dj) {
+    findOrCreatePerson({
+      plugID: dj.id
+    }, function(person) {
+      bot.room.djs[dj.id] = person;
+    });
+  });
 
   bot.currentSong = data.media;
 
@@ -173,6 +195,9 @@ bot.on('djAdvance', function(data) {
     song.lastPlay = now;
 
     song.save(function(err) {
+
+      bot.room.song = song;
+      bot.currentSongMongoose = song;
 
       findOrCreatePerson({
         plugID: data.currentDJ
