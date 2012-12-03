@@ -28,7 +28,7 @@ var lastfm = new LastFM({
   , api_secret: config.lastfm.secret
   , username:   config.lastfm.username
   , password:   config.lastfm.password
-  , debug: true
+  , debug: false
 });
 
 var personSchema = mongoose.Schema({

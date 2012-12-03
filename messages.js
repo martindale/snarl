@@ -93,6 +93,7 @@ module.exports = {
         }
       });
     }
+  , distracting: 'Try not to play songs that would be distracting to someone trying to write code.  Stay on theme as much as possible!'
   , lastPlayed: function(data) {
       var self = this;
       History.find({ _song: self.room.track._id }).sort('-timestamp').limit(2).populate('_dj').exec(function(err, history) {
