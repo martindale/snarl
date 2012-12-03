@@ -1,6 +1,7 @@
  rest = require('restler')
   , google = require('google')
   , _ = require('underscore')
+  , timeago = require('timeago')
   , mongoose = require('mongoose')
   , ObjectId = mongoose.Schema.Types.ObjectId
   , db = mongoose.createConnection('localhost', 'snarl');
@@ -60,6 +61,10 @@ module.exports = {
         }
       });
     }
+  , remæusfacts: function(data) {
+      var self = this;
+      self.chat('remæus\' third word was "combine".  His first was "truck," and his second "bobtail".');
+    }
   , djs: function(data) {
       var self = this;
       var now = new Date();
@@ -68,14 +73,14 @@ module.exports = {
       _.toArray(self.room.djs).forEach(function(dj) {
 
         if (dj.lastChat.getTime() <= (now.getTime() - 300000)) {
-          dj.idleTime = dj.lastChat.getTime() <= (now.getTime() - 300000) / 1000;
+          dj.idleTime = dj.lastChat.getTime() / 1000;
           idleDJs.push(dj);
         }
       });
 
       idleDJs = idleDJs.map(function(item) {
         var idleTime = secondsToTime(item.idleTime);
-        return '@' + item.name + ' ('+ secondsToTime(item.idleTime) +')';
+        return '@' + item.name + ' ('+ idleTime.m +'m'+idleTime.s+'s)';
       });
 
       if (idleDJs.length > 0) {
@@ -115,7 +120,7 @@ module.exports = {
         var lastPlay = history[1];
 
         if (lastPlay) {
-          self.chat('This song was last played on ' + lastPlay.timestamp + ' by ' + lastPlay._dj.name + '.');
+          self.chat('This song was last played ' + timeago(lastPlay.timestamp) + ' by ' + lastPlay._dj.name + '.');
         } else {
           self.chat('I haven\'t heard this song before.');
         }
