@@ -33,8 +33,16 @@ var History = db.model('History', historySchema);
 
 module.exports = {
     snarl: "Ohaithar.  I'm a bot created by @remæus.  Blame him for any of my supposed mistakes."
-  , snarlSource: "You can see all my insides (and submit modifications) here: http://github.com/martindale/snarl"
+  , snarlsource: "You can see all my insides (and submit modifications) here: http://github.com/martindale/snarl"
   , debug: function(data) { this.chat(JSON.stringify(data)) }
+  , afk: 'If you\'re AFK at the end of your song for longer than 30 minutes you get warning 1. One minute later you get warning 2, another minute last warning, 30 seconds [boot].'
+  , afpdj: '-AFTT- AFPDJ is just as bad as AFK. DJ\'s must pay attention to chat, if you cannot do that then don\'t DJ during prime time. The purpose of these rules is so that active users who can pay attention to chat at their employer\'s expense can sit up on the decks.'
+  , aftt: '-AFTT- AFPDJ is just as bad as AFK. DJ\'s must pay attention to chat, if you cannot do that then don\'t DJ during prime time. The purpose of these rules is so that active users who can pay attention to chat at their employer\'s expense can sit up on the decks.'
+  , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
+  , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.com/ten-commendmants'
+  , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See /music for music suggestions, though there are no defined or enforced rules on music. More: http://goo.gl/b7UGO'
+  , jarplug: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
+  , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
   , video: 'dat video.'
   , awesome: function(data) {
       var self = this;
@@ -52,7 +60,7 @@ module.exports = {
         }
       });
     }
-  /*, djs: function(data) {
+  , djs: function(data) {
       var self = this;
       var now = new Date();
 
@@ -76,12 +84,19 @@ module.exports = {
         self.chat('No idle DJs!');
       }
 
-    } */
+    }
+  , erm: function(data) {
+      var self = this;
+      if (typeof(data.params) != 'undefined') {
+        self.chat(ermgerd(data.params));
+      }
+    }
+  , nsfw: 'Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!'
   , permalink: function(data) {
       var self = this;
       self.chat('Song: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
     }
-  , songPlays: function(data) {
+  , songplays: function(data) {
       var self = this;
       console.log('looking up: ' + JSON.stringify(self.currentSong));
       
@@ -94,7 +109,7 @@ module.exports = {
       });
     }
   , distracting: 'Try not to play songs that would be distracting to someone trying to write code.  Stay on theme as much as possible!'
-  , lastPlayed: function(data) {
+  , lastplayed: function(data) {
       var self = this;
       History.find({ _song: self.room.track._id }).sort('-timestamp').limit(2).populate('_dj').exec(function(err, history) {
         var lastPlay = history[1];
@@ -106,7 +121,7 @@ module.exports = {
         }
       });
     }
-  , lastSong: function(data) {
+  , lastsong: function(data) {
       var self = this;
       History.find({}).sort('-timestamp').limit(2).populate('_song').exec(function(err, history) {
         if (history.length <= 1) {
@@ -116,6 +131,20 @@ module.exports = {
           self.chat('The last song was “'+ lastSong.title +'” by '+ lastSong.author + '.');
         }
       });
+    }
+  , music: function(data) {
+      var self = this;
+      var time = new Date().getUTCHours() - 5;
+      
+      if ( 0 <= time && time < 5) {
+        self.chat("Evening! Keep the tempo up, it's the only thing keeping the all nighters going.");
+      } else if ( 5 <= time && time < 12 ) {
+        self.chat("AM! Chill tracks with good beats, most programmers are slow to wake so don't hit them with hard hitting tunes. Wubs are widely discouraged this early.");
+      } else if (12 <= time && time < 17 ){
+        self.chat('Afternoon! Fresh tracks for fresh people.');
+      } else {
+        self.chat("Evening! Most people are out of work so things are a lot more fluid and much less harsh. Seats are easy to get, spin a few if you want but don't hog the decks!");
+      }
     }
   , history: function(data) {
       var self = this;
@@ -204,3 +233,131 @@ function secondsToTime(secs) {
   };
   return obj;
 }
+
+function ermgerd(text) {
+  text = text.toUpperCase();
+
+  var words = text.split(' '),
+    translatedWords = [];
+
+  for (var j in words) {
+    var prefix = words[j].match(/^\W+/) || '',
+      suffix = words[j].match(/\W+$/) || '',
+      word = words[j].replace(prefix, '').replace(suffix, '');
+
+    if (word) {
+      // Is translatable
+      translatedWords.push(prefix + translate(word) + suffix);
+    } else {
+      // Is punctuation
+      translatedWords.push(words[j]);
+    }
+  }
+
+  return translatedWords.join(' ');
+}
+
+function str_split(string, split_length) {
+  // http://kevin.vanzonneveld.net
+  // +     original by: Martijn Wieringa
+  // +     improved by: Brett Zamir (http://brett-zamir.me)
+  // +     bugfixed by: Onno Marsman
+  // +      revised by: Theriault
+  // +        input by: Bjorn Roesbeke (http://www.bjornroesbeke.be/)
+  // +      revised by: Rafał Kukawski (http://blog.kukawski.pl/)
+  // *       example 1: str_split('Hello Friend', 3);
+  // *       returns 1: ['Hel', 'lo ', 'Fri', 'end']
+  if (split_length === null) {
+    split_length = 1;
+  }
+  if (string === null || split_length < 1) {
+    return false;
+  }
+  string += '';
+  var chunks = [],
+    pos = 0,
+    len = string.length;
+  while (pos < len) {
+    chunks.push(string.slice(pos, pos += split_length));
+  }
+
+  return chunks;
+};
+
+function translate(word) {
+  // Don't translate short words
+  if (word.length == 1) {
+    return word;
+  }
+
+  // Handle specific words
+  switch (word) {
+    case 'AWESOME':      return 'ERSUM';
+    case 'BANANA':      return 'BERNERNER';
+    case 'BAYOU':      return 'BERU';
+    case 'FAVORITE':
+    case 'FAVOURITE':    return 'FRAVRIT';
+    case 'GOOSEBUMPS':    return 'GERSBERMS';
+    case 'LONG':      return 'LERNG';
+    case 'MY':        return 'MAH';
+    case 'THE':        return 'DA';
+    case 'THEY':      return 'DEY';
+    case 'WE\'RE':      return 'WER';
+    case 'YOU':        return 'U';
+    case 'YOU\'RE':      return 'YER';
+  }
+
+  // Before translating, keep a reference of the original word
+  var originalWord = word;
+
+  // Drop vowel from end of words
+  if (originalWord.length > 2) {  // Keep it for short words, like "WE"
+    word = word.replace(/[AEIOU]$/, '');
+  }
+
+  // Reduce duplicate letters
+  word = word.replace(/[^\w\s]|(.)(?=\1)/gi, '');
+
+  // Reduce adjacent vowels to one
+  word = word.replace(/[AEIOUY]{2,}/g, 'E');  // TODO: Keep Y as first letter
+
+  // DOWN -> DERN
+  word = word.replace(/OW/g, 'ER');
+
+  // PANCAKES -> PERNKERKS
+  word = word.replace(/AKES/g, 'ERKS');
+
+  // The meat and potatoes: replace vowels with ER
+  word = word.replace(/[AEIOUY]/g, 'ER');    // TODO: Keep Y as first letter
+
+  // OH -> ER
+  word = word.replace(/ERH/g, 'ER');
+
+  // MY -> MAH
+  word = word.replace(/MER/g, 'MAH');
+
+  // FALLING -> FALERNG -> FERLIN
+  word = word.replace('ERNG', 'IN');
+
+  // POOPED -> PERPERD -> PERPED
+  word = word.replace('ERPERD', 'ERPED');
+
+  // MEME -> MAHM -> MERM
+  word = word.replace('MAHM', 'MERM');
+
+  // Keep Y as first character
+  // YES -> ERS -> YERS
+  if (originalWord.charAt(0) == 'Y') {
+    word = 'Y' + word;
+  }
+
+  // Reduce duplicate letters
+  word = word.replace(/[^\w\s]|(.)(?=\1)/gi, '');
+
+  // YELLOW -> YERLER -> YERLO
+  if ((originalWord.substr(-3) == 'LOW') && (word.substr(-3) == 'LER')) {
+    word = word.substr(0, word.length - 3) + 'LO';
+  }
+
+  return word;
+};

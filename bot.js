@@ -334,7 +334,7 @@ bot.on('chat', function(data) {
 
   tokens.forEach(function(token) {
     if (token.substr(0, 1) === '!') {
-      data.trigger = token.substr(1);
+      data.trigger = token.substr(1).toLowerCase();
 
       if (data.trigger == 'commands') {
         bot.chat('Available commands are: ' + Object.keys(messages).join(', '));
