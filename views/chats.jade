@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  h1 Chat History
+  - for chat in chats
+    p.chat-message
+      strong
+        a(href="/djs/#{chat._person.plugID}") #{chat._person.name}
+        | : 
+      | #{chat.message}
+      small.pull-right #{chat.timestamp}

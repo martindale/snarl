@@ -52,11 +52,17 @@ var historySchema = mongoose.Schema({
     _song: { type: ObjectId, ref: 'Song', required: true }
   , _dj: { type: ObjectId, ref: 'Person', required: true }
   , timestamp: { type: Date }
-})
+});
+var chatSchema = mongoose.Schema({
+    timestamp: { type: Date, default: Date.now() }
+  , _person: { type: ObjectId, ref: 'Person', required: true }
+  , message: { type: String, required: true }
+});
 
 var Person  = db.model('Person',  personSchema);
 var Song    = db.model('Song',    songSchema);
 var History = db.model('History', historySchema);
+var Chat    = db.model('Chat',    chatSchema);
 
 app.use(app.router);
 app.use(express.static(__dirname + '/public'));
@@ -101,6 +107,20 @@ app.get('/search/name/:name', function(req, res) {
       }
     }
   })
+});
+
+app.get('/chat', function(req, res) {
+  Chat.find().sort('-timestamp').limit(50).populate('_person').exec(function(err, chats) {
+    res.render('chats', {
+      chats: chats
+    });
+  });
+});
+
+app.get('/commands', function(req, res) {
+  res.render('commands', {
+    commands: Object.keys(messages)
+  });
 });
 
 app.get('/history', function(req, res) {
@@ -191,14 +211,18 @@ app.get('/djs', function(req, res) {
   });
 });
 
-app.get('/djs/:plugID', function(req, res) {
+app.get('/djs/:plugID', function(req, res, next) {
   Person.findOne({ plugID: req.param('plugID') }).exec(function(err, dj) {
-    History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
-      dj.playHistory = djHistory;
-      res.render('dj', {
-        dj: dj
+    if (dj) {
+      History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
+        dj.playHistory = djHistory;
+        res.render('dj', {
+          dj: dj
+        });
       });
-    });
+    } else {
+      next();
+    }
   });
 });
 
@@ -323,7 +347,15 @@ bot.on('chat', function(data) {
     , plugID: data.fromID
   }, function(person) {
     person.lastChat = now;
-    person.save();
+    person.save(function(err) {
+      var chat = new Chat({
+          message: data.message
+        , _person: person._id
+      });
+      chat.save(function(err) {
+        if (err) { console.log(err); }
+      });
+    });
 
     data.person = person;
 

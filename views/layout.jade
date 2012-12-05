@@ -31,14 +31,18 @@ html
               a(href="/djs") DJs
             li
               a(href="/songs") Songs
+            li
+              a(href="/chat") Chat
 
     .container
       block content
 
       footer
-        small &copy; someone
+        small
+          a(href="/commands") commands
+          |  | &copy; someone
 
-    script(src="http://code.jquery.com/jquery-1.8.3.min.js")
+    script(src="//code.jquery.com/jquery-1.8.3.min.js")
     script(src="/js/bootstrap.js")
 
     - if (typeof(config.ga.account) != 'undefined' && config.ga.account.length > 0)

@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  h1 Available Commands:
+
+  code
+    - for command in commands
+      | !#{command}
+      | 

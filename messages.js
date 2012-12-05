@@ -27,11 +27,17 @@ var historySchema = mongoose.Schema({
     _song: { type: ObjectId, ref: 'Song', required: true }
   , _dj: { type: ObjectId, ref: 'Person', required: true }
   , timestamp: { type: Date }
-})
+});
+var chatSchema = mongoose.Schema({
+    timestamp: { type: Date, default: Date.now() }
+  , _person: { type: ObjectId, ref: 'Person', required: true }
+  , message: { type: String, required: true }
+});
 
 var Person  = db.model('Person',  personSchema);
 var Song    = db.model('Song',    songSchema);
 var History = db.model('History', historySchema);
+var Chat    = db.model('Chat',    chatSchema);
 
 module.exports = {
     snarl: "Ohaithar.  I'm a bot created by @remæus.  Blame him for any of my supposed mistakes."
@@ -117,6 +123,20 @@ module.exports = {
   , permalink: function(data) {
       var self = this;
       self.chat('Song: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+    }
+  , profile: function(data) {
+      var self = this;
+      if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {
+        Person.findOne({ name: data.params }).exec(function(err, person) {
+          if (!person) {
+            self.chat('Could not find a profile by that name.');
+          } else {
+            self.chat('@' + data.params + ': “'+person.bio+'”  More: http://snarl.ericmartindale.com/djs/'+ person.plugID)
+          }
+        });
+      } else {
+        self.chat('Whose profile did you want?');
+      }
     }
   , songplays: function(data) {
       var self = this;
