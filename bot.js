@@ -36,7 +36,7 @@ var personSchema = mongoose.Schema({
       , plugID: { type: String, unique: true, sparse: true }
       , karma: { type: Number, default: 0 }
       , lastChat: { type: Date }
-      , bio: { type: String }
+      , bio: { type: String, max: 255 }
     });
 var songSchema = mongoose.Schema({
       author: String
@@ -217,7 +217,8 @@ app.get('/djs/:plugID', function(req, res, next) {
       History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
         dj.playHistory = djHistory;
         res.render('dj', {
-          dj: dj
+            md: require('node-markdown').Markdown
+          , dj: dj
         });
       });
     } else {

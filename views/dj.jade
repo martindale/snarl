@@ -3,7 +3,8 @@ extends layout
 block content
   h1 #{dj.name} 
     small <strong>#{dj.karma}</strong> karma
-  p #{dj.bio}
+  .bio
+    != md(dj.bio, true)
 
   h3 Play History
   - for song in dj.playHistory

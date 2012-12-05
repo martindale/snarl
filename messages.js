@@ -11,7 +11,7 @@ var personSchema = mongoose.Schema({
       , plugID: { type: String, unique: true, sparse: true }
       , karma: { type: Number, default: 0 }
       , lastChat: { type: Date }
-      , bio: { type: String }
+      , bio: { type: String, max: 255 }
     });
 var songSchema = mongoose.Schema({
       author: String
@@ -129,7 +129,7 @@ module.exports = {
       if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {
         Person.findOne({ name: data.params }).exec(function(err, person) {
           if (!person) {
-            self.chat('Could not find a profile by that name.');
+            self.chat('/me could not find a profile by that name.');
           } else {
             self.chat('@' + data.params + ': “'+person.bio+'”  More: http://snarl.ericmartindale.com/djs/'+ person.plugID)
           }
