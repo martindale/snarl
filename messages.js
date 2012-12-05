@@ -29,7 +29,7 @@ var historySchema = mongoose.Schema({
   , timestamp: { type: Date }
 });
 var chatSchema = mongoose.Schema({
-    timestamp: { type: Date, default: Date.now() }
+    timestamp: { type: Date, default: Date.now }
   , _person: { type: ObjectId, ref: 'Person', required: true }
   , message: { type: String, required: true }
 });
