@@ -11,6 +11,7 @@ var personSchema = mongoose.Schema({
       , plugID: { type: String, unique: true, sparse: true }
       , karma: { type: Number, default: 0 }
       , lastChat: { type: Date }
+      , bio: { type: String }
     });
 var songSchema = mongoose.Schema({
       author: String
@@ -51,6 +52,22 @@ module.exports = {
         console.log('Voted.');
         self.chat('Agreed, this track is svelte!  Wooted.');
       });
+    }
+  , bio: function(data) {
+      var self = this;
+      if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {
+        data.person.bio = data.params.trim();
+        data.person.save(function(err) {
+          self.chat('Bio saved!  Profile link: http://snarl.ericmartindale.com/djs/' + data.fromID );
+        });
+      } else {
+        if (typeof(data.person.bio) != 'undefined' && data.person.bio.length > 0) {
+          self.chat('You must provide a string for your bio.  Markdown is accepted.  Your current bio is: “'+data.person.bio+'”');
+        } else {
+          self.chat('You must provide a string for your bio.  Markdown is accepted.');
+        }
+        
+      }
     }
   , catfacts: function(data) {
       var self = this;

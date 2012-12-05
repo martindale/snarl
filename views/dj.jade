@@ -3,6 +3,7 @@ extends layout
 block content
   h1 #{dj.name} 
     small <strong>#{dj.karma}</strong> karma
+  p #{dj.bio}
 
   h3 Play History
   - for song in dj.playHistory

@@ -36,6 +36,7 @@ var personSchema = mongoose.Schema({
       , plugID: { type: String, unique: true, sparse: true }
       , karma: { type: Number, default: 0 }
       , lastChat: { type: Date }
+      , bio: { type: String }
     });
 var songSchema = mongoose.Schema({
       author: String
@@ -323,61 +324,64 @@ bot.on('chat', function(data) {
   }, function(person) {
     person.lastChat = now;
     person.save();
-  });
 
-  if (typeof(bot.room.djs[data.fromID]) != 'undefined') {
-    bot.room.djs[data.fromID].lastChat = now;
-  }
+    data.person = person;
 
-  var cmd = data.message;
-  var tokens = cmd.split(" ");
+    if (typeof(bot.room.djs[data.fromID]) != 'undefined') {
+      bot.room.djs[data.fromID].lastChat = now;
+    }
 
-  tokens.forEach(function(token) {
-    if (token.substr(0, 1) === '!') {
-      data.trigger = token.substr(1).toLowerCase();
+    var cmd = data.message;
+    var tokens = cmd.split(" ");
 
-      if (data.trigger == 'commands') {
-        bot.chat('Available commands are: ' + Object.keys(messages).join(', '));
-      } else {
+    var parsedCommands = [];
 
-        if (tokens.indexOf(token) === 0) {
-          data.params = tokens.slice(1).join(' ');
-        }
+    tokens.forEach(function(token) {
+      if (token.substr(0, 1) === '!' && data.from != 'snarl' && parsedCommands.indexOf(token.substr(1)) == -1) {
+        data.trigger = token.substr(1).toLowerCase();
+        parsedCommands.push(data.trigger);
 
-        switch (typeof(messages[data.trigger])) {
-          case 'string':
-            bot.chat(messages[data.trigger]);
-          break;
-          case 'function':
-            messages[data.trigger].apply(bot, [ data ]);
-          break;
-        }
-
-      }
-    } else {
-      if (token.indexOf('++') != -1) {
-        var target = token.substr(0, token.indexOf('++'));
-        
-        // remove leading @ if it exists
-        if (target.indexOf('@') === 0) {
-          target = target.substr(1);
-        }
-
-        if (target == data.from) {
-          self.chat('Don\'t be a whore.');
+        if (data.trigger == 'commands') {
+          bot.chat('Available commands are: ' + Object.keys(messages).join(', '));
         } else {
 
-          findOrCreatePerson({ name: target }, function(person) {
-            console.log(person);
+          if (tokens.indexOf(token) === 0) {
+            data.params = tokens.slice(1).join(' ');
+          }
 
-            person.karma++;
-            person.save(function(err) {
-              if (err) { console.log(err); }
+          switch (typeof(messages[data.trigger])) {
+            case 'string':
+              bot.chat(messages[data.trigger]);
+            break;
+            case 'function':
+              messages[data.trigger].apply(bot, [ data ]);
+            break;
+          }
+
+        }
+      } else {
+        if (token.indexOf('++') != -1) {
+          var target = token.substr(0, token.indexOf('++'));
+          
+          // remove leading @ if it exists
+          if (target.indexOf('@') === 0) {
+            target = target.substr(1);
+          }
+
+          if (target == data.from) {
+            self.chat('Don\'t be a whore.');
+          } else {
+
+            findOrCreatePerson({ name: target }, function(person) {
+              person.karma++;
+              person.save(function(err) {
+                if (err) { console.log(err); }
+              });
             });
-          });
+          }
         }
       }
-    }
+    });
   });
 
 });

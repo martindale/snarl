@@ -41,9 +41,9 @@ html
     script(src="/js/bootstrap.js")
 
     - if (typeof(config.ga.account) != 'undefined' && config.ga.account.length > 0)
-      script
+      script(type="text/javascript")
         var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', #{config.ga.account}]);
+        _gaq.push(['_setAccount', '#{config.ga.account}']);
         _gaq.push(['_trackPageview']);
 
         (function() {
