@@ -9,10 +9,21 @@ block content
       |  by 
       a(href="/djs/#{song.mostRecently._dj.plugID}") #{song.mostRecently._dj.name}
       | .
+
+  - if (typeof(song.firstPlay._dj) != 'undefined' && typeof(song.firstPlay._dj.name) != 'undefined')
+    p First played on 
+      a(href="/history/#{song.firstPlay._id}") #{song.firstPlay.timestamp}
+      |  by 
+      a(href="/djs/#{song.firstPlay._dj.plugID}") #{song.firstPlay._dj.name}
+      | .
+
   - else
     p Last played on #{song.mostRecently.timestamp}.
 
-  p This song has been played <strong>#{song.playCount}</strong> times.
+  p This song has been played <strong>#{song.playCount}</strong> times by <strong>#{songDJs.length}</strong> different DJs: 
+    - for dj in songDJs
+      a(href="/djs/#{dj.plugID}") #{dj.name}
+      |  (<strong>#{dj.songPlays}</strong> plays),  
 
 
   case song.format

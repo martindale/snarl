@@ -14,6 +14,23 @@ html
         text-align: center;
         margin-left: auto;
         margin-right: auto;
+        width: 60%;
+      }
+      .stage a {
+        font-size: 1.5em;
+        font-weight: bold;
+        width: 20%;
+        display: inline-block;
+      }
+      .stage a:hover, .chat-message a:hover {
+        text-decoration: none;
+      }
+      .stage a span {
+        display: block;
+      }
+      .plug-sprite {
+        width: 150px;
+        height: 150px;
       }
     link(rel="stylesheet", href="/css/bootstrap-responsive.css")
     
@@ -21,7 +38,8 @@ html
     .navbar.navbar-inverse.navbar-fixed-top
       .navbar-inner
         .container
-          a.brand(href="/") Coding Soundtrack
+          a.btn.btn-mini.pull-right(href="http://plug.dj/coding-soundtrack", style="margin-top: 0.8em;") &#9835; Listen Now &raquo;
+          a.brand(href="/") &#9835; Coding Soundtrack
           ul.nav
             li.active
               a(href="/") Home
@@ -33,6 +51,7 @@ html
               a(href="/songs") Songs
             li
               a(href="/chat") Chat
+              
 
     .container
       block content

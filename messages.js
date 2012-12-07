@@ -1,4 +1,4 @@
- rest = require('restler')
+var rest = require('restler')
   , google = require('google')
   , _ = require('underscore')
   , timeago = require('timeago')
@@ -10,8 +10,19 @@ var personSchema = mongoose.Schema({
         name: { type: String, index: true }
       , plugID: { type: String, unique: true, sparse: true }
       , karma: { type: Number, default: 0 }
+      , points: {
+            listener: { type: Number, default: 0 }
+          , curator: { type: Number, default: 0 }
+          , dj: { type: Number, default: 0 }
+        }
       , lastChat: { type: Date }
       , bio: { type: String, max: 255 }
+      , avatar: {
+            'set': String
+          , 'key': String
+          , 'uri': String
+          , 'thumb': String
+        }
     });
 var songSchema = mongoose.Schema({
       author: String
@@ -34,6 +45,10 @@ var chatSchema = mongoose.Schema({
   , message: { type: String, required: true }
 });
 
+personSchema.virtual('points.total').get(function () {
+  return this.points.dj + this.points.curator + this.points.listener;
+});
+
 var Person  = db.model('Person',  personSchema);
 var Song    = db.model('Song',    songSchema);
 var History = db.model('History', historySchema);
@@ -41,11 +56,8 @@ var Chat    = db.model('Chat',    chatSchema);
 
 module.exports = {
     snarl: "Ohaithar.  I'm a bot created by @remæus.  Blame him for any of my supposed mistakes."
-  , snarlsource: "You can see all my insides (and submit modifications) here: http://github.com/martindale/snarl"
-  , debug: function(data) { this.chat(JSON.stringify(data)) }
+  , source: "You can see all my insides (and submit modifications) here: http://github.com/martindale/snarl"
   , afk: 'If you\'re AFK at the end of your song for longer than 30 minutes you get warning 1. One minute later you get warning 2, another minute last warning, 30 seconds [boot].'
-  , afpdj: '-AFTT- AFPDJ is just as bad as AFK. DJ\'s must pay attention to chat, if you cannot do that then don\'t DJ during prime time. The purpose of these rules is so that active users who can pay attention to chat at their employer\'s expense can sit up on the decks.'
-  , aftt: '-AFTT- AFPDJ is just as bad as AFK. DJ\'s must pay attention to chat, if you cannot do that then don\'t DJ during prime time. The purpose of these rules is so that active users who can pay attention to chat at their employer\'s expense can sit up on the decks.'
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.com/ten-commendmants'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See /music for music suggestions, though there are no defined or enforced rules on music. More: http://goo.gl/b7UGO'
@@ -95,9 +107,11 @@ module.exports = {
       var idleDJs = [];
       _.toArray(self.room.djs).forEach(function(dj) {
 
-        if (dj.lastChat.getTime() <= (now.getTime() - 300000)) {
-          dj.idleTime = dj.lastChat.getTime() / 1000;
-          idleDJs.push(dj);
+        if (typeof(dj.lastChat) != 'undefined') {
+          if (dj.lastChat.getTime() <= (now.getTime() - 300000)) {
+            dj.idleTime = dj.lastChat.getTime() / 1000;
+            idleDJs.push(dj);
+          }
         }
       });
 
@@ -157,11 +171,26 @@ module.exports = {
         var lastPlay = history[1];
 
         if (lastPlay) {
-          self.chat('This song was last played ' + timeago(lastPlay.timestamp) + ' by ' + lastPlay._dj.name + '.');
+          History.count({ _song: self.room.track._id }).exec(function(err, count) {
+            self.chat('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+          });
         } else {
           self.chat('I haven\'t heard this song before.');
         }
+
       });
+    }
+  , firstplayed: function(data) {
+      var self = this;
+      if (typeof(self.room.track._id) != 'undefined') {
+        History.findOne({ _song: self.room.track._id }).sort('+timestamp').populate('_dj').exec(function(err, firstPlay) {
+          History.count({ _song: self.room.track._id }).exec(function(err, count) {
+            self.chat('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+          });
+        });
+      } else {
+        self.chat('Hold on, I\'m still booting up.  Gimme a minute.');
+      }
     }
   , lastsong: function(data) {
       var self = this;
@@ -239,6 +268,10 @@ module.exports = {
         self.chat('No query provided.');
       }
     }
+  , snarlsource: "You can see all my insides (and submit modifications) here: http://github.com/martindale/snarl"
+  , debug: function(data) { this.chat(JSON.stringify(data)) }
+  , afpdj: '-AFTT- AFPDJ is just as bad as AFK. DJ\'s must pay attention to chat, if you cannot do that then don\'t DJ during prime time. The purpose of these rules is so that active users who can pay attention to chat at their employer\'s expense can sit up on the decks.'
+  , aftt: '-AFTT- AFPDJ is just as bad as AFK. DJ\'s must pay attention to chat, if you cannot do that then don\'t DJ during prime time. The purpose of these rules is so that active users who can pay attention to chat at their employer\'s expense can sit up on the decks.'
 }
 
 function oxfordJoin(array) {

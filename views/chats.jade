@@ -5,7 +5,11 @@ block content
   - for chat in chats
     p.chat-message
       strong
-        a(href="/djs/#{chat._person.plugID}") #{chat._person.name}
+        a(href="/djs/#{chat._person.plugID}")
+          - if (typeof(chat._person.avatar) != 'undefined' && typeof(chat._person.avatar.thumb) != 'undefined')
+            img(src="#{chat._person.avatar.thumb}", style="height: 1.2em; border: 1px solid black;")
+            |  
+          | #{chat._person.name}
         | : 
       | #{chat.message}
       small.pull-right #{chat.timestamp}

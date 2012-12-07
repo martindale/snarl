@@ -5,7 +5,9 @@ var config = require('./config')
   , _ = require('underscore')
   , LastFM = require('./lib/simple-lastfm')
   , async = require('async')
+  , rest = require('restler')
   , express = require('express')
+  , $ = require('jquery')
   , app = express()
   , mongoose = require('mongoose')
   , ObjectId = mongoose.Schema.Types.ObjectId
@@ -23,6 +25,14 @@ bot.room = {
 };
 bot.connect(ROOM);
 
+var avatarManifest = {};
+
+rest.get('http://plug.dj/_/static/js/avatars.4316486f.js').on('complete', function(data) {
+  // TODO: bug @Boycey to provide an endpoint for this.
+  eval(data);  // oh christ. this is bad. 
+  avatarManifest = AvatarManifest; 
+});
+
 var lastfm = new LastFM({
     api_key:    config.lastfm.key
   , api_secret: config.lastfm.secret
@@ -35,8 +45,19 @@ var personSchema = mongoose.Schema({
         name: { type: String, index: true }
       , plugID: { type: String, unique: true, sparse: true }
       , karma: { type: Number, default: 0 }
+      , points: {
+            listener: { type: Number, default: 0 }
+          , curator: { type: Number, default: 0 }
+          , dj: { type: Number, default: 0 }
+        }
       , lastChat: { type: Date }
       , bio: { type: String, max: 255 }
+      , avatar: {
+            'set': String
+          , 'key': String
+          , 'uri': String
+          , 'thumb': String
+        }
     });
 var songSchema = mongoose.Schema({
       author: String
@@ -57,6 +78,10 @@ var chatSchema = mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
   , _person: { type: ObjectId, ref: 'Person', required: true }
   , message: { type: String, required: true }
+});
+
+personSchema.virtual('points.total').get(function () {
+  return this.points.dj + this.points.curator + this.points.listener;
 });
 
 var Person  = db.model('Person',  personSchema);
@@ -87,6 +112,25 @@ function findOrCreatePerson(user, callback) {
 
     if (typeof(user.plugID) != 'undefined') {
       person.plugID = user.plugID;
+    }
+
+    if (typeof(user.avatarID) != 'undefined') {
+      person.avatar = {
+          key: user.avatarID
+        , thumb: 'http://plug.dj' + avatarManifest.getThumbUrl(user.avatarID)
+      }
+    }
+
+    if (typeof(user.points) != 'undefined') {
+      if (typeof(user.points.dj) != 'undefined') {
+        person.points.dj = user.points.dj;
+      }
+      if (typeof(user.points.curator) != 'undefined') {
+        person.points.curator = user.points.curator;
+      }
+      if (typeof(user.points.listener) != 'undefined') {
+        person.points.listener = user.points.listener;
+      }
     }
 
     person.save(function(err) {
@@ -161,7 +205,7 @@ app.get('/songs', function(req, res) {
 
     /* sort the results */
     songs.sort(function(a, b) {
-      return a.value - b.value;
+      return b.value - a.value;
     });
 
     /* clip the top 25 */
@@ -176,6 +220,12 @@ app.get('/songs', function(req, res) {
         });
       };
     }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.plays - a.plays;
+      });
+
       res.render('songs', {
         songs: results
       });
@@ -190,11 +240,35 @@ app.get('/songs/:songID', function(req, res, next) {
       song._song = song; // hack to simplify templates for now. this is the History schema, technically
       History.count({ _song: song._id }, function(err, playCount) {
         song.playCount = playCount;
-        History.findOne({ _song: song._id }).sort('-timestamp').populate('_dj').exec(function(err, lastPlay) {
-          song.mostRecently = lastPlay;
-          res.render('song', {
-            song: song
+
+        History.find({ _song: song._id }).populate('_dj').exec(function(err, songPlays) {
+
+          song.firstPlay = songPlays[0];
+          song.mostRecently = songPlays[ songPlays.length - 1 ];
+
+          var songDJs = {};
+
+          songPlays.forEach(function(play) {
+            songDJs[play._dj.plugID] = play._dj;
           });
+          songPlays.forEach(function(play) {
+            if (typeof(songDJs[play._dj.plugID].songPlays) != 'undefined') {
+              songDJs[play._dj.plugID].songPlays = songDJs[play._dj.plugID].songPlays + 1;
+            } else {
+              songDJs[play._dj.plugID].songPlays = 1;
+            }
+          });
+
+          songDJs = _.toArray(songDJs);
+          songDJs.sort(function(a, b) {
+            return b.songPlays - a.songPlays;
+          });
+
+          res.render('song', {
+              song: song
+            , songDJs: songDJs
+          });
+
         });
       });
     } else {
@@ -216,9 +290,15 @@ app.get('/djs/:plugID', function(req, res, next) {
     if (dj) {
       History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
         dj.playHistory = djHistory;
+
+        if (typeof(dj.bio) == 'undefined') {
+          dj.bio = '';
+        }
+
         res.render('dj', {
             md: require('node-markdown').Markdown
           , dj: dj
+          , avatar: 'http://plug.dj' + avatarManifest.getAvatarUrl('hw', 'halloween06', '')
         });
       });
     } else {
@@ -249,6 +329,42 @@ app.get('/', function(req, res) {
 bot.on('voteUpdate', function(data) {
   findOrCreatePerson({
     plugID: data.id
+  }, function(person) {
+
+  });
+});
+
+bot.on('userJoin', function(data) {
+  console.log('USERJOIN EVENT:');
+  console.log(data);
+
+  findOrCreatePerson({
+      plugID: data.id
+    , name: data.username
+    , avatarID: data.avatarID
+    , points: {
+          listener: data.listenerPoints
+        , curator: data.curatorPoints
+        , dj: data.djPoints
+      }
+  }, function(person) {
+
+  });
+});
+
+bot.on('userUpdate', function(data) {
+  console.log('USER UPDATE:');
+  console.log(data);
+
+  findOrCreatePerson({
+      plugID: data.id
+    , name: data.username
+    , avatarID: data.avatarID
+    , points: {
+          listener: data.listenerPoints
+        , curator: data.curatorPoints
+        , dj: data.djPoints
+      }
   }, function(person) {
 
   });
@@ -292,10 +408,19 @@ bot.on('djAdvance', function(data) {
 
   bot.room.djs = {};
   data.djs.forEach(function(dj) {
+    console.log('THIS DJ:');
+    console.log(dj);
     findOrCreatePerson({
-      plugID: dj.id
+        plugID: dj.user.id
+      , name: dj.user.username
+      , avatarID: dj.user.avatarID
+      , points: {
+            listener: dj.user.listenerPoints
+          , curator: dj.user.curatorPoints
+          , dj: dj.user.djPoints
+        }
     }, function(person) {
-      bot.room.djs[dj.id] = person;
+      bot.room.djs[dj.user.id] = person;
     });
   });
 
@@ -375,9 +500,11 @@ bot.on('chat', function(data) {
         parsedCommands.push(data.trigger);
 
         if (data.trigger == 'commands') {
-          bot.chat('Available commands are: ' + Object.keys(messages).join(', '));
+          bot.chat('I am a fully autonomous system capable of responding to a wide array of commands, which you can find here: http://snarl.ericmartindale.com/commands')
+          //bot.chat('Available commands are: ' + Object.keys(messages).join(', '));
         } else {
 
+          // if this is the very first token, it's a command and we need to grab the params.
           if (tokens.indexOf(token) === 0) {
             data.params = tokens.slice(1).join(' ');
           }
@@ -403,6 +530,8 @@ bot.on('chat', function(data) {
 
           if (target == data.from) {
             self.chat('Don\'t be a whore.');
+          } else if (target.toLowerCase() == 'c' || target.length == 0) {
+            // pass. probably a language mention. ;)
           } else {
 
             findOrCreatePerson({ name: target }, function(person) {

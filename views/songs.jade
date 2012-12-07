@@ -6,3 +6,4 @@ block content
     - for song in songs
       li
         a(href="/songs/#{song.id}") #{song.title}
+        |  was played <strong>#{song.plays}</strong> times.
