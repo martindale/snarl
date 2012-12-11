@@ -57,9 +57,18 @@ html
       block content
 
       footer
-        small
-          a(href="/commands") commands
-          |  | &copy; someone
+        hr
+        small.pull-left
+          a(href="/about") About
+          |  &bull; 
+          a(href="/commands") Command List
+        small.pull-right
+          | snarl is &copy; 
+          a(href="http://www.ericmartindale.com/") Eric Martindale
+          | , with credit to 
+          a(href="http://plug.dj") plug.dj
+          |  for providing the platform.
+
 
     script(src="//code.jquery.com/jquery-1.8.3.min.js")
     script(src="/js/bootstrap.js")

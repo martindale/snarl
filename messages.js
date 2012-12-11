@@ -6,6 +6,8 @@ var rest = require('restler')
   , ObjectId = mongoose.Schema.Types.ObjectId
   , db = mongoose.createConnection('localhost', 'snarl');
 
+var facts = require('./facts');
+
 var personSchema = mongoose.Schema({
         name: { type: String, index: true }
       , plugID: { type: String, unique: true, sparse: true }
@@ -58,6 +60,7 @@ module.exports = {
     snarl: "Ohaithar.  I'm a bot created by @remæus.  Blame him for any of my supposed mistakes."
   , source: "You can see all my insides (and submit modifications) here: http://github.com/martindale/snarl"
   , afk: 'If you\'re AFK at the end of your song for longer than 30 minutes you get warning 1. One minute later you get warning 2, another minute last warning, 30 seconds [boot].'
+  , askforseat: 'Please don\'t ask for seats here.  It\'s first come, first serve, and free for all.'
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.com/ten-commendmants'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See /music for music suggestions, though there are no defined or enforced rules on music. More: http://goo.gl/b7UGO'
@@ -96,6 +99,14 @@ module.exports = {
         }
       });
     }
+  , topologyfacts: function(data) {
+      var self = this;
+      self.chat(randomFact('topology'));
+    }
+  , smifffacts: function(data) {
+      var self = this;
+      self.chat(randomFact('smiff'));
+    }
   , remæusfacts: function(data) {
       var self = this;
       self.chat('remæus\' third word was "combine".  His first was "truck," and his second "bobtail".');
@@ -109,7 +120,7 @@ module.exports = {
 
         if (typeof(dj.lastChat) != 'undefined') {
           if (dj.lastChat.getTime() <= (now.getTime() - 300000)) {
-            dj.idleTime = dj.lastChat.getTime() / 1000;
+            dj.idleTime = (now.getTime() - dj.lastChat.getTime()) / 1000;
             idleDJs.push(dj);
           }
         }
@@ -307,6 +318,11 @@ function secondsToTime(secs) {
     "s": seconds
   };
   return obj;
+}
+
+function randomFact(type) {
+  var ar = facts[type];
+  return ar[Math.round(Math.random()*(ar.length-1))];
 }
 
 function ermgerd(text) {
