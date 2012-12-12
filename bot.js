@@ -11,6 +11,7 @@ var config = require('./config')
   , app = express()
   , mongoose = require('mongoose')
   , ObjectId = mongoose.Schema.Types.ObjectId
+  , Schema = mongoose.Schema
   , db = mongoose.createConnection('localhost', 'snarl');
 
 var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
@@ -22,8 +23,52 @@ bot.currentRoom = {};
 bot.room = {
     djs: {}
   , track: {}
+  , audience: {}
+  , currentPlay: {}
+  , currentDJ: {}
+  , staff: {}
 };
-bot.connect(ROOM);
+bot.records = {
+  boss: {}
+};
+bot.connect();
+
+bot.on('connected', function() {
+  bot.joinRoom('coding-soundtrack', function(data) {
+    console.log(JSON.stringify(data));
+
+    bot.updateDJs(data.room.djs);
+    bot.currentSong       = data.room.media;
+
+    Song.findOne({ id: data.room.media.id }).exec(function(err, song) {
+      bot.room.track  = song;
+    });
+    bot.getBoss(function(boss) {
+      bot.records.boss = boss;
+    });
+
+    for (var plugID in data.room.staff) {
+      findOrCreatePerson({
+        plugID: plugID
+      }, function(person) {
+        bot.room.staff[person.plugID] = person;
+      });
+    }
+
+    data.room.users.forEach(function(user) {
+      bot.observeUser(user, function(person) {
+
+      });
+    });
+
+    findOrCreatePerson({
+      plugID: data.currentDJ
+    }, function(dj) {
+      bot.room.currentDJ    = dj;
+    });
+
+  });
+})
 
 var avatarManifest = {};
 
@@ -73,6 +118,9 @@ var historySchema = mongoose.Schema({
     _song: { type: ObjectId, ref: 'Song', required: true }
   , _dj: { type: ObjectId, ref: 'Person', required: true }
   , timestamp: { type: Date }
+  , curates: [ new Schema({
+      _person: { type: ObjectId, ref: 'Person', required: true }
+    }) ]
 });
 var chatSchema = mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
@@ -176,7 +224,8 @@ app.get('/history', function(req, res) {
 });
 
 app.get('/history/:songInstance', function(req, res) {
-  History.findOne({ _id: req.param('songInstance') }).populate('_song').populate('_dj').exec(function(err, songInstance) {
+  History.findOne({ _id: req.param('songInstance') }).populate('_song').populate('_dj').populate('curates._person').exec(function(err, songInstance) {
+
     res.render('song-instance', {
       song: songInstance
     });
@@ -209,7 +258,7 @@ app.get('/songs', function(req, res) {
     });
 
     /* clip the top 25 */
-    songs = songs.slice(0, 25);
+    songs = songs.slice(0, 2500);
 
     /* now get the real records for these songs */
     async.parallel(songs.map(function(song) {
@@ -232,6 +281,115 @@ app.get('/songs', function(req, res) {
     });
   });
 
+});
+
+app.get('/stats/plays', function(req, res) {
+  var map = function() { //map function
+    if (typeof(this.curates) == 'undefined') {
+      emit(this._id, 0);
+    } else {
+      emit(this._id, this.curates.length);
+    }
+  } 
+
+  var reduce = function(previous, current) { //reduce function
+    var count = 0;
+    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
+      count += current[index]; //increments the counter by the 'value' of 1
+    }
+    return count;
+  };
+
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+  }, function(err, plays) {
+
+    if (err) {
+      console.log(err);
+    }
+
+    /* sort the results */
+    plays.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    plays = plays.slice(0, 25);
+
+    /* now get the real records for these songs */
+    async.parallel(plays.map(function(play) {
+      return function(callback) {
+        History.findOne({ _id: play._id }).populate('_song').exec(function(err, realPlay) {
+          if (err) { console.log(err); }
+
+          realPlay.curates = play.value;
+
+          callback(null, realPlay);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.curates - a.curates;
+      });
+
+      res.send(results);
+    });
+
+  });
+})
+
+app.get('/stats', function(req, res) {
+
+  var map = function() { //map function
+    emit(this._dj, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
+  } 
+
+  var reduce = function(previous, current) { //reduce function
+    var count = 0;
+    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
+      count += current[index]; //increments the counter by the 'value' of 1
+    }
+    return count;
+  };
+
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+  }, function(err, djs) {
+
+    /* sort the results */
+    djs.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    djs = djs.slice(0, 25);
+
+    /* now get the real records for these songs */
+    async.parallel(djs.map(function(dj) {
+      return function(callback) {
+        Person.findOne({ _id: dj._id }).exec(function(err, realDJ) {
+          realDJ.plays = dj.value;
+          callback(null, realDJ);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.plays - a.plays;
+      });
+
+      res.render('djs', {
+        djs: results
+      });
+    });
+  });
 });
 
 app.get('/songs/:songID', function(req, res, next) {
@@ -326,48 +484,70 @@ app.get('/', function(req, res) {
   });
 }); */
 
+
+bot.on('curateUpdate', function(data) {
+  console.log('CURATEUPDATE:');
+  console.log(data);
+
+  bot.observeUser(data, function(person) {
+
+    console.log(person.name + ' just added this song to their playlist.');
+
+    if (typeof(bot.room.currentPlay) != 'undefined' && typeof(bot.room.currentPlay.curates) != 'undefined') {
+      bot.room.currentPlay.curates.push({
+        _person: person._id
+      });
+
+      bot.room.currentPlay.save(function(err) {
+        if (err) { console.log(err); }
+        console.log('completed curation update.')
+        console.log('comparing curate records: ' + bot.records.boss.curates.length + ' and ' + bot.room.currentPlay.curates.length);
+        console.log('CURRENT DJ:');
+        console.log(bot.room.currentPlay._dj);
+
+
+        if (bot.records.boss.curates.length <= bot.room.currentPlay.curates.length) {
+          bot.chat('@' + bot.room.currentDJ.name + ' just stole the curation record from @' + bot.records.boss._dj.name + ' thanks to @' + person.name + '\'s playlist add!');
+          bot.getBoss(function(boss) {
+            bot.records.boss = boss;
+          });
+        }
+
+      });
+    }
+  });
+});
+
 bot.on('voteUpdate', function(data) {
+  console.log('VOTEUPDATE:');
+  console.log(data);
+
   findOrCreatePerson({
     plugID: data.id
   }, function(person) {
-
+    bot.room.audience[data.id] = person;
   });
+});
+
+bot.on('userLeave', function(data) {
+  console.log('USERLEAVE EVENT:');
+  console.log(data);
+
+  delete bot.room.audience[data.id];
 });
 
 bot.on('userJoin', function(data) {
   console.log('USERJOIN EVENT:');
   console.log(data);
 
-  findOrCreatePerson({
-      plugID: data.id
-    , name: data.username
-    , avatarID: data.avatarID
-    , points: {
-          listener: data.listenerPoints
-        , curator: data.curatorPoints
-        , dj: data.djPoints
-      }
-  }, function(person) {
-
-  });
+  bot.observeUser(data);
 });
 
 bot.on('userUpdate', function(data) {
   console.log('USER UPDATE:');
   console.log(data);
 
-  findOrCreatePerson({
-      plugID: data.id
-    , name: data.username
-    , avatarID: data.avatarID
-    , points: {
-          listener: data.listenerPoints
-        , curator: data.curatorPoints
-        , dj: data.djPoints
-      }
-  }, function(person) {
-
-  });
+  bot.observeUser(data);
 });
 
 bot.on('djAdvance', function(data) {
@@ -399,31 +579,15 @@ bot.on('djAdvance', function(data) {
                 console.log("in callback, finished: ", result);
             }
         });
-      }, scrobbleDuration);
+      //}, scrobbleDuration);
+      }, 5000); // scrobble after 30 seconds, no matter what.
 
     } else {
       console.log("Error: " + result.error);
     }
   });
 
-  bot.room.djs = {};
-  data.djs.forEach(function(dj) {
-    console.log('THIS DJ:');
-    console.log(dj);
-    findOrCreatePerson({
-        plugID: dj.user.id
-      , name: dj.user.username
-      , avatarID: dj.user.avatarID
-      , points: {
-            listener: dj.user.listenerPoints
-          , curator: dj.user.curatorPoints
-          , dj: dj.user.djPoints
-        }
-    }, function(person) {
-      bot.room.djs[dj.user.id] = person;
-    });
-  });
-
+  bot.updateDJs(data.djs);
   bot.currentSong = data.media;
 
   Song.findOne({ id: data.media.id }).exec(function(err, song) {
@@ -449,7 +613,9 @@ bot.on('djAdvance', function(data) {
           , timestamp: now
         });
         history.save(function(err) {
-
+          // hack to makein-memory record look work
+          bot.room.currentDJ    = dj;
+          bot.room.currentPlay  = history;
         });
       })
 
@@ -548,7 +714,112 @@ bot.on('chat', function(data) {
 
 });
 
+app.get('/audience', function(req, res) {
+  res.send(bot.room.audience);
+});
+
 app.listen(43001);
+
+PlugAPI.prototype.getBoss = function(callback) {
+      var self = this;
+      var map = function() { //map function
+        if (typeof(this.curates) == 'undefined') {
+          emit(this._id, 0);
+        } else {
+          emit(this._id, this.curates.length);
+        }
+      } 
+
+      var reduce = function(previous, current) { //reduce function
+        var count = 0;
+        for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
+          count += current[index]; //increments the counter by the 'value' of 1
+        }
+        return count;
+      };
+
+      /* execute map reduce */
+      History.mapReduce({
+          map: map
+        , reduce: reduce
+      }, function(err, plays) {
+
+        if (err) {
+          console.log(err);
+        }
+
+        /* sort the results */
+        plays.sort(function(a, b) {
+          return b.value - a.value;
+        });
+
+        /* clip the top 25 */
+        plays = plays.slice(0, 1);
+
+        /* now get the real records for these songs */
+        async.parallel(plays.map(function(play) {
+          return function(callback) {
+            History.findOne({ _id: play._id }).populate('_song').populate('_dj').exec(function(err, realPlay) {
+              if (err) { console.log(err); }
+
+              realPlay.curates = play.value;
+
+              callback(null, realPlay);
+            });
+          };
+        }), function(err, results) {
+
+          /* resort since we're in parallel */
+          results.sort(function(a, b) {
+            return b.curates - a.curates;
+          });
+
+          callback(results[0]);
+
+        });
+
+      });
+};
+
+PlugAPI.prototype.observeUser = function(user, callback) {
+  if (typeof(callback) == 'undefined') {
+    callback = function (person) {};
+  }
+
+  findOrCreatePerson({
+      plugID: user.id
+    , name: user.username
+    , avatarID: user.avatarID
+    , points: {
+          listener: user.listenerPoints
+        , curator: user.curatorPoints
+        , dj: user.djPoints
+      }
+  }, function(person) {
+    bot.room.audience[user.id] = person;
+    callback(person);
+  });
+}
+
+PlugAPI.prototype.updateDJs = function(djs) {
+  var bot = this;
+  bot.room.djs = {};
+  djs.forEach(function(dj) {
+    findOrCreatePerson({
+        plugID: dj.user.id
+      , name: dj.user.username
+      , avatarID: dj.user.avatarID
+      , points: {
+            listener: dj.user.listenerPoints
+          , curator: dj.user.curatorPoints
+          , dj: dj.user.djPoints
+        }
+    }, function(person) {
+      bot.room.djs[dj.user.id]      = person;
+      bot.room.audience[dj.user.id] = person;
+    });
+  });
+};
 
 var _reconnect = function() { bot.connect('coding-soundtrack'); };
 var reconnect = function() { setTimeout(_reconnect, 500); };

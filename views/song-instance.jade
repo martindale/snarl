@@ -6,3 +6,8 @@ block content
       a(href="/djs/#{song._dj.plugID}") #{song._dj.name}
       |  played 
   include blocks/song
+
+  .row-fluid
+    p <strong>#{song.curates.length}</strong> people added this song because of this play: 
+      - for curate in song.curates
+        a(href="/djs/#{curate._person.id}") #{curate._person.name} 

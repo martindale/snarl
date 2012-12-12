@@ -1,9 +1,12 @@
 var rest = require('restler')
   , google = require('google')
+  , github = require('github')
   , _ = require('underscore')
+  , async = require('async')
   , timeago = require('timeago')
   , mongoose = require('mongoose')
   , ObjectId = mongoose.Schema.Types.ObjectId
+  , Schema = mongoose.Schema
   , db = mongoose.createConnection('localhost', 'snarl');
 
 var facts = require('./facts');
@@ -40,6 +43,9 @@ var historySchema = mongoose.Schema({
     _song: { type: ObjectId, ref: 'Song', required: true }
   , _dj: { type: ObjectId, ref: 'Person', required: true }
   , timestamp: { type: Date }
+  , curates: [ new Schema({
+      _person: { type: ObjectId, ref: 'Person', required: true }
+    }) ]
 });
 var chatSchema = mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
@@ -65,6 +71,7 @@ module.exports = {
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.com/ten-commendmants'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See /music for music suggestions, though there are no defined or enforced rules on music. More: http://goo.gl/b7UGO'
   , jarplug: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
+  , netsplit: 'plug.dj has been having a lot of issues lately, especially with chat becoming fragmented.  Some people can chat with each other, and others can\'t see those messages.  Relax, @Boycey will have it fixed soon.'
   , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
   , video: 'dat video.'
   , awesome: function(data) {
@@ -103,6 +110,7 @@ module.exports = {
       var self = this;
       self.chat(randomFact('topology'));
     }
+  , get smifffax () { return this.smifffacts }
   , smifffacts: function(data) {
       var self = this;
       self.chat(randomFact('smiff'));
@@ -110,6 +118,14 @@ module.exports = {
   , remæusfacts: function(data) {
       var self = this;
       self.chat('remæus\' third word was "combine".  His first was "truck," and his second "bobtail".');
+    }
+  , boss: function(data) {
+      var self = this;
+      self.chat('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: http://snarl.ericmartindale.com/history/' + self.records.boss._id );
+    }
+  , count: function(data) {
+      var self = this;
+      self.chat('I am currently aware of ' + _.toArray(self.room.audience).length + ' audience members.  I am probably wrong.');
     }
   , djs: function(data) {
       var self = this;
@@ -143,6 +159,24 @@ module.exports = {
       if (typeof(data.params) != 'undefined') {
         self.chat(ermgerd(data.params));
       }
+    }
+  , mods: function(data) {
+      var self = this;
+      var onlineStaff = [];
+      _.intersection(
+        _.toArray(self.room.staff).map(function(staffMember) {
+          return staffMember._id;
+        }),
+        _.toArray(self.room.audience).map(function(audienceMember) {
+          return audienceMember._id;
+        })
+      ).forEach(function(onlineStaff) {
+        onlineStaff.push(onlineStaff);
+      });
+
+      Person.find({ _id: { $in: onlineStaff } }).exec(function(err, staff) {
+        self.chat(onlineStaff.length + ' online staff members.');
+      });
     }
   , nsfw: 'Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!'
   , permalink: function(data) {
@@ -186,7 +220,7 @@ module.exports = {
             self.chat('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
           });
         } else {
-          self.chat('I haven\'t heard this song before.');
+          self.chat('I haven\'t heard this song before now.');
         }
 
       });
@@ -279,10 +313,10 @@ module.exports = {
         self.chat('No query provided.');
       }
     }
-  , snarlsource: "You can see all my insides (and submit modifications) here: http://github.com/martindale/snarl"
+  , get snarlsource () { return this.source; }
   , debug: function(data) { this.chat(JSON.stringify(data)) }
-  , afpdj: '-AFTT- AFPDJ is just as bad as AFK. DJ\'s must pay attention to chat, if you cannot do that then don\'t DJ during prime time. The purpose of these rules is so that active users who can pay attention to chat at their employer\'s expense can sit up on the decks.'
-  , aftt: '-AFTT- AFPDJ is just as bad as AFK. DJ\'s must pay attention to chat, if you cannot do that then don\'t DJ during prime time. The purpose of these rules is so that active users who can pay attention to chat at their employer\'s expense can sit up on the decks.'
+  , get afpdj () { return this.afk }
+  , get aftt () { return this.afk }
 }
 
 function oxfordJoin(array) {
