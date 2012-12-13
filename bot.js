@@ -49,7 +49,8 @@ bot.on('connected', function() {
 
     for (var plugID in data.room.staff) {
       findOrCreatePerson({
-        plugID: plugID
+          plugID: plugID
+        , role: data.room.staff[plugID]
       }, function(person) {
         bot.room.staff[person.plugID] = person;
       });
@@ -89,6 +90,7 @@ var lastfm = new LastFM({
 var personSchema = mongoose.Schema({
         name: { type: String, index: true }
       , plugID: { type: String, unique: true, sparse: true }
+      , role: { type: Number }
       , karma: { type: Number, default: 0 }
       , points: {
             listener: { type: Number, default: 0 }
@@ -120,6 +122,10 @@ var historySchema = mongoose.Schema({
   , timestamp: { type: Date }
   , curates: [ new Schema({
       _person: { type: ObjectId, ref: 'Person', required: true }
+    }) ]
+  , votes: [ new Schema({
+        _person: { type: ObjectId, ref: 'Person', required: true }
+      , 
     }) ]
 });
 var chatSchema = mongoose.Schema({
@@ -179,6 +185,10 @@ function findOrCreatePerson(user, callback) {
       if (typeof(user.points.listener) != 'undefined') {
         person.points.listener = user.points.listener;
       }
+    }
+
+    if (typeof(user.role) != 'undefined') {
+      person.role = user.role;
     }
 
     person.save(function(err) {
@@ -721,64 +731,64 @@ app.get('/audience', function(req, res) {
 app.listen(43001);
 
 PlugAPI.prototype.getBoss = function(callback) {
-      var self = this;
-      var map = function() { //map function
-        if (typeof(this.curates) == 'undefined') {
-          emit(this._id, 0);
-        } else {
-          emit(this._id, this.curates.length);
-        }
-      } 
+  var self = this;
+  var map = function() { //map function
+    if (typeof(this.curates) == 'undefined') {
+      emit(this._id, 0);
+    } else {
+      emit(this._id, this.curates.length);
+    }
+  }
 
-      var reduce = function(previous, current) { //reduce function
-        var count = 0;
-        for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
-          count += current[index]; //increments the counter by the 'value' of 1
-        }
-        return count;
+  var reduce = function(previous, current) { //reduce function
+    var count = 0;
+    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
+      count += current[index]; //increments the counter by the 'value' of 1
+    }
+    return count;
+  };
+
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+  }, function(err, plays) {
+
+    if (err) {
+      console.log(err);
+    }
+
+    /* sort the results */
+    plays.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    plays = plays.slice(0, 1);
+
+    /* now get the real records for these songs */
+    async.parallel(plays.map(function(play) {
+      return function(callback) {
+        History.findOne({ _id: play._id }).populate('_song').populate('_dj').exec(function(err, realPlay) {
+          if (err) { console.log(err); }
+
+          realPlay.curates = play.value;
+
+          callback(null, realPlay);
+        });
       };
+    }), function(err, results) {
 
-      /* execute map reduce */
-      History.mapReduce({
-          map: map
-        , reduce: reduce
-      }, function(err, plays) {
-
-        if (err) {
-          console.log(err);
-        }
-
-        /* sort the results */
-        plays.sort(function(a, b) {
-          return b.value - a.value;
-        });
-
-        /* clip the top 25 */
-        plays = plays.slice(0, 1);
-
-        /* now get the real records for these songs */
-        async.parallel(plays.map(function(play) {
-          return function(callback) {
-            History.findOne({ _id: play._id }).populate('_song').populate('_dj').exec(function(err, realPlay) {
-              if (err) { console.log(err); }
-
-              realPlay.curates = play.value;
-
-              callback(null, realPlay);
-            });
-          };
-        }), function(err, results) {
-
-          /* resort since we're in parallel */
-          results.sort(function(a, b) {
-            return b.curates - a.curates;
-          });
-
-          callback(results[0]);
-
-        });
-
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.curates - a.curates;
       });
+
+      callback(results[0]);
+
+    });
+
+  });
 };
 
 PlugAPI.prototype.observeUser = function(user, callback) {

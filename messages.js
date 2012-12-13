@@ -14,6 +14,7 @@ var facts = require('./facts');
 var personSchema = mongoose.Schema({
         name: { type: String, index: true }
       , plugID: { type: String, unique: true, sparse: true }
+      , role: { type: Number }
       , karma: { type: Number, default: 0 }
       , points: {
             listener: { type: Number, default: 0 }
@@ -154,6 +155,9 @@ module.exports = {
       }
 
     }
+  , donkeypunch: function(data) {
+
+    }
   , erm: function(data) {
       var self = this;
       if (typeof(data.params) != 'undefined') {
@@ -163,25 +167,42 @@ module.exports = {
   , mods: function(data) {
       var self = this;
       var onlineStaff = [];
+
+      var realModerators = [];
+      _.toArray(self.room.staff).forEach(function(staffMember) {
+        if ( self.room.staff[staffMember.plugID].role > 1 ) {
+          realModerators.push(staffMember);
+        }
+      });
+
       _.intersection(
-        _.toArray(self.room.staff).map(function(staffMember) {
-          return staffMember._id;
+        _.toArray(realModerators).map(function(staffMember) {
+          return staffMember._id.toString();
         }),
         _.toArray(self.room.audience).map(function(audienceMember) {
-          return audienceMember._id;
+          return audienceMember._id.toString();
         })
-      ).forEach(function(onlineStaff) {
-        onlineStaff.push(onlineStaff);
+      ).forEach(function(staffMember) {
+        onlineStaff.push(staffMember);
       });
 
       Person.find({ _id: { $in: onlineStaff } }).exec(function(err, staff) {
-        self.chat(onlineStaff.length + ' online staff members.');
+        self.chat(staff.length + ' online staff members: ' + staff.map(function(staffMember) {
+          console.log(staffMember);
+          console.log(self.room.staff);
+          //return staffMember.name + self.room.staff[staffMember.plugID].role;
+          return '@' + staffMember.name;
+        }).join(', ') );
       });
     }
   , nsfw: 'Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!'
   , permalink: function(data) {
       var self = this;
       self.chat('Song: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+    }
+  , plugid: function(data) {
+      var self = this;
+      self.chat('plug.dj calls you "'+ data.fromID +'".   Are you gonna take that?');
     }
   , profile: function(data) {
       var self = this;
