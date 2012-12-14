@@ -7,4 +7,10 @@ module.exports = {
   , ga: {
       account: '' // accountID for Google Analytics, if you want it.
     }
+  , lastfm: {
+        key: '' // Get the info at http://last.fm/api
+      , secret: ''
+      , username: ''
+      , password: ''
+  }
 }
