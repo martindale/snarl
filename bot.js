@@ -1,18 +1,25 @@
+var clc = require('cli-color');
+console.log(clc.greenBright('Snarl 0.0.1 by Eric Martindale'));
+process.stdout.write('[' + clc.cyanBright('INFO') + '] Loading dependencies... ');
+
 var config = require('./config')
+  , $ = require('jquery')
+  , _ = require('underscore')
+  , async = require('async')
+  , express = require('express')
+  , LastFM = require('./lib/simple-lastfm')
+  , messages = require('./messages')
+  , mongoose = require('mongoose')
   , PlugAPI = require('plugapi')
   , repl = require('repl')
-  , messages = require('./messages')
-  , _ = require('underscore')
-  , LastFM = require('./lib/simple-lastfm')
-  , async = require('async')
   , rest = require('restler')
-  , express = require('express')
-  , $ = require('jquery')
+  
   , app = express()
-  , mongoose = require('mongoose')
+  , db = mongoose.createConnection('localhost', 'snarl')
   , ObjectId = mongoose.Schema.Types.ObjectId
   , Schema = mongoose.Schema
-  , db = mongoose.createConnection('localhost', 'snarl');
+
+console.log(clc.greenBright('done!'));
 
 var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
 var ROOM = config.room;
@@ -31,11 +38,23 @@ bot.room = {
 bot.records = {
   boss: {}
 };
+bot.chatWrap = function(message) {
+  if(!config.disableChat) {
+    bot.chat(message);
+  }
+}
+
 bot.connect();
 
 bot.on('connected', function() {
+
   bot.joinRoom(config.room, function(data) {
-    console.log(JSON.stringify(data));
+
+    console.log('[' + clc.cyanBright('INFO') + '] Joined room ' + config.room + '!');
+
+    if(config.debug) {
+      console.log(JSON.stringify(data));
+    }
 
     bot.updateDJs(data.room.djs);
     bot.currentSong       = data.room.media;
@@ -77,6 +96,7 @@ rest.get('http://plug.dj/_/static/js/avatars.4316486f.js').on('complete', functi
   // TODO: bug @Boycey to provide an endpoint for this.
   eval(data);  // oh christ. this is bad. 
   avatarManifest = AvatarManifest; 
+  console.log('[' + clc.cyanBright('INFO') + '] Downloaded avatar manifest.');
 });
 
 var lastfm = new LastFM({
@@ -496,12 +516,14 @@ app.get('/', function(req, res) {
 
 
 bot.on('curateUpdate', function(data) {
-  console.log('CURATEUPDATE:');
-  console.log(data);
+  if(config.debug) {
+    console.log('CURATEUPDATE:');
+    console.log(data);
+  }
 
   bot.observeUser(data, function(person) {
 
-    console.log(person.name + ' just added this song to their playlist.');
+    console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + ' just added this song to their playlist.');
 
     if (typeof(bot.room.currentPlay) != 'undefined' && typeof(bot.room.currentPlay.curates) != 'undefined') {
       bot.room.currentPlay.curates.push({
@@ -510,14 +532,15 @@ bot.on('curateUpdate', function(data) {
 
       bot.room.currentPlay.save(function(err) {
         if (err) { console.log(err); }
-        console.log('completed curation update.')
-        console.log('comparing curate records: ' + bot.records.boss.curates.length + ' and ' + bot.room.currentPlay.curates.length);
-        console.log('CURRENT DJ:');
-        console.log(bot.room.currentPlay._dj);
-
+        if(config.debug) {
+          console.log('completed curation update.')
+          console.log('comparing curate records: ' + bot.records.boss.curates.length + ' and ' + bot.room.currentPlay.curates.length);
+          console.log('CURRENT DJ:');
+          console.log(bot.room.currentPlay._dj);
+        }
 
         if (bot.records.boss.curates.length <= bot.room.currentPlay.curates.length) {
-          bot.chat('@' + bot.room.currentDJ.name + ' just stole the curation record from @' + bot.records.boss._dj.name + ' thanks to @' + person.name + '\'s playlist add!');
+          bot.chatWrap('@' + bot.room.currentDJ.name + ' just stole the curation record from @' + bot.records.boss._dj.name + ' thanks to @' + person.name + '\'s playlist add!');
           bot.getBoss(function(boss) {
             bot.records.boss = boss;
           });
@@ -529,48 +552,68 @@ bot.on('curateUpdate', function(data) {
 });
 
 bot.on('voteUpdate', function(data) {
-  console.log('VOTEUPDATE:');
-  console.log(data);
+  if(config.debug) {
+    console.log('VOTEUPDATE:');
+    console.log(data);
+  }
 
   findOrCreatePerson({
     plugID: data.id
   }, function(person) {
     bot.room.audience[data.id] = person;
+    if(data.vote == 1) {
+      console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.greenBright(' wooted') + ' the track!');
+    } else if(data.vote == -1) {
+      console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.redBright(' meh\'d') + ' the track!');
+    }
   });
 });
 
 bot.on('userLeave', function(data) {
-  console.log('USERLEAVE EVENT:');
-  console.log(data);
-
+  if(config.debug) {
+    console.log('USERLEAVE EVENT:');
+    console.log(data);
+  }
+  console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(bot.room.audience[data.id].name) + ' left the room!');
   delete bot.room.audience[data.id];
 });
 
 bot.on('userJoin', function(data) {
-  console.log('USERJOIN EVENT:');
-  console.log(data);
-
+  if(config.debug) {
+    console.log('USERJOIN EVENT:');
+    console.log(data);
+  }
+  console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(data.username) + ' joined the room!');
   bot.observeUser(data);
 });
 
 bot.on('userUpdate', function(data) {
-  console.log('USER UPDATE:');
-  console.log(data);
+  if(config.debug) {
+    console.log('USER UPDATE:');
+    console.log(data);
+  }
 
   bot.observeUser(data);
 });
 
 bot.on('djAdvance', function(data) {
-  console.log('New song: ' + JSON.stringify(data));
+  if(config.debug) {
+    console.log('New song: ' + JSON.stringify(data));
+  }
+  console.log('[' + clc.cyanBright('INFO') + '] ' + clc.greenBright('Now playing: ') + data.media.author + ' - ' + data.media.title + ' (DJ: ' + clc.yellowBright(data.djs[0].user.username) + ')');
 
   lastfm.getSessionKey(function(result) {
-    console.log("session key = " + result.session_key);
+    if(config.debug) {
+      console.log("session key = " + result.session_key);
+    }
     if (result.success) {
       lastfm.scrobbleNowPlayingTrack({
           artist: data.media.author
         , track: data.media.title
         , callback: function(result) {
-            console.log("in callback, finished: ", result);
+            if(config.debug) {
+              console.log("in callback, finished: ", result);
+            }
           }
       });
 
@@ -586,14 +629,18 @@ bot.on('djAdvance', function(data) {
             artist: data.media.author,
             track: data.media.title,
             callback: function(result) {
-                console.log("in callback, finished: ", result);
+                if(config.debug) {
+                  console.log("in callback, finished: ", result);
+                }
             }
         });
       //}, scrobbleDuration);
       }, 5000); // scrobble after 30 seconds, no matter what.
 
     } else {
-      console.log("Error: " + result.error);
+      if(config.debug) {
+        console.log("Error: " + result.error);
+      }
     }
   });
 
@@ -639,9 +686,9 @@ bot.on('chat', function(data) {
   var now = new Date();
 
   if (data.type == 'emote') {
-    console.log(data.from+data.message);
+    console.log(clc.greenBright(data.from+data.message));
   } else {
-    console.log(data.from+"> "+data.message);
+    console.log(clc.blackBright(data.from) + ": " + clc.whiteBright(data.message));
   }
 
   findOrCreatePerson({
@@ -676,7 +723,7 @@ bot.on('chat', function(data) {
         parsedCommands.push(data.trigger);
 
         if (data.trigger == 'commands') {
-          bot.chat('I am a fully autonomous system capable of responding to a wide array of commands, which you can find here: http://snarl.ericmartindale.com/commands')
+          bot.chatWrap('I am a fully autonomous system capable of responding to a wide array of commands, which you can find here: http://snarl.ericmartindale.com/commands')
           //bot.chat('Available commands are: ' + Object.keys(messages).join(', '));
         } else {
 
@@ -687,7 +734,7 @@ bot.on('chat', function(data) {
 
           switch (typeof(messages[data.trigger])) {
             case 'string':
-              bot.chat(messages[data.trigger]);
+              bot.chatWrap(messages[data.trigger]);
             break;
             case 'function':
               messages[data.trigger].apply(bot, [ data ]);
@@ -705,7 +752,7 @@ bot.on('chat', function(data) {
           }
 
           if (target == data.from) {
-            self.chat('Don\'t be a whore.');
+            self.chatWrap('Don\'t be a whore.');
           } else if (target.toLowerCase() == 'c' || target.length == 0) {
             // pass. probably a language mention. ;)
           } else {
@@ -836,5 +883,5 @@ var reconnect = function() { setTimeout(_reconnect, 500); };
 bot.on('close', reconnect);
 bot.on('error', reconnect);
 
-r = repl.start("node> ");
+r = repl.start('');
 r.context.bot = bot;

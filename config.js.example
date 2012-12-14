@@ -5,7 +5,7 @@ module.exports = {
   , auth : "sdH4wfhWSEthrS6za3dfHs6df2k=?_expires=SADshDfEhe3SfHa6Hs==&user_id=UFasdgsdgjSdfGSgtFDt7asgw3sHfdsg7zaasFg6afs=" // fake key, lololololol
   , room : 'coding-soundtrack'
   , ga: {
-      account: '' // accountID for Google Analytics, if you want it.
+        account: '' // accountID for Google Analytics, if you want it.
     }
   , lastfm: {
         key: '' // Get the info at http://last.fm/api
@@ -13,4 +13,6 @@ module.exports = {
       , username: ''
       , password: ''
   }
+  , debugMode : false
+  , disableChat : false
 }
