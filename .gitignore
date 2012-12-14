@@ -1,3 +1,13 @@
+// Snarl Stuff
+
+config.js
+
+// Node.js Stuff
+
+node_modules
+
+// Default GitHub Node template
+
 lib-cov
 *.seed
 *.log
