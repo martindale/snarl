@@ -34,7 +34,7 @@ bot.records = {
 bot.connect();
 
 bot.on('connected', function() {
-  bot.joinRoom('coding-soundtrack', function(data) {
+  bot.joinRoom(config.room, function(data) {
     console.log(JSON.stringify(data));
 
     bot.updateDJs(data.room.djs);
@@ -831,7 +831,7 @@ PlugAPI.prototype.updateDJs = function(djs) {
   });
 };
 
-var _reconnect = function() { bot.connect('coding-soundtrack'); };
+var _reconnect = function() { bot.connect(config.room); };
 var reconnect = function() { setTimeout(_reconnect, 500); };
 bot.on('close', reconnect);
 bot.on('error', reconnect);
