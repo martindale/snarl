@@ -1,6 +1,12 @@
 extends layout
 
 block content
-  h1 Track History
-  - for song in history
-    include blocks/song
+  header.jumbotron.subhead
+    .container
+      h1 History
+      p.lead
+        | Songs we played lately.
+  br
+  .container
+    - for song in history
+      include blocks/song

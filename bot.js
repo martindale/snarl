@@ -38,11 +38,21 @@ bot.room = {
 bot.records = {
   boss: {}
 };
+
+// Some shit functions
+
 bot.chatWrap = function(message) {
   if(!config.general.disableChat) {
     bot.chat(message);
   }
 }
+function getFirstKey(array) {
+  for(key in array) {
+    return key;
+  }
+}
+
+// We need to move them out of here.
 
 bot.connect();
 
@@ -217,18 +227,22 @@ function findOrCreatePerson(user, callback) {
   });
 }
 
-app.get('/search/name/:name', function(req, res) {
-  Person.findOne({ name: req.param('name') }).exec(function(err, person) {
-    if (!person) {
-      res.send('No such DJ found!');
-    } else {
-      if (typeof(person.plugID) != 'undefined') {
-        res.redirect('/djs/' + person.plugID);
-      } else {
-        res.send('DJ located, but no known plug.dj ID.');
-      }
-    }
-  })
+app.get('/', function(req, res) {
+  History.find().sort('-timestamp').limit(10).populate('_song').populate('_dj').exec(function(err,  history) {
+    Chat.find().sort('-timestamp').limit(15).populate('_person').exec(function(err, chats) {
+      res.render('index', {
+          currentSong: bot.currentSong
+        , history: history
+        , room: bot.room
+        , currentDJ: getFirstKey(bot.room.djs)
+        , chats: chats
+      });
+    });
+  });
+});
+
+app.get('/audience', function(req, res) {
+  res.send(bot.room.audience);
 });
 
 app.get('/chat', function(req, res) {
@@ -242,6 +256,36 @@ app.get('/chat', function(req, res) {
 app.get('/commands', function(req, res) {
   res.render('commands', {
     commands: Object.keys(messages)
+  });
+});
+
+app.get('/djs', function(req, res) {
+  Person.find().sort('-karma').limit(10).exec(function(err, people) {
+    res.render('djs', {
+      djs: people
+    });
+  });
+});
+
+app.get('/djs/:plugID', function(req, res, next) {
+  Person.findOne({ plugID: req.param('plugID') }).exec(function(err, dj) {
+    if (dj) {
+      History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
+        dj.playHistory = djHistory;
+
+        if (typeof(dj.bio) == 'undefined') {
+          dj.bio = '';
+        }
+
+        res.render('dj', {
+            md: require('node-markdown').Markdown
+          , dj: dj
+          , avatar: 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
+        });
+      });
+    } else {
+      next();
+    }
   });
 });
 
@@ -259,6 +303,24 @@ app.get('/history/:songInstance', function(req, res) {
     res.render('song-instance', {
       song: songInstance
     });
+  })
+});
+
+app.get('/rules', function(req, res) {
+  res.render('rules');
+});
+
+app.get('/search/name/:name', function(req, res) {
+  Person.findOne({ name: req.param('name') }).exec(function(err, person) {
+    if (!person) {
+      res.send('No such DJ found!');
+    } else {
+      if (typeof(person.plugID) != 'undefined') {
+        res.redirect('/djs/' + person.plugID);
+      } else {
+        res.send('DJ located, but no known plug.dj ID.');
+      }
+    }
   })
 });
 
@@ -310,7 +372,99 @@ app.get('/songs', function(req, res) {
       });
     });
   });
+});
 
+app.get('/songs/:songID', function(req, res, next) {
+  Song.findOne({ id: req.param('songID') }).exec(function(err, song) {
+    if (song) {
+      song._song = song; // hack to simplify templates for now. this is the History schema, technically
+      History.count({ _song: song._id }, function(err, playCount) {
+        song.playCount = playCount;
+
+        History.find({ _song: song._id }).populate('_dj').exec(function(err, songPlays) {
+
+          song.firstPlay = songPlays[0];
+          song.mostRecently = songPlays[ songPlays.length - 1 ];
+
+          var songDJs = {};
+
+          songPlays.forEach(function(play) {
+            songDJs[play._dj.plugID] = play._dj;
+          });
+          songPlays.forEach(function(play) {
+            if (typeof(songDJs[play._dj.plugID].songPlays) != 'undefined') {
+              songDJs[play._dj.plugID].songPlays = songDJs[play._dj.plugID].songPlays + 1;
+            } else {
+              songDJs[play._dj.plugID].songPlays = 1;
+            }
+          });
+
+          songDJs = _.toArray(songDJs);
+          songDJs.sort(function(a, b) {
+            return b.songPlays - a.songPlays;
+          });
+
+          res.render('song', {
+              song: song
+            , songDJs: songDJs
+          });
+
+        });
+      });
+    } else {
+      next();
+    }
+  });
+});
+
+app.get('/stats', function(req, res) {
+
+  var map = function() { //map function
+    emit(this._dj, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
+  } 
+
+  var reduce = function(previous, current) { //reduce function
+    var count = 0;
+    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
+      count += current[index]; //increments the counter by the 'value' of 1
+    }
+    return count;
+  };
+
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+  }, function(err, djs) {
+
+    /* sort the results */
+    djs.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    djs = djs.slice(0, 25);
+
+    /* now get the real records for these songs */
+    async.parallel(djs.map(function(dj) {
+      return function(callback) {
+        Person.findOne({ _id: dj._id }).exec(function(err, realDJ) {
+          realDJ.plays = dj.value;
+          callback(null, realDJ);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.plays - a.plays;
+      });
+
+      res.render('djs', {
+        djs: results
+      });
+    });
+  });
 });
 
 app.get('/stats/plays', function(req, res) {
@@ -372,138 +526,7 @@ app.get('/stats/plays', function(req, res) {
   });
 })
 
-app.get('/stats', function(req, res) {
-
-  var map = function() { //map function
-    emit(this._dj, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
-  } 
-
-  var reduce = function(previous, current) { //reduce function
-    var count = 0;
-    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
-      count += current[index]; //increments the counter by the 'value' of 1
-    }
-    return count;
-  };
-
-  /* execute map reduce */
-  History.mapReduce({
-      map: map
-    , reduce: reduce
-  }, function(err, djs) {
-
-    /* sort the results */
-    djs.sort(function(a, b) {
-      return b.value - a.value;
-    });
-
-    /* clip the top 25 */
-    djs = djs.slice(0, 25);
-
-    /* now get the real records for these songs */
-    async.parallel(djs.map(function(dj) {
-      return function(callback) {
-        Person.findOne({ _id: dj._id }).exec(function(err, realDJ) {
-          realDJ.plays = dj.value;
-          callback(null, realDJ);
-        });
-      };
-    }), function(err, results) {
-
-      /* resort since we're in parallel */
-      results.sort(function(a, b) {
-        return b.plays - a.plays;
-      });
-
-      res.render('djs', {
-        djs: results
-      });
-    });
-  });
-});
-
-app.get('/songs/:songID', function(req, res, next) {
-  Song.findOne({ id: req.param('songID') }).exec(function(err, song) {
-    if (song) {
-      song._song = song; // hack to simplify templates for now. this is the History schema, technically
-      History.count({ _song: song._id }, function(err, playCount) {
-        song.playCount = playCount;
-
-        History.find({ _song: song._id }).populate('_dj').exec(function(err, songPlays) {
-
-          song.firstPlay = songPlays[0];
-          song.mostRecently = songPlays[ songPlays.length - 1 ];
-
-          var songDJs = {};
-
-          songPlays.forEach(function(play) {
-            songDJs[play._dj.plugID] = play._dj;
-          });
-          songPlays.forEach(function(play) {
-            if (typeof(songDJs[play._dj.plugID].songPlays) != 'undefined') {
-              songDJs[play._dj.plugID].songPlays = songDJs[play._dj.plugID].songPlays + 1;
-            } else {
-              songDJs[play._dj.plugID].songPlays = 1;
-            }
-          });
-
-          songDJs = _.toArray(songDJs);
-          songDJs.sort(function(a, b) {
-            return b.songPlays - a.songPlays;
-          });
-
-          res.render('song', {
-              song: song
-            , songDJs: songDJs
-          });
-
-        });
-      });
-    } else {
-      next();
-    }
-  });
-});
-
-app.get('/djs', function(req, res) {
-  Person.find().sort('-karma').limit(10).exec(function(err, people) {
-    res.render('djs', {
-      djs: people
-    });
-  });
-});
-
-app.get('/djs/:plugID', function(req, res, next) {
-  Person.findOne({ plugID: req.param('plugID') }).exec(function(err, dj) {
-    if (dj) {
-      History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
-        dj.playHistory = djHistory;
-
-        if (typeof(dj.bio) == 'undefined') {
-          dj.bio = '';
-        }
-
-        res.render('dj', {
-            md: require('node-markdown').Markdown
-          , dj: dj
-          , avatar: 'http://plug.dj' + avatarManifest.getAvatarUrl('hw', 'halloween06', '')
-        });
-      });
-    } else {
-      next();
-    }
-  });
-});
-
-app.get('/', function(req, res) {
-  History.find().sort('-timestamp').limit(10).populate('_song').populate('_dj').exec(function(err,  history) {
-    res.render('index', {
-        currentSong: bot.currentSong
-      , history: history
-      , room: bot.room
-    });
-  });
-});
+app.listen(config.general.port);
 
 /* bot.on('userJoin', function(data) {
   findOrCreatePerson({
@@ -604,9 +627,10 @@ bot.on('djAdvance', function(data) {
 
   lastfm.getSessionKey(function(result) {
     if(config.general.debugMode) {
-      console.log("session key = " + result.session_key);
+      console.log("Last.fm session key: " + result.session_key);
     }
-    if (result.success) {
+    if(result.success) {
+      console.log('[' + clc.cyanBright('INFO') + '] Successfully obtained Last.fm session key.');
       lastfm.scrobbleNowPlayingTrack({
           artist: data.media.author
         , track: data.media.title
@@ -638,6 +662,7 @@ bot.on('djAdvance', function(data) {
       }, 5000); // scrobble after 30 seconds, no matter what.
 
     } else {
+      console.log('[' + clc.redBright('ERRO') + '] ' + clc.redBright('Failed') + ' to obtain Last.fm session key.');
       if(config.general.debugMode) {
         console.log("Error: " + result.error);
       }
@@ -768,14 +793,7 @@ bot.on('chat', function(data) {
       }
     });
   });
-
 });
-
-app.get('/audience', function(req, res) {
-  res.send(bot.room.audience);
-});
-
-app.listen(config.general.port);
 
 PlugAPI.prototype.getBoss = function(callback) {
   var self = this;

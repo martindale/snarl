@@ -1,6 +1,12 @@
 extends layout
 
 block content
-  h1 DJs
-  - for dj in djs
-    include blocks/dj
+  header.jumbotron.subhead
+    .container
+      h1 DJs
+      p.lead
+        | Best DJs sorted by karma.
+  br
+  .container
+    - for dj in djs
+      include blocks/dj

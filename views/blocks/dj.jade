@@ -2,7 +2,11 @@ h3
   - if (typeof(dj.avatar) != 'undefined' && typeof(dj.avatar.thumb) != 'undefined')
     img(src="#{dj.avatar.thumb}")
     |  
+  - else
+    img(src="http://plug.dj/_/static/images/avatars/thumbs/animal08.6b608fae.png")
+    | 
   - if (typeof(dj.plugID) != 'undefined')
     a(href="/djs/#{dj.plugID}") #{dj.name}
+    |  (#{dj.karma})
   - else
     | #{dj.name}

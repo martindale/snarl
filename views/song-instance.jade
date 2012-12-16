@@ -1,13 +1,19 @@
 extends layout
 
 block content
-  - if (typeof(song._dj) != 'undefined')
-    small
-      a(href="/djs/#{song._dj.plugID}") #{song._dj.name}
-      |  played 
-  include blocks/song
-
-  .row-fluid
-    p <strong>#{song.curates.length}</strong> people added this song because of this play: 
-      - for curate in song.curates
-        a(href="/djs/#{curate._person.id}") #{curate._person.name} 
+  header.jumbotron.subhead
+    .container
+      h1 #{song._song.title}
+      p.lead
+        | #{song._song.author}
+  br
+  .container
+    - if (typeof(song._dj) != 'undefined')
+      h1 Played by 
+        a(href="/djs/#{song._dj.plugID}") #{song._dj.name}
+      h3 #{song.timestamp}
+      p <strong>#{song.curates.length}</strong> people added this song because of this play: 
+        ul
+          - for curate in song.curates
+            li
+              a(href="/djs/#{curate._person.id}") #{curate._person.name} 

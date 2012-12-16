@@ -2,26 +2,55 @@
 extends layout
 
 block content
-  h1 <a href="http://plug.dj/coding-soundtrack">&#9835;</a> Coding Soundtrack 
-    a.btn.btn-primary.btn-large(href="http://plug.dj/coding-soundtrack") &#9835; Listen Now &raquo;
-  h2 Currently playing &ldquo;
-    a(href="/songs/#{currentSong.id}") #{currentSong.title}
-    | &rdquo; by #{currentSong.author}
+  .jumbotron.masthead
+    .container
+      h1 Coding Soundtrack
+      p
+        | Subtitle will go here. Somehow.
+        span.muted  - Maxorq
+      p
+        a.btn.btn-danger.btn-large(href="http://plug.dj/coding-soundtrack") Join us on plug.dj!
+      | Now playing: 
+      a(href="/songs/#{currentSong.id}")
+        strong #{currentSong.author}
+        |  - #{currentSong.title}
+      br
+      | Current DJ: 
+      a(href="/djs/#{room.djs[currentDJ].plugID}") #{room.djs[currentDJ].name}
 
-  .row-fluid
-    h3 Currently on stage:
-    .stage
-      - for dj in room.djs
-        a(href="/djs/#{dj.plugID}")
-          - if (typeof(dj.avatar) != 'undefined' && typeof(dj.avatar.thumb) != 'undefined')
-            img(src="#{dj.avatar.thumb}")
-            |  
-          span #{dj.name}
-
-  .row-fluid
-    #history
-      h2 Track History
-      ol
+  .container
+    .row
+      .span4
+        .page-header
+          h1 Queue
+        - for dj in room.djs
+          - if(dj.plugID != room.djs[currentDJ].plugID && typeof(dj.avatar) != 'undefined' && typeof(dj.avatar.thumb) != 'undefined')
+            .media
+              a.pull-left(href="/djs/#{dj.plugID}")
+                img(src="#{dj.avatar.thumb}")
+              .media-body
+                h4.media-heading
+                  a(href="/djs/#{dj.plugID}") #{dj.name}
+      .span4
+        .page-header
+          h1 Song History
         - for song in history
-          include blocks/song-instance
-    
+          .media
+            a.pull-left(href="#")
+              img.media-object(src="#{song._dj.avatar.thumb}")
+            .media-body
+              a(href="/songs/#{song._song.id}") #{song._song.author} - #{song._song.title}
+              - if(typeof(song._dj) != 'undefined')
+                br
+                small  played by 
+                  a(href="/djs/#{song._dj.plugID}") #{song._dj.name}
+      .span4
+        .page-header
+          h1 Chat
+        - for chat in chats
+          .media
+            a.pull-left(href="DJLINKLALALAL")
+              img.media-object(height="16", "width="16", src="#{chat._person.avatar.thumb}")
+            .media-body
+              a(href="/djs/#{chat._person.plugID}") #{chat._person.name}
+              | : #{chat.message}

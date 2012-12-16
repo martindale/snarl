@@ -1,9 +1,15 @@
 extends layout
 
 block content
-  h1 Top Tracks
-  ol
-    - for song in songs
-      li
-        a(href="/songs/#{song.id}") #{song.title}
-        |  was played <strong>#{song.plays}</strong> times.
+  header.jumbotron.subhead
+    .container
+      h1 Songs
+      p.lead
+        | Everything that have been played.
+  br
+  .container
+    ol
+      - for song in songs
+        li
+          a(href="/songs/#{song.id}") #{song.title}
+          |  was played <strong>#{song.plays}</strong> times.
