@@ -1,4 +1,5 @@
-var rest = require('restler')
+var config = require('./config')
+  , rest = require('restler')
   , google = require('google')
   , github = require('github')
   , _ = require('underscore')
@@ -189,7 +190,7 @@ module.exports = {
 
       Person.find({ _id: { $in: onlineStaff } }).exec(function(err, staff) {
         self.chatWrap(staff.length + ' online staff members: ' + staff.map(function(staffMember) {
-          if(config.debug) {
+          if(config.general.debugMode) {
             console.log(staffMember);
             console.log(self.room.staff);
           }
@@ -223,7 +224,7 @@ module.exports = {
     }
   , songplays: function(data) {
       var self = this;
-      if(config.debug) {
+      if(config.general.debugMode) {
         console.log('looking up: ' + JSON.stringify(self.currentSong));
       }
       

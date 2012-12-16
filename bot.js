@@ -21,8 +21,8 @@ var config = require('./config')
 
 console.log(clc.greenBright('done!'));
 
-var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
-var ROOM = config.room;
+var AUTH = config.auth.token;
+var ROOM = config.general.room;
 
 var bot = new PlugAPI(AUTH);
 bot.currentSong = {};
@@ -39,7 +39,7 @@ bot.records = {
   boss: {}
 };
 bot.chatWrap = function(message) {
-  if(!config.disableChat) {
+  if(!config.general.disableChat) {
     bot.chat(message);
   }
 }
@@ -48,11 +48,11 @@ bot.connect();
 
 bot.on('connected', function() {
 
-  bot.joinRoom(config.room, function(data) {
+  bot.joinRoom(config.general.room, function(data) {
 
-    console.log('[' + clc.cyanBright('INFO') + '] Joined room ' + config.room + '!');
+    console.log('[' + clc.cyanBright('INFO') + '] Joined room ' + config.general.room + '!');
 
-    if(config.debug) {
+    if(config.general.debugMode) {
       console.log(JSON.stringify(data));
     }
 
@@ -516,7 +516,7 @@ app.get('/', function(req, res) {
 
 
 bot.on('curateUpdate', function(data) {
-  if(config.debug) {
+  if(config.general.debugMode) {
     console.log('CURATEUPDATE:');
     console.log(data);
   }
@@ -532,7 +532,7 @@ bot.on('curateUpdate', function(data) {
 
       bot.room.currentPlay.save(function(err) {
         if (err) { console.log(err); }
-        if(config.debug) {
+        if(config.general.debugMode) {
           console.log('completed curation update.')
           console.log('comparing curate records: ' + bot.records.boss.curates.length + ' and ' + bot.room.currentPlay.curates.length);
           console.log('CURRENT DJ:');
@@ -552,7 +552,7 @@ bot.on('curateUpdate', function(data) {
 });
 
 bot.on('voteUpdate', function(data) {
-  if(config.debug) {
+  if(config.general.debugMode) {
     console.log('VOTEUPDATE:');
     console.log(data);
   }
@@ -570,7 +570,7 @@ bot.on('voteUpdate', function(data) {
 });
 
 bot.on('userLeave', function(data) {
-  if(config.debug) {
+  if(config.general.debugMode) {
     console.log('USERLEAVE EVENT:');
     console.log(data);
   }
@@ -579,7 +579,7 @@ bot.on('userLeave', function(data) {
 });
 
 bot.on('userJoin', function(data) {
-  if(config.debug) {
+  if(config.general.debugMode) {
     console.log('USERJOIN EVENT:');
     console.log(data);
   }
@@ -588,7 +588,7 @@ bot.on('userJoin', function(data) {
 });
 
 bot.on('userUpdate', function(data) {
-  if(config.debug) {
+  if(config.general.debugMode) {
     console.log('USER UPDATE:');
     console.log(data);
   }
@@ -597,13 +597,13 @@ bot.on('userUpdate', function(data) {
 });
 
 bot.on('djAdvance', function(data) {
-  if(config.debug) {
+  if(config.general.debugMode) {
     console.log('New song: ' + JSON.stringify(data));
   }
   console.log('[' + clc.cyanBright('INFO') + '] ' + clc.greenBright('Now playing: ') + data.media.author + ' - ' + data.media.title + ' (DJ: ' + clc.yellowBright(data.djs[0].user.username) + ')');
 
   lastfm.getSessionKey(function(result) {
-    if(config.debug) {
+    if(config.general.debugMode) {
       console.log("session key = " + result.session_key);
     }
     if (result.success) {
@@ -611,7 +611,7 @@ bot.on('djAdvance', function(data) {
           artist: data.media.author
         , track: data.media.title
         , callback: function(result) {
-            if(config.debug) {
+            if(config.general.debugMode) {
               console.log("in callback, finished: ", result);
             }
           }
@@ -629,7 +629,7 @@ bot.on('djAdvance', function(data) {
             artist: data.media.author,
             track: data.media.title,
             callback: function(result) {
-                if(config.debug) {
+                if(config.general.debugMode) {
                   console.log("in callback, finished: ", result);
                 }
             }
@@ -638,7 +638,7 @@ bot.on('djAdvance', function(data) {
       }, 5000); // scrobble after 30 seconds, no matter what.
 
     } else {
-      if(config.debug) {
+      if(config.general.debugMode) {
         console.log("Error: " + result.error);
       }
     }
@@ -775,7 +775,7 @@ app.get('/audience', function(req, res) {
   res.send(bot.room.audience);
 });
 
-app.listen(43001);
+app.listen(config.general.port);
 
 PlugAPI.prototype.getBoss = function(callback) {
   var self = this;
@@ -878,7 +878,7 @@ PlugAPI.prototype.updateDJs = function(djs) {
   });
 };
 
-var _reconnect = function() { bot.connect(config.room); };
+var _reconnect = function() { bot.connect(config.general.room); };
 var reconnect = function() { setTimeout(_reconnect, 500); };
 bot.on('close', reconnect);
 bot.on('error', reconnect);
