@@ -71,15 +71,29 @@ module.exports = {
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.com/ten-commendmants'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See /music for music suggestions, though there are no defined or enforced rules on music. More: http://goo.gl/b7UGO'
-  , jarplug: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
   , netsplit: 'plug.dj has been having a lot of issues lately, especially with chat becoming fragmented.  Some people can chat with each other, and others can\'t see those messages.  Relax, @Boycey will have it fixed soon.'
   , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
+  , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , video: 'dat video.'
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
         console.log('Voted.');
         self.chat('Agreed, this track is svelte!  Wooted.');
+      });
+    }
+  , lame: function(data) {
+      var self = this;
+      this.meh(function() {
+        console.log('Voted.');
+        self.chat('Mmm, not so hot.  Meh\'d.');
+      });
+    }
+  , notsmiff: function(data) {
+      var self = this;
+      this.meh(function() {
+        console.log('Voted.');
+        self.chat('Hey, wait a second.  This isn\'t smiff.  D:');
       });
     }
   , bio: function(data) {
@@ -218,6 +232,42 @@ module.exports = {
         self.chat('Whose profile did you want?');
       }
     }
+  , songTitle: function(data) {
+      var self = this;
+      if (data.fromID != '50aeb41596fba52c3ca0d392') {
+        self.chat('I\'ll take that into consideration.  Maybe.');
+      } else {
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { console.log(err); } else {
+
+            var previousTitle = song.title;
+            song.title = data.params;
+
+            song.save(function(err) {
+              self.chat('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+            });
+          }
+        });
+      }
+    }
+  , songArtist: function(data) {
+      var self = this;
+      if (data.fromID != '50aeb41596fba52c3ca0d392') {
+        self.chat('I\'ll take that into consideration.  Maybe.');
+      } else {
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { console.log(err); } else {
+
+            var previousAuthor = song.author;
+            song.author = data.params;
+
+            song.save(function(err) {
+              self.chat('Song title updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+            });
+          }
+        });
+      }
+    }
   , songplays: function(data) {
       var self = this;
       console.log('looking up: ' + JSON.stringify(self.currentSong));
@@ -336,8 +386,11 @@ module.exports = {
     }
   , get snarlsource () { return this.source; }
   , debug: function(data) { this.chat(JSON.stringify(data)) }
-  , get afpdj () { return this.afk }
-  , get aftt () { return this.afk }
+  , get afpdj () { return this.afk; }
+  , get aftt () { return this.afk; }
+  , get jarplug () { return this.plugin; }
+  , get woot () { return this.awesome; }
+  , get meh () { return this.lame; }
 }
 
 function oxfordJoin(array) {

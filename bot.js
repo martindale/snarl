@@ -463,10 +463,12 @@ app.get('/djs/:plugID', function(req, res, next) {
           dj.bio = '';
         }
 
+        console.log(dj.avatarID);
+
         res.render('dj', {
             md: require('node-markdown').Markdown
           , dj: dj
-          , avatar: 'http://plug.dj' + avatarManifest.getAvatarUrl('hw', 'halloween06', '')
+          , avatarImage: 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
         });
       });
     } else {
@@ -476,7 +478,13 @@ app.get('/djs/:plugID', function(req, res, next) {
 });
 
 app.get('/', function(req, res) {
-  History.find().sort('-timestamp').limit(10).populate('_song').populate('_dj').exec(function(err,  history) {
+  History.find().sort('-timestamp').limit(10).populate('_song').populate('_dj').exec(function(err, history) {
+
+    /* bot.room.djs = _.toArray(bot.room.djs).map(function(dj) {
+      dj.avatarImage = 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
+      return dj;
+    }); */
+
     res.render('index', {
         currentSong: bot.currentSong
       , history: history

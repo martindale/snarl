@@ -5,5 +5,5 @@ block content
   ol
     - for song in songs
       li
-        a(href="/songs/#{song.id}") #{song.title}
+        a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
         |  was played <strong>#{song.plays}</strong> times.

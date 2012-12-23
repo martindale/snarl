@@ -73,9 +73,18 @@ html
           a(href="https://github.com/chrisinajar/plugapi") plugapi
           | .
 
-
     script(src="//code.jquery.com/jquery-1.8.3.min.js")
     script(src="/js/bootstrap.js")
+
+    script
+      $('.plug-sprite').each(function() {
+        var self = this;
+        setInterval(function() {
+          $(self).css('background-position-x', (parseInt($(self).css('background-position-x')) - 150) + 'px');
+        }, 83);
+      });
+
+    block scripts
 
     - if (typeof(config.ga.account) != 'undefined' && config.ga.account.length > 0)
       script(type="text/javascript")
