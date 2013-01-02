@@ -1,6 +1,13 @@
 extends layout
 
 block content
-  h1 DJs
-  - for dj in djs
-    include blocks/dj
+  h1 Top DJs
+  .row
+    .span6
+      h2 by Karma
+      - for dj in djs
+        include blocks/dj
+    .span6
+      h2 by Plays
+      - for dj in monthlyDJs
+        include blocks/dj

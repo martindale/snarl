@@ -23,6 +23,9 @@ block content
     .bio
       != md(dj.bio, true)
 
+    h2
+      small ...has played <strong>#{playCount}</strong> tracks in Coding Soundtrack.
+
   .row-fluid
     h3 Play History
     - for song in dj.playHistory

@@ -47,6 +47,8 @@ var historySchema = mongoose.Schema({
   , curates: [ new Schema({
       _person: { type: ObjectId, ref: 'Person', required: true }
     }) ]
+  , downvotes: Number
+  , upvotes: Number
 });
 var chatSchema = mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
@@ -71,6 +73,7 @@ module.exports = {
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.com/ten-commendmants'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See /music for music suggestions, though there are no defined or enforced rules on music. More: http://goo.gl/b7UGO'
+  , suitup: 'Suit up, motherfucker!'
   , netsplit: 'plug.dj has been having a lot of issues lately, especially with chat becoming fragmented.  Some people can chat with each other, and others can\'t see those messages.  Relax, @Boycey will have it fixed soon.'
   , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
@@ -232,38 +235,44 @@ module.exports = {
         self.chat('Whose profile did you want?');
       }
     }
-  , songTitle: function(data) {
+  , songtitle: function(data) {
       var self = this;
       if (data.fromID != '50aeb41596fba52c3ca0d392') {
         self.chat('I\'ll take that into consideration.  Maybe.');
       } else {
         Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
           if (err) { console.log(err); } else {
+            if (data.params.length > 0) {
+              var previousTitle = song.title;
+              song.title = data.params;
 
-            var previousTitle = song.title;
-            song.title = data.params;
-
-            song.save(function(err) {
-              self.chat('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
-            });
+              song.save(function(err) {
+                self.chat('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+              });
+            } else {
+              self.chat('What do you want to set the title of this song to?  I need a parameter.');
+            }
           }
         });
       }
     }
-  , songArtist: function(data) {
+  , songartist: function(data) {
       var self = this;
       if (data.fromID != '50aeb41596fba52c3ca0d392') {
         self.chat('I\'ll take that into consideration.  Maybe.');
       } else {
         Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
           if (err) { console.log(err); } else {
+            if (data.params.length > 0) {
+              var previousAuthor = song.author;
+              song.author = data.params;
 
-            var previousAuthor = song.author;
-            song.author = data.params;
-
-            song.save(function(err) {
-              self.chat('Song title updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
-            });
+              song.save(function(err) {
+                self.chat('Song title updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+              });
+            } else {
+              self.chat('What do you want to set the author of this song to?  I need a parameter.');
+            }
           }
         });
       }

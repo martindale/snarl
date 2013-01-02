@@ -123,9 +123,11 @@ var historySchema = mongoose.Schema({
   , curates: [ new Schema({
       _person: { type: ObjectId, ref: 'Person', required: true }
     }) ]
+  , downvotes: { type: Number, default: 0 }
+  , upvotes: { type: Number, default: 0 }
   , votes: [ new Schema({
         _person: { type: ObjectId, ref: 'Person', required: true }
-      , 
+      , vote: { type: String, enum: ['up', 'down'] }
     }) ]
 });
 var chatSchema = mongoose.Schema({
@@ -149,6 +151,11 @@ app.use(express.errorHandler());
 app.set('view engine', 'jade');
 app.locals.config = config; // WARNING: this exposes your config to jade! be careful not to render your bot's cookie.
 app.locals.pretty = true;
+
+
+History.find().limit(1).populate('_song').exec(function(err, oldestHistory) {
+  app.locals.oldestPlay = oldestHistory[0];
+});
 
 function findOrCreatePerson(user, callback) {
   Person.findOne({ $or: [ { plugID: user.plugID }, { name: user.name } ] }).exec(function(err, person) {
@@ -226,7 +233,7 @@ app.get('/commands', function(req, res) {
 });
 
 app.get('/history', function(req, res) {
-  History.find().sort('-timestamp').limit(10).populate('_song').exec(function(err,  history) {
+  History.find().sort('-timestamp').limit(1000).populate('_song').exec(function(err,  history) {
     res.render('history', {
       history: history
     });
@@ -243,19 +250,47 @@ app.get('/history/:songInstance', function(req, res) {
 });
 
 app.get('/songs', function(req, res) {
+  var today = new Date();
 
-  var map = function() { //map function
-    emit(this._song, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
-  } 
+  mostPopularSongsAlltime(function(allTime) {
 
-  var reduce = function(previous, current) { //reduce function
-    var count = 0;
-    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
-      count += current[index]; //increments the counter by the 'value' of 1
-    }
-    return count;
-  };
+    // one month
+    var time = new Date();
+    time.setDate( today.getDate() - 30 );
 
+    mostPopularSongsSince(time, function(month) {
+      // one week
+      var time = new Date();
+      time.setDate( today.getDate() - 7 );
+
+      mostPopularSongsSince(time, function(week) {
+        res.render('songs', {
+            allTime: allTime
+          , month: month
+          , week: week
+        });
+      });
+    });
+  });
+});
+
+var map = function() { //map function
+  emit(this._song, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
+} 
+
+var reduce = function(previous, current) { //reduce function
+  var count = 0;
+  for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
+    count += current[index]; //increments the counter by the 'value' of 1
+  }
+  return count;
+};
+
+var mapDJ = function() { //map function
+  emit(this._dj, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
+}
+
+function mostPopularSongsAlltime(callback) {
   /* execute map reduce */
   History.mapReduce({
       map: map
@@ -267,8 +302,8 @@ app.get('/songs', function(req, res) {
       return b.value - a.value;
     });
 
-    /* clip the top 25 */
-    songs = songs.slice(0, 2500);
+    /* clip the top 100 */
+    songs = songs.slice(0, 100);
 
     /* now get the real records for these songs */
     async.parallel(songs.map(function(song) {
@@ -285,13 +320,49 @@ app.get('/songs', function(req, res) {
         return b.plays - a.plays;
       });
 
-      res.render('songs', {
-        songs: results
-      });
+      callback(results);
+
     });
   });
+}
 
-});
+function mostPopularSongsSince(time, callback) {
+
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+    , query: { timestamp: { $gte: time } }
+  }, function(err, songs) {
+
+    /* sort the results */
+    songs.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    songs = songs.slice(0, 10);
+
+    /* now get the real records for these songs */
+    async.parallel(songs.map(function(song) {
+      return function(callback) {
+        Song.findOne({ _id: song._id }).exec(function(err, realSong) {
+          realSong.plays = song.value;
+          callback(null, realSong);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.plays - a.plays;
+      });
+
+      callback(results);
+
+    });
+  });
+}
 
 app.get('/stats/plays', function(req, res) {
   var map = function() { //map function
@@ -447,11 +518,57 @@ app.get('/songs/:songID', function(req, res, next) {
 
 app.get('/djs', function(req, res) {
   Person.find().sort('-karma').limit(10).exec(function(err, people) {
-    res.render('djs', {
-      djs: people
+
+    // one month
+    var time = new Date();
+    time.setDate( time.getDate() - 30 );
+
+    mostProlificDJs(time, function(monthlyDJs) {
+      res.render('djs', {
+          djs: people
+        , monthlyDJs: monthlyDJs
+      });
     });
+
   });
 });
+
+function mostProlificDJs(time, callback) {
+  /* execute map reduce */
+  History.mapReduce({
+      map: mapDJ
+    , reduce: reduce
+    , query: { timestamp: { $gte: time } }
+  }, function(err, songs) {
+
+    /* sort the results */
+    songs.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    songs = songs.slice(0, 10);
+
+    /* now get the real records for these DJs */
+    async.parallel(songs.map(function(song) {
+      return function(callback) {
+        Person.findOne({ _id: song._id }).exec(function(err, realSong) {
+          realSong.plays = song.value;
+          callback(null, realSong);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.plays - a.plays;
+      });
+
+      callback(results);
+
+    });
+  });
+}
 
 app.get('/djs/:plugID', function(req, res, next) {
   Person.findOne({ plugID: req.param('plugID') }).exec(function(err, dj) {
@@ -463,13 +580,15 @@ app.get('/djs/:plugID', function(req, res, next) {
           dj.bio = '';
         }
 
-        console.log(dj.avatarID);
-
-        res.render('dj', {
-            md: require('node-markdown').Markdown
-          , dj: dj
-          , avatarImage: 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
+        History.count({ _dj: dj._id }).exec(function(err, playCount) {
+          res.render('dj', {
+              md: require('node-markdown').Markdown
+            , dj: dj
+            , avatarImage: 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
+            , playCount: playCount
+          });
         });
+
       });
     } else {
       next();
@@ -490,6 +609,8 @@ app.get('/', function(req, res) {
       , history: history
       , room: bot.room
     });
+
+
   });
 });
 
@@ -544,6 +665,20 @@ bot.on('voteUpdate', function(data) {
     plugID: data.id
   }, function(person) {
     bot.room.audience[data.id] = person;
+
+    switch (data.vote) {
+      case 1:
+        bot.room.currentPlay.upvotes++;
+      break;
+      case -1:
+        bot.room.currentPlay.downvotes++;
+      break;
+    }
+
+    if (typeof(bot.room.currentPlay) != 'undefined') {
+      //bot.room.currentPlay.save();
+    }
+
   });
 });
 

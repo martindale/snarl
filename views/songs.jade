@@ -2,8 +2,30 @@ extends layout
 
 block content
   h1 Top Tracks
-  ol
-    - for song in songs
-      li
-        a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
-        |  was played <strong>#{song.plays}</strong> times.
+
+  .row
+    .span6
+      h2 All Time
+      ol
+        - for song in allTime
+          li
+            a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
+            |  was played <strong>#{song.plays}</strong> times.
+
+    .span6
+    
+      .span12
+        h2 Month
+        ol
+          - for song in month
+            li
+              a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
+              |  was played <strong>#{song.plays}</strong> times.
+
+      .span12
+        h2 Week
+        ol
+          - for song in week
+            li
+              a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
+              |  was played <strong>#{song.plays}</strong> times.
