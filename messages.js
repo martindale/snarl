@@ -49,8 +49,12 @@ var historySchema = mongoose.Schema({
   , curates: [ new Schema({
       _person: { type: ObjectId, ref: 'Person', required: true }
     }) ]
-  , downvotes: Number
-  , upvotes: Number
+  , downvotes: { type: Number, default: 0 }
+  , upvotes: { type: Number, default: 0 }
+  , votes: [ new Schema({
+        _person: { type: ObjectId, ref: 'Person', required: true }
+      , vote: { type: String, enum: ['up', 'down'] }
+    }) ]
 });
 var chatSchema = mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
@@ -93,7 +97,7 @@ module.exports = {
       if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {
         data.person.bio = data.params.trim();
         data.person.save(function(err) {
-          self.chatWrap('Bio saved!  Profile link: http://snarl.ericmartindale.com/djs/' + data.fromID );
+          self.chatWrap('Bio saved!  Profile link: ' + config.general.link + '/djs/' + data.fromID );
         });
       } else {
         if (typeof(data.person.bio) != 'undefined' && data.person.bio.length > 0) {
@@ -106,7 +110,7 @@ module.exports = {
     }
   , boss: function(data) {
       var self = this;
-      self.chatWrap('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: http://snarl.ericmartindale.com/history/' + self.records.boss._id );
+      self.chatWrap('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: ' + config.general.room + '/history/' + self.records.boss._id );
     }
   , catfacts: function(data) {
       var self = this;
@@ -140,7 +144,10 @@ module.exports = {
 
       idleDJs = idleDJs.map(function(item) {
         var idleTime = secondsToTime(item.idleTime);
-        return '@' + item.name + ' ('+ idleTime.m +'m'+idleTime.s+'s)';
+        var idleTimeString = '';
+        var idleTimeString = (idleTime.h > 0) ? '('+ idleTime.h +'h'+ idleTime.m +'m'+idleTime.s+'s)' : '('+ idleTime.m +'m'+idleTime.s+'s)';
+
+        return '@' + item.name + ' '+idleTimeString;
       });
 
       if (idleDJs.length > 0) {
@@ -164,7 +171,7 @@ module.exports = {
       if (typeof(self.room.track._id) != 'undefined') {
         History.findOne({ _song: self.room.track._id }).sort('+timestamp').populate('_dj').exec(function(err, firstPlay) {
           History.count({ _song: self.room.track._id }).exec(function(err, count) {
-            self.chatWrap('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+            self.chatWrap('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: ' + config.general.room + '/songs/' + self.room.track.id );
           });
         });
       } else {
@@ -189,7 +196,7 @@ module.exports = {
   , history: function(data) {
       var self = this;
       History.count({}, function(err, count) {
-        self.chatWrap('There are ' + count + ' songs in recorded history: http://snarl.ericmartindale.com/history');
+        self.chatWrap('There are ' + count + ' songs in recorded history: ' + config.general.room + '/history');
       });
     }
   , get jarplug () { return this.plugin; }
@@ -203,10 +210,10 @@ module.exports = {
           });
 
           person.save(function(err) {
-            self.chatWrap('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://snarl.ericmartindale.com/djs/' + data.fromID );
+            self.chatWrap('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at ' + config.general.room + '/djs/' + data.fromID );
           });
         } else {
-          self.chatWrap('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://snarl.ericmartindale.com/djs/' + data.fromID );
+          self.chatWrap('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at ' + config.general.room + '/djs/' + data.fromID );
         }
       });
     }
@@ -224,7 +231,7 @@ module.exports = {
 
         if (lastPlay) {
           History.count({ _song: self.room.track._id }).exec(function(err, count) {
-            self.chatWrap('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+            self.chatWrap('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: ' + config.general.room + '/songs/' + self.room.track.id );
           });
         } else {
           self.chatWrap('I haven\'t heard this song before now.');
@@ -301,7 +308,7 @@ module.exports = {
   , nsfw: 'Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!'
   , permalink: function(data) {
       var self = this;
-      self.chatWrap('Song: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+      self.chatWrap('Song: ' + config.general.room + '/songs/' + self.room.track.id );
     }
   , plugid: function(data) {
       var self = this;
@@ -314,7 +321,7 @@ module.exports = {
           return '@' + person.name;
         });
       
-        self.chatWrap(oxfordJoin(names) + ' are all the rage these days. See more: http://snarl.ericmartindale.com/djs');
+        self.chatWrap(oxfordJoin(names) + ' are all the rage these days. See more: ' + config.general.room + '/djs');
       });
     }
   , profile: function(data) {
@@ -324,7 +331,7 @@ module.exports = {
           if (!person) {
             self.chatWrap('/me could not find a profile by that name.');
           } else {
-            self.chatWrap('@' + data.params + ': “'+person.bio+'”  More: http://snarl.ericmartindale.com/djs/'+ person.plugID)
+            self.chatWrap('@' + data.params + ': “'+person.bio+'”  More: ' + config.general.room + '/djs/'+ person.plugID)
           }
         });
       } else {
@@ -367,7 +374,7 @@ module.exports = {
               song.author = data.params;
 
               song.save(function(err) {
-                self.chatWrap('Song author updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+                self.chatWrap('Song author updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: ' + config.general.room + '/songs/' + self.room.track.id );
               });
             } else {
               self.chatWrap('What do you want to set the author of this song to?  I need a parameter.');
@@ -388,7 +395,7 @@ module.exports = {
               song.title = data.params;
 
               song.save(function(err) {
-                self.chatWrap('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+                self.chatWrap('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: ' + config.general.room + '/songs/' + self.room.track.id );
               });
             } else {
               self.chatWrap('What do you want to set the title of this song to?  I need a parameter.');

@@ -273,6 +273,10 @@ app.get('/commands', function(req, res) {
   });
 });
 
+app.get('/copypasta/monthly', function (req, res) {
+  res.send('lol');
+});
+
 app.get('/djs', function(req, res) {
   Person.find().sort('-karma').limit(10).exec(function(err, people) {
      // one month
@@ -589,6 +593,44 @@ function mostPopularSongsAlltime(callback) {
   });
 }
 
+function mostPopularSongsBetween(start, end, callback) {
+
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+    , query: { timestamp: { $gte: start, $lte: end } }
+  }, function(err, songs) {
+
+    /* sort the results */
+    songs.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    songs = songs.slice(0, 25);
+
+    /* now get the real records for these songs */
+    async.parallel(songs.map(function(song) {
+      return function(callback) {
+        Song.findOne({ _id: song._id }).exec(function(err, realSong) {
+          realSong.plays = song.value;
+          callback(null, realSong);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.plays - a.plays;
+      });
+
+      callback(results);
+
+    });
+  });
+}
+
 function mostPopularSongsSince(time, callback) {
 
   /* execute map reduce */
@@ -604,7 +646,7 @@ function mostPopularSongsSince(time, callback) {
     });
 
     /* clip the top 25 */
-    songs = songs.slice(0, 10);
+    songs = songs.slice(0, 25);
 
     /* now get the real records for these songs */
     async.parallel(songs.map(function(song) {
@@ -713,17 +755,17 @@ bot.on('voteUpdate', function(data) {
 
     switch(data.vote) {
       case 1:
-        bot.room.currentPlay.upvotes++;
+        bot.currentSong.upvotes++;
         console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.greenBright(' wooted') + ' the track!');
       break;
       case -1:
-        bot.room.currentPlay.downvotes++;
+        bot.currentSong.downvotes++;
         console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.redBright(' meh\'d') + ' the track!');
       break;
     }
 
-    if (typeof(bot.room.currentPlay) != 'undefined') {
-      //bot.room.currentPlay.save();
+    if (typeof(bot.currentSong) != 'undefined') {
+      //bot.currentSong.save();
     }
   });
 });

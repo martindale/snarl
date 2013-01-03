@@ -5,6 +5,7 @@ module.exports = {
       , adminIds : ['10000'] //Array of users who have access to admin commands 
       , debugMode : false // Loads of JSON raw data in console
       , disableChat: false // Should bot respond to chat commands? Good for debugging in live room.
+      , link: 'http://localhost' // Link to the website, used in chat links.
     }
   , auth: {
         username : '' // Twitter username
