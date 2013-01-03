@@ -73,10 +73,12 @@ module.exports = {
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.com/ten-commendmants'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See /music for music suggestions, though there are no defined or enforced rules on music. More: http://goo.gl/b7UGO'
-  , jarplug: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
   , netsplit: 'plug.dj has been having a lot of issues lately, especially with chat becoming fragmented.  Some people can chat with each other, and others can\'t see those messages.  Relax, @Boycey will have it fixed soon.'
   , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
+  , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , video: 'dat video.'
+  , get afpdj () { return this.afk; }
+  , get aftt () { return this.afk; }
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
@@ -100,6 +102,10 @@ module.exports = {
         
       }
     }
+  , boss: function(data) {
+      var self = this;
+      self.chatWrap('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: http://snarl.ericmartindale.com/history/' + self.records.boss._id );
+    }
   , catfacts: function(data) {
       var self = this;
       rest.get('http://catfacts-api.appspot.com/api/facts').on('complete', function(response) {
@@ -109,27 +115,12 @@ module.exports = {
         }
       });
     }
-  , topologyfacts: function(data) {
-      var self = this;
-      self.chatWrap(randomFact('topology'));
-    }
-  , get smifffax () { return this.smifffacts }
-  , smifffacts: function(data) {
-      var self = this;
-      self.chatWrap(randomFact('smiff'));
-    }
-  , remæusfacts: function(data) {
-      var self = this;
-      self.chatWrap('remæus\' third word was "combine".  His first was "truck," and his second "bobtail".');
-    }
-  , boss: function(data) {
-      var self = this;
-      self.chatWrap('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: http://snarl.ericmartindale.com/history/' + self.records.boss._id );
-    }
   , count: function(data) {
       var self = this;
       self.chatWrap('I am currently aware of ' + _.toArray(self.room.audience).length + ' audience members.  I am probably wrong.');
     }
+  , debug: function(data) { this.chatWrap(JSON.stringify(data)) }
+  , distracting: 'Try not to play songs that would be distracting to someone trying to write code.  Stay on theme as much as possible!'
   , djs: function(data) {
       var self = this;
       var now = new Date();
@@ -166,6 +157,91 @@ module.exports = {
         self.chatWrap(ermgerd(data.params));
       }
     }
+  , firstplayed: function(data) {
+      var self = this;
+      if (typeof(self.room.track._id) != 'undefined') {
+        History.findOne({ _song: self.room.track._id }).sort('+timestamp').populate('_dj').exec(function(err, firstPlay) {
+          History.count({ _song: self.room.track._id }).exec(function(err, count) {
+            self.chatWrap('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+          });
+        });
+      } else {
+        self.chatWrap('Hold on, I\'m still booting up.  Gimme a minute.');
+      }
+    }
+  , google: function(data) {
+      var self = this;
+      if (typeof(data.params) != 'undefined') {
+        google(data.params, function(err, next, links) {
+          if (err) { console.log(err); }
+
+          if (typeof(links[0]) != 'undefined') {
+            self.chatWrap(links[0].title + ': ' + links[0].link);
+          }
+
+        });
+      } else {
+        self.chatWrap('No query provided.');
+      }
+    }
+  , history: function(data) {
+      var self = this;
+      History.count({}, function(err, count) {
+        self.chatWrap('There are ' + count + ' songs in recorded history: http://snarl.ericmartindale.com/history');
+      });
+    }
+  , get jarplug () { return this.plugin; }
+  , karma: function(data) {
+      var self = this;
+      Person.findOne({ $or: [ { plugID: data.fromID }, { name: data.from } ] }).exec(function(err, person) {
+        if (!person) {
+          var person = new Person({
+              name: data.from
+            , plugID: data.fromID
+          });
+
+          person.save(function(err) {
+            self.chatWrap('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://snarl.ericmartindale.com/djs/' + data.fromID );
+          });
+        } else {
+          self.chatWrap('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://snarl.ericmartindale.com/djs/' + data.fromID );
+        }
+      });
+    }
+  , lame: function(data) {
+      var self = this;
+      this.meh(function() {
+        console.log('Voted.');
+        self.chat('Mmm, not so hot.  Meh\'d.');
+      });
+    }
+  , lastplayed: function(data) {
+      var self = this;
+      History.find({ _song: self.room.track._id }).sort('-timestamp').limit(2).populate('_dj').exec(function(err, history) {
+        var lastPlay = history[1];
+
+        if (lastPlay) {
+          History.count({ _song: self.room.track._id }).exec(function(err, count) {
+            self.chatWrap('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+          });
+        } else {
+          self.chatWrap('I haven\'t heard this song before now.');
+        }
+
+      });
+    }
+  , lastsong: function(data) {
+      var self = this;
+      History.find({}).sort('-timestamp').limit(2).populate('_song').exec(function(err, history) {
+        if (history.length <= 1) {
+          self.chatWrap("I've not been alive long enough to know that, Dave.");
+        } else {
+          var lastSong = history[1]._song;
+          self.chatWrap('The last song was “'+ lastSong.title +'” by '+ lastSong.author + '.');
+        }
+      });
+    }
+  , get meh () { return this.lame; }
   , mods: function(data) {
       var self = this;
       var onlineStaff = [];
@@ -199,6 +275,27 @@ module.exports = {
         }).join(', ') );
       });
     }
+  , music: function(data) {
+      var self = this;
+      var time = new Date().getUTCHours() - 5;
+      
+      if ( 0 <= time && time < 5) {
+        self.chatWrap("Evening! Keep the tempo up, it's the only thing keeping the all nighters going.");
+      } else if ( 5 <= time && time < 12 ) {
+        self.chatWrap("AM! Chill tracks with good beats, most programmers are slow to wake so don't hit them with hard hitting tunes. Wubs are widely discouraged this early.");
+      } else if (12 <= time && time < 17 ){
+        self.chatWrap('Afternoon! Fresh tracks for fresh people.');
+      } else {
+        self.chatWrap("Evening! Most people are out of work so things are a lot more fluid and much less harsh. Seats are easy to get, spin a few if you want but don't hog the decks!");
+      }
+    }
+  , notsmiff: function(data) {
+      var self = this;
+      this.meh(function() {
+        console.log('Voted.');
+        self.chat('Hey, wait a second.  This isn\'t smiff.  D:');
+      });
+    }
   , nsfw: 'Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!'
   , permalink: function(data) {
       var self = this;
@@ -207,6 +304,16 @@ module.exports = {
   , plugid: function(data) {
       var self = this;
       self.chatWrap('plug.dj calls you "'+ data.fromID +'".   Are you gonna take that?');
+    }
+  , popular: function(data) {
+      var self = this;
+      Person.find().sort('-karma').limit(3).exec(function(err, people) {
+        var names = people.map(function(person) {
+          return '@' + person.name;
+        });
+      
+        self.chatWrap(oxfordJoin(names) + ' are all the rage these days. See more: http://snarl.ericmartindale.com/djs');
+      });
     }
   , profile: function(data) {
       var self = this;
@@ -222,6 +329,16 @@ module.exports = {
         self.chatWrap('Whose profile did you want?');
       }
     }
+  , remæusfacts: function(data) {
+      var self = this;
+      self.chatWrap('remæus\' third word was "combine".  His first was "truck," and his second "bobtail".');
+    }
+  , get smifffax () { return this.smifffacts }
+  , smifffacts: function(data) {
+      var self = this;
+      self.chatWrap(randomFact('smiff'));
+    }
+  , get snarlsource () { return this.source; }
   , songplays: function(data) {
       var self = this;
       if(config.general.debugMode) {
@@ -236,114 +353,50 @@ module.exports = {
         }
       });
     }
-  , distracting: 'Try not to play songs that would be distracting to someone trying to write code.  Stay on theme as much as possible!'
-  , lastplayed: function(data) {
+  , songArtist: function(data) {
       var self = this;
-      History.find({ _song: self.room.track._id }).sort('-timestamp').limit(2).populate('_dj').exec(function(err, history) {
-        var lastPlay = history[1];
-
-        if (lastPlay) {
-          History.count({ _song: self.room.track._id }).exec(function(err, count) {
-            self.chatWrap('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
-          });
-        } else {
-          self.chatWrap('I haven\'t heard this song before now.');
-        }
-
-      });
-    }
-  , firstplayed: function(data) {
-      var self = this;
-      if (typeof(self.room.track._id) != 'undefined') {
-        History.findOne({ _song: self.room.track._id }).sort('+timestamp').populate('_dj').exec(function(err, firstPlay) {
-          History.count({ _song: self.room.track._id }).exec(function(err, count) {
-            self.chatWrap('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
-          });
-        });
+      if (data.fromID != '50aeb41596fba52c3ca0d392') {
+        self.chat('I\'ll take that into consideration.  Maybe.');
       } else {
-        self.chatWrap('Hold on, I\'m still booting up.  Gimme a minute.');
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { console.log(err); } else {
+
+            var previousAuthor = song.author;
+            song.author = data.params;
+
+            song.save(function(err) {
+              self.chat('Song artist updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+            });
+          }
+        });
       }
     }
-  , lastsong: function(data) {
+  , songTitle: function(data) {
       var self = this;
-      History.find({}).sort('-timestamp').limit(2).populate('_song').exec(function(err, history) {
-        if (history.length <= 1) {
-          self.chatWrap("I've not been alive long enough to know that, Dave.");
-        } else {
-          var lastSong = history[1]._song;
-          self.chatWrap('The last song was “'+ lastSong.title +'” by '+ lastSong.author + '.');
-        }
-      });
-    }
-  , music: function(data) {
-      var self = this;
-      var time = new Date().getUTCHours() - 5;
-      
-      if ( 0 <= time && time < 5) {
-        self.chatWrap("Evening! Keep the tempo up, it's the only thing keeping the all nighters going.");
-      } else if ( 5 <= time && time < 12 ) {
-        self.chatWrap("AM! Chill tracks with good beats, most programmers are slow to wake so don't hit them with hard hitting tunes. Wubs are widely discouraged this early.");
-      } else if (12 <= time && time < 17 ){
-        self.chatWrap('Afternoon! Fresh tracks for fresh people.');
+      if (data.fromID != '50aeb41596fba52c3ca0d392') {
+        self.chat('I\'ll take that into consideration.  Maybe.');
       } else {
-        self.chatWrap("Evening! Most people are out of work so things are a lot more fluid and much less harsh. Seats are easy to get, spin a few if you want but don't hog the decks!");
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { console.log(err); } else {
+
+            var previousTitle = song.title;
+            song.title = data.params;
+
+            song.save(function(err) {
+              self.chat('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+            });
+          }
+        });
       }
     }
-  , history: function(data) {
+  , topologyfacts: function(data) {
       var self = this;
-      History.count({}, function(err, count) {
-        self.chatWrap('There are ' + count + ' songs in recorded history: http://snarl.ericmartindale.com/history');
-      });
-    }
-  , popular: function(data) {
-      var self = this;
-      Person.find().sort('-karma').limit(3).exec(function(err, people) {
-        var names = people.map(function(person) {
-          return '@' + person.name;
-        });
-      
-        self.chatWrap(oxfordJoin(names) + ' are all the rage these days. See more: http://snarl.ericmartindale.com/djs');
-      });
-    }
-  , karma: function(data) {
-      var self = this;
-      Person.findOne({ $or: [ { plugID: data.fromID }, { name: data.from } ] }).exec(function(err, person) {
-        if (!person) {
-          var person = new Person({
-              name: data.from
-            , plugID: data.fromID
-          });
-
-          person.save(function(err) {
-            self.chatWrap('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://snarl.ericmartindale.com/djs/' + data.fromID );
-          });
-        } else {
-          self.chatWrap('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://snarl.ericmartindale.com/djs/' + data.fromID );
-        }
-      });
+      self.chatWrap(randomFact('topology'));
     }
   , trout: function(data) {
       this.chatWrap('/me slaps ' + data.from + ' around a bit with a large trout.');
     }
-  , google: function(data) {
-      var self = this;
-      if (typeof(data.params) != 'undefined') {
-        google(data.params, function(err, next, links) {
-          if (err) { console.log(err); }
-
-          if (typeof(links[0]) != 'undefined') {
-            self.chatWrap(links[0].title + ': ' + links[0].link);
-          }
-
-        });
-      } else {
-        self.chatWrap('No query provided.');
-      }
-    }
-  , get snarlsource () { return this.source; }
-  , debug: function(data) { this.chatWrap(JSON.stringify(data)) }
-  , get afpdj () { return this.afk }
-  , get aftt () { return this.afk }
+  , get woot () { return this.awesome; }
 }
 
 function oxfordJoin(array) {

@@ -229,6 +229,12 @@ function findOrCreatePerson(user, callback) {
 
 app.get('/', function(req, res) {
   History.find().sort('-timestamp').limit(10).populate('_song').populate('_dj').exec(function(err,  history) {
+    
+    /* bot.room.djs = _.toArray(bot.room.djs).map(function(dj) {
+      dj.avatarImage = 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
+      return dj;
+    }); */
+
     Chat.find().sort('-timestamp').limit(15).populate('_person').exec(function(err, chats) {
       res.render('index', {
           currentSong: bot.currentSong
@@ -280,7 +286,7 @@ app.get('/djs/:plugID', function(req, res, next) {
         res.render('dj', {
             md: require('node-markdown').Markdown
           , dj: dj
-          , avatar: 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
+          , avatarImage: 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
         });
       });
     } else {
