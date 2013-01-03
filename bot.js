@@ -65,7 +65,7 @@ bot.on('connected', function() {
     if(config.general.debugMode) {
       console.log(JSON.stringify(data));
     }
-
+    
     bot.updateDJs(data.room.djs);
     bot.currentSong       = data.room.media;
 
