@@ -153,9 +153,11 @@ var historySchema = mongoose.Schema({
   , curates: [ new Schema({
       _person: { type: ObjectId, ref: 'Person', required: true }
     }) ]
+  , downvotes: { type: Number, default: 0 }
+  , upvotes: { type: Number, default: 0 }
   , votes: [ new Schema({
         _person: { type: ObjectId, ref: 'Person', required: true }
-      , 
+      , vote: { type: String, enum: ['up', 'down'] }
     }) ]
 });
 var chatSchema = mongoose.Schema({
@@ -179,6 +181,10 @@ app.use(express.errorHandler());
 app.set('view engine', 'jade');
 app.locals.config = config; // WARNING: this exposes your config to jade! be careful not to render your bot's cookie.
 app.locals.pretty = true;
+
+History.find().limit(1).populate('_song').exec(function(err, oldestHistory) {
+  app.locals.oldestPlay = oldestHistory[0];
+});
 
 function findOrCreatePerson(user, callback) {
   Person.findOne({ $or: [ { plugID: user.plugID }, { name: user.name } ] }).exec(function(err, person) {
@@ -244,6 +250,8 @@ app.get('/', function(req, res) {
         , chats: chats
       });
     });
+
+
   });
 });
 
@@ -267,9 +275,17 @@ app.get('/commands', function(req, res) {
 
 app.get('/djs', function(req, res) {
   Person.find().sort('-karma').limit(10).exec(function(err, people) {
-    res.render('djs', {
-      djs: people
+     // one month
+    var time = new Date();
+    time.setDate( time.getDate() - 30 );
+
+    mostProlificDJs(time, function(monthlyDJs) {
+      res.render('djs', {
+          djs: people
+        , monthlyDJs: monthlyDJs
+      });
     });
+
   });
 });
 
@@ -283,11 +299,15 @@ app.get('/djs/:plugID', function(req, res, next) {
           dj.bio = '';
         }
 
-        res.render('dj', {
-            md: require('node-markdown').Markdown
-          , dj: dj
-          , avatarImage: 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
+        History.count({ _dj: dj._id }).exec(function(err, playCount) {
+          res.render('dj', {
+              md: require('node-markdown').Markdown
+            , dj: dj
+            , avatarImage: 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
+            , playCount: playCount
+          });
         });
+
       });
     } else {
       next();
@@ -296,7 +316,7 @@ app.get('/djs/:plugID', function(req, res, next) {
 });
 
 app.get('/history', function(req, res) {
-  History.find().sort('-timestamp').limit(10).populate('_song').exec(function(err,  history) {
+  History.find().sort('-timestamp').limit(1000).populate('_song').exec(function(err,  history) {
     res.render('history', {
       history: history
     });
@@ -331,54 +351,45 @@ app.get('/search/name/:name', function(req, res) {
 });
 
 app.get('/songs', function(req, res) {
+  var today = new Date();
 
-  var map = function() { //map function
-    emit(this._song, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
-  } 
+  mostPopularSongsAlltime(function(allTime) {
 
-  var reduce = function(previous, current) { //reduce function
-    var count = 0;
-    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
-      count += current[index]; //increments the counter by the 'value' of 1
-    }
-    return count;
-  };
+    // one month
+    var time = new Date();
+    time.setDate( today.getDate() - 30 );
 
-  /* execute map reduce */
-  History.mapReduce({
-      map: map
-    , reduce: reduce
-  }, function(err, songs) {
+    mostPopularSongsSince(time, function(month) {
+      // one week
+      var time = new Date();
+      time.setDate( today.getDate() - 7 );
 
-    /* sort the results */
-    songs.sort(function(a, b) {
-      return b.value - a.value;
-    });
-
-    /* clip the top 25 */
-    songs = songs.slice(0, 2500);
-
-    /* now get the real records for these songs */
-    async.parallel(songs.map(function(song) {
-      return function(callback) {
-        Song.findOne({ _id: song._id }).exec(function(err, realSong) {
-          realSong.plays = song.value;
-          callback(null, realSong);
+      mostPopularSongsSince(time, function(week) {
+        res.render('songs', {
+            allTime: allTime
+          , month: month
+          , week: week
         });
-      };
-    }), function(err, results) {
-
-      /* resort since we're in parallel */
-      results.sort(function(a, b) {
-        return b.plays - a.plays;
-      });
-
-      res.render('songs', {
-        songs: results
       });
     });
   });
 });
+
+var map = function() { //map function
+  emit(this._song, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
+} 
+
+var reduce = function(previous, current) { //reduce function
+  var count = 0;
+  for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
+    count += current[index]; //increments the counter by the 'value' of 1
+  }
+  return count;
+};
+
+var mapDJ = function() { //map function
+  emit(this._dj, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
+}
 
 app.get('/songs/:songID', function(req, res, next) {
   Song.findOne({ id: req.param('songID') }).exec(function(err, song) {
@@ -543,6 +554,115 @@ app.listen(config.general.port);
   });
 }); */
 
+function mostPopularSongsAlltime(callback) {
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+  }, function(err, songs) {
+
+    /* sort the results */
+    songs.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 100 */
+    songs = songs.slice(0, 100);
+
+    /* now get the real records for these songs */
+    async.parallel(songs.map(function(song) {
+      return function(callback) {
+        Song.findOne({ _id: song._id }).exec(function(err, realSong) {
+          realSong.plays = song.value;
+          callback(null, realSong);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.plays - a.plays;
+      });
+
+      callback(results);
+    });
+  });
+}
+
+function mostPopularSongsSince(time, callback) {
+
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+    , query: { timestamp: { $gte: time } }
+  }, function(err, songs) {
+
+    /* sort the results */
+    songs.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    songs = songs.slice(0, 10);
+
+    /* now get the real records for these songs */
+    async.parallel(songs.map(function(song) {
+      return function(callback) {
+        Song.findOne({ _id: song._id }).exec(function(err, realSong) {
+          realSong.plays = song.value;
+          callback(null, realSong);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.plays - a.plays;
+      });
+
+      callback(results);
+
+    });
+  });
+}
+
+function mostProlificDJs(time, callback) {
+  /* execute map reduce */
+  History.mapReduce({
+      map: mapDJ
+    , reduce: reduce
+    , query: { timestamp: { $gte: time } }
+  }, function(err, songs) {
+
+    /* sort the results */
+    songs.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    songs = songs.slice(0, 10);
+
+    /* now get the real records for these DJs */
+    async.parallel(songs.map(function(song) {
+      return function(callback) {
+        Person.findOne({ _id: song._id }).exec(function(err, realSong) {
+          realSong.plays = song.value;
+          callback(null, realSong);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.plays - a.plays;
+      });
+
+      callback(results);
+
+    });
+  });
+}
 
 bot.on('curateUpdate', function(data) {
   if(config.general.debugMode) {
@@ -590,10 +710,20 @@ bot.on('voteUpdate', function(data) {
     plugID: data.id
   }, function(person) {
     bot.room.audience[data.id] = person;
-    if(data.vote == 1) {
-      console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.greenBright(' wooted') + ' the track!');
-    } else if(data.vote == -1) {
-      console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.redBright(' meh\'d') + ' the track!');
+
+    switch(data.vote) {
+      case 1:
+        bot.room.currentPlay.upvotes++;
+        console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.greenBright(' wooted') + ' the track!');
+      break;
+      case -1:
+        bot.room.currentPlay.downvotes++;
+        console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.redBright(' meh\'d') + ' the track!');
+      break;
+    }
+
+    if (typeof(bot.room.currentPlay) != 'undefined') {
+      //bot.room.currentPlay.save();
     }
   });
 });

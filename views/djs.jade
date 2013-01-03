@@ -3,10 +3,17 @@ extends layout
 block content
   header.jumbotron.subhead
     .container
-      h1 DJs
+      h1 Top DJs
       p.lead
-        | Best DJs sorted by karma.
+        | Best DJs in the room.
   br
   .container
-    - for dj in djs
-      include blocks/dj
+    .row
+      .span6
+        h2 by Karma
+        - for dj in djs
+          include blocks/dj
+      .span6
+        h2 by Plays
+        - for dj in monthlyDJs
+          include blocks/dj

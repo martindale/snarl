@@ -49,6 +49,8 @@ var historySchema = mongoose.Schema({
   , curates: [ new Schema({
       _person: { type: ObjectId, ref: 'Person', required: true }
     }) ]
+  , downvotes: Number
+  , upvotes: Number
 });
 var chatSchema = mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
@@ -353,42 +355,49 @@ module.exports = {
         }
       });
     }
-  , songArtist: function(data) {
+  , songartist: function(data) {
       var self = this;
       if (data.fromID != '50aeb41596fba52c3ca0d392') {
         self.chat('I\'ll take that into consideration.  Maybe.');
       } else {
         Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
           if (err) { console.log(err); } else {
+            if (data.params.length > 0) {
+              var previousAuthor = song.author;
+              song.author = data.params;
 
-            var previousAuthor = song.author;
-            song.author = data.params;
-
-            song.save(function(err) {
-              self.chat('Song artist updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
-            });
+              song.save(function(err) {
+                self.chatWrap('Song author updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+              });
+            } else {
+              self.chatWrap('What do you want to set the author of this song to?  I need a parameter.');
+            }
           }
         });
       }
     }
-  , songTitle: function(data) {
+  , songtitle: function(data) {
       var self = this;
       if (data.fromID != '50aeb41596fba52c3ca0d392') {
         self.chat('I\'ll take that into consideration.  Maybe.');
       } else {
         Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
           if (err) { console.log(err); } else {
+            if (data.params.length > 0) {
+              var previousTitle = song.title;
+              song.title = data.params;
 
-            var previousTitle = song.title;
-            song.title = data.params;
-
-            song.save(function(err) {
-              self.chat('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
-            });
+              song.save(function(err) {
+                self.chatWrap('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+              });
+            } else {
+              self.chatWrap('What do you want to set the title of this song to?  I need a parameter.');
+            }
           }
         });
       }
     }
+  , suitup: 'Suit up, motherfucker!'
   , topologyfacts: function(data) {
       var self = this;
       self.chatWrap(randomFact('topology'));
