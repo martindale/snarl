@@ -47,8 +47,12 @@ var historySchema = mongoose.Schema({
   , curates: [ new Schema({
       _person: { type: ObjectId, ref: 'Person', required: true }
     }) ]
-  , downvotes: Number
-  , upvotes: Number
+  , downvotes: { type: Number, default: 0 }
+  , upvotes: { type: Number, default: 0 }
+  , votes: [ new Schema({
+        _person: { type: ObjectId, ref: 'Person', required: true }
+      , vote: { type: String, enum: ['up', 'down'] }
+    }) ]
 });
 var chatSchema = mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
@@ -104,7 +108,7 @@ module.exports = {
       if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {
         data.person.bio = data.params.trim();
         data.person.save(function(err) {
-          self.chat('Bio saved!  Profile link: http://snarl.ericmartindale.com/djs/' + data.fromID );
+          self.chat('Bio saved!  Profile link: http://codingsoundtrack.org/djs/' + data.fromID );
         });
       } else {
         if (typeof(data.person.bio) != 'undefined' && data.person.bio.length > 0) {
@@ -139,7 +143,7 @@ module.exports = {
     }
   , boss: function(data) {
       var self = this;
-      self.chat('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: http://snarl.ericmartindale.com/history/' + self.records.boss._id );
+      self.chat('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: http://codingsoundtrack.org/history/' + self.records.boss._id );
     }
   , count: function(data) {
       var self = this;
@@ -162,7 +166,10 @@ module.exports = {
 
       idleDJs = idleDJs.map(function(item) {
         var idleTime = secondsToTime(item.idleTime);
-        return '@' + item.name + ' ('+ idleTime.m +'m'+idleTime.s+'s)';
+        var idleTimeString = '';
+        var idleTimeString = (idleTime.h > 0) ? '('+ idleTime.h +'h'+ idleTime.m +'m'+idleTime.s+'s)' : '('+ idleTime.m +'m'+idleTime.s+'s)';
+
+        return '@' + item.name + ' '+idleTimeString;
       });
 
       if (idleDJs.length > 0) {
@@ -215,7 +222,7 @@ module.exports = {
   , nsfw: 'Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!'
   , permalink: function(data) {
       var self = this;
-      self.chat('Song: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+      self.chat('Song: http://codingsoundtrack.org/songs/' + self.room.track.id );
     }
   , plugid: function(data) {
       var self = this;
@@ -228,7 +235,7 @@ module.exports = {
           if (!person) {
             self.chat('/me could not find a profile by that name.');
           } else {
-            self.chat('@' + data.params + ': “'+person.bio+'”  More: http://snarl.ericmartindale.com/djs/'+ person.plugID)
+            self.chat('@' + data.params + ': “'+person.bio+'”  More: http://codingsoundtrack.org/djs/'+ person.plugID)
           }
         });
       } else {
@@ -247,7 +254,7 @@ module.exports = {
               song.title = data.params;
 
               song.save(function(err) {
-                self.chat('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+                self.chat('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://codingsoundtrack.org/songs/' + self.room.track.id );
               });
             } else {
               self.chat('What do you want to set the title of this song to?  I need a parameter.');
@@ -268,7 +275,7 @@ module.exports = {
               song.author = data.params;
 
               song.save(function(err) {
-                self.chat('Song title updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+                self.chat('Song title updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://codingsoundtrack.org/songs/' + self.room.track.id );
               });
             } else {
               self.chat('What do you want to set the author of this song to?  I need a parameter.');
@@ -297,7 +304,7 @@ module.exports = {
 
         if (lastPlay) {
           History.count({ _song: self.room.track._id }).exec(function(err, count) {
-            self.chat('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+            self.chat('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: http://codingsoundtrack.org/songs/' + self.room.track.id );
           });
         } else {
           self.chat('I haven\'t heard this song before now.');
@@ -310,7 +317,7 @@ module.exports = {
       if (typeof(self.room.track._id) != 'undefined') {
         History.findOne({ _song: self.room.track._id }).sort('+timestamp').populate('_dj').exec(function(err, firstPlay) {
           History.count({ _song: self.room.track._id }).exec(function(err, count) {
-            self.chat('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: http://snarl.ericmartindale.com/songs/' + self.room.track.id );
+            self.chat('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: http://codingsoundtrack.org/songs/' + self.room.track.id );
           });
         });
       } else {
@@ -345,7 +352,7 @@ module.exports = {
   , history: function(data) {
       var self = this;
       History.count({}, function(err, count) {
-        self.chat('There are ' + count + ' songs in recorded history: http://snarl.ericmartindale.com/history');
+        self.chat('There are ' + count + ' songs in recorded history: http://codingsoundtrack.org/history');
       });
     }
   , popular: function(data) {
@@ -355,7 +362,7 @@ module.exports = {
           return '@' + person.name;
         });
       
-        self.chat(oxfordJoin(names) + ' are all the rage these days. See more: http://snarl.ericmartindale.com/djs');
+        self.chat(oxfordJoin(names) + ' are all the rage these days. See more: http://codingsoundtrack.org/djs');
       });
     }
   , karma: function(data) {
@@ -368,10 +375,10 @@ module.exports = {
           });
 
           person.save(function(err) {
-            self.chat('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://snarl.ericmartindale.com/djs/' + data.fromID );
+            self.chat('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://codingsoundtrack.org/djs/' + data.fromID );
           });
         } else {
-          self.chat('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://snarl.ericmartindale.com/djs/' + data.fromID );
+          self.chat('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://codingsoundtrack.org/djs/' + data.fromID );
         }
       });
     }
