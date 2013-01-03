@@ -13,6 +13,7 @@ var config = require('./config')
   , PlugAPI = require('plugapi')
   , repl = require('repl')
   , rest = require('restler')
+  , subtitles = require('./subtitles')
   
   , app = express()
   , db = mongoose.createConnection('localhost', 'snarl')
@@ -39,20 +40,19 @@ bot.records = {
   boss: {}
 };
 
-// Some shit functions
-
+// Simple check if 'disableChat' is enabled in config.
 bot.chatWrap = function(message) {
   if(!config.general.disableChat) {
     bot.chat(message);
   }
 }
+
+// Function to get the first key in the array.
 function getFirstKey(array) {
   for(key in array) {
     return key;
   }
 }
-
-// We need to move them out of here.
 
 bot.connect();
 
@@ -248,6 +248,7 @@ app.get('/', function(req, res) {
         , room: bot.room
         , currentDJ: getFirstKey(bot.room.djs)
         , chats: chats
+        , subtitle: subtitles['subtitles'][Math.round(Math.random()*(subtitles['subtitles'].length-1))]
       });
     });
 
