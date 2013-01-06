@@ -779,7 +779,7 @@ bot.on('djUpdate', function(data) {
           console.log('They have played ' + playCount + ' songs in this room before.');
           if (playCount == 0) {
             console.log(person.name + ' has never played any songs here before!');
-            bot.chat('Hey there, @'+person.name+'!  You\'ve never played a song in Coding Soundtrack before, so please read the rules: http://codingsoundtrack.org/rules');
+            bot.chat('Welcome to the stage, @'+person.name+'!  I\'m sure you\'re a good DJ, but I\'ve never seen you play a song in Coding Soundtrack before, so here\'s our song selection guide: http://codingsoundtrack.org/song-selection');
           }
         });
       }
