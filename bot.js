@@ -145,13 +145,16 @@ var Song    = db.model('Song',    songSchema);
 var History = db.model('History', historySchema);
 var Chat    = db.model('Chat',    chatSchema);
 
+app.use(function(req, res, next) {
+  res.setHeader("X-Powered-By", 'speed.');
+  next();
+});
 app.use(app.router);
 app.use(express.static(__dirname + '/public'));
 app.use(express.errorHandler());
 app.set('view engine', 'jade');
 app.locals.config = config; // WARNING: this exposes your config to jade! be careful not to render your bot's cookie.
 app.locals.pretty = true;
-
 
 History.find().limit(1).populate('_song').exec(function(err, oldestHistory) {
   app.locals.oldestPlay = oldestHistory[0];
@@ -747,6 +750,46 @@ bot.on('userUpdate', function(data) {
   bot.observeUser(data);
 });
 
+bot.on('djUpdate', function(data) {
+  console.log('DJ UPDATE EVENT:');
+  //console.log(data);
+
+  var currentDJs = [];
+  for (var dj in bot.room.djs) {
+    currentDJs.push(bot.room.djs[dj].plugID.toString());
+  }
+
+  var newDJs = data.map(function(dj) {
+    return dj.user.id;
+  });
+
+  console.log('OLD DJs: ' + currentDJs);
+  console.log('NEW DJs: ' + newDJs);
+
+  data.forEach(function(dj) {
+    console.log('DJ: ' + dj.user.id + ' ...');
+    findOrCreatePerson({
+      plugID: dj.user.id
+    }, function(person) {
+
+      console.log(currentDJs.indexOf(person.plugID.toString()));
+      if (currentDJs.indexOf(person.plugID.toString()) == -1) {
+        console.log('NEW DJ FOUND!!! ' + person.name);
+        History.count({ _dj: person._id }).exec(function(err, playCount) {
+          console.log('They have played ' + playCount + ' songs in this room before.');
+          if (playCount == 0) {
+            console.log(person.name + ' has never played any songs here before!');
+            bot.chat('Hey there, @'+person.name+'!  You\'ve never played a song in Coding Soundtrack before, so please read the rules: http://codingsoundtrack.org/rules');
+          }
+        });
+      }
+    });
+  });
+
+  bot.updateDJs(data);
+
+});
+
 bot.on('djAdvance', function(data) {
   console.log('New song: ' + JSON.stringify(data));
 
@@ -804,6 +847,7 @@ bot.on('djAdvance', function(data) {
       findOrCreatePerson({
         plugID: data.currentDJ
       }, function(dj) {
+
         var history = new History({
             _song: song._id
           , _dj: dj._id
@@ -913,6 +957,22 @@ bot.on('chat', function(data) {
 
 app.get('/audience', function(req, res) {
   res.send(bot.room.audience);
+});
+
+app.get('/rules', function(req, res) {
+  res.redirect(301, 'ten-commandments');
+});
+
+app.get('/ten-commandments', function(req, res) {
+  res.render('rules');
+});
+
+app.get('/song-selection', function(req, res) {
+  res.render('song-selection');
+});
+
+app.get('/about', function(req, res) {
+  res.render('about');
 });
 
 app.listen(43001);

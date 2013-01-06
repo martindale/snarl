@@ -32,6 +32,9 @@ html
         width: 150px;
         height: 150px;
       }
+      footer {
+        font-size: 0.8em;
+      }
     link(rel="stylesheet", href="/css/bootstrap-responsive.css")
     
   body
@@ -58,22 +61,32 @@ html
 
       footer
         hr
-        small.pull-left
-          a(href="/about") About
-          |  &bull; 
-          a(href="/commands") Command List
-          |  &bull;
-          |  Listening since #{oldestPlay.timestamp}
-        small.pull-right
-          | snarl is &copy; 
-          a(href="http://www.ericmartindale.com/") Eric Martindale
-          | , with credit to 
-          a(href="http://plug.dj") plug.dj
-          |  for providing the platform and 
-          a(href="https://github.com/chrisinajar") chrisinajar
-          |  for creating 
-          a(href="https://github.com/chrisinajar/plugapi") plugapi
-          | .
+        .row
+          .span6
+            h5
+              a(href="/about") About
+              |  &bull; 
+              a(href="/commands") Command List
+              |  &bull; 
+              a(href="/song-selection") Song Selection Guide
+              |  &bull; 
+              a(href="/rules") Rules
+
+            p <a href="http://github.com/martindale/snarl">snarl</a> has been listening since #{oldestPlay.timestamp}.
+            p
+              | <a href="http://github.com/martindale/snarl">snarl</a> is &copy; 
+              a(href="http://www.ericmartindale.com/", rel="author") Eric Martindale
+              | , with credit to 
+              a(href="http://plug.dj") plug.dj
+              |  for providing the platform and 
+              a(href="https://github.com/chrisinajar") chrisinajar
+              |  for creating 
+              a(href="https://github.com/chrisinajar/plugapi") plugapi
+              | .
+          .span6
+            h4 About Us
+            p Coding Soundtrack is fresh musical entertainment for those with robot ears. We are a community based around <a href="http://plug.dj/coding-soundtrack">a plug.dj room</a> where we play non-distracting music for coding sessions, and provide a creative community of Programmers, Developers, Administrators, Engineers, Hackers, and a Troll. They come for the Music, they stay for the Lolz.
+
 
     script(src="//code.jquery.com/jquery-1.8.3.min.js")
     script(src="/js/bootstrap.js")
