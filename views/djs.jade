@@ -6,8 +6,10 @@ block content
     .span6
       h2 by Karma
       - for dj in djs
+        small.pull-right ...with <strong>#{dj.karma}</strong> karma.
         include blocks/dj
     .span6
-      h2 by Plays
+      h2 by Plays <small>30 days</small>
       - for dj in monthlyDJs
+        small.pull-right ...with <strong>#{dj.plays}</strong> plays in the past 30 days.
         include blocks/dj
