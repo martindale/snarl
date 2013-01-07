@@ -3,7 +3,7 @@ extends layout
 block content
   header.jumbotron.subhead
     .container
-      div.pull-right(style="background: url(#{avatarImage}) 0 -25px; height: 125px; width: 150px;")
+      div.pull-right.plug-sprite(style="background: url(#{avatarImage}) 0 -25px; height: 125px; width: 150px;")
       h1
         - if (typeof(dj.avatar) != 'undefined' && typeof(dj.avatar.thumb) != 'undefined')
           img(src="http://plug.dj/_/static/images/avatars/thumbs/animal08.6b608fae.png")
