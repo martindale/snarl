@@ -22,7 +22,7 @@ var personSchema = mongoose.Schema({
           , dj: { type: Number, default: 0 }
         }
       , lastChat: { type: Date }
-      , bio: { type: String, max: 255 }
+      , bio: { type: String, max: 1024 }
       , avatar: {
             'set': String
           , 'key': String
@@ -246,7 +246,15 @@ module.exports = {
     }
   , songtitle: function(data) {
       var self = this;
-      if (data.fromID != '50aeb41596fba52c3ca0d392') {
+
+      var staffMap = [];
+      _.toArray(self.room.staff).forEach(function(staffMember) {
+        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+          staffMap.push(staffMember.plugID);
+        }
+      });
+
+      if (staffMap.indexOf( data.fromID ) == -1) {
         self.chat('I\'ll take that into consideration.  Maybe.');
       } else {
         Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
@@ -267,7 +275,15 @@ module.exports = {
     }
   , songartist: function(data) {
       var self = this;
-      if (data.fromID != '50aeb41596fba52c3ca0d392') {
+
+      var staffMap = [];
+      _.toArray(self.room.staff).forEach(function(staffMember) {
+        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+          staffMap.push(staffMember.plugID);
+        }
+      });
+
+      if (staffMap.indexOf( data.fromID ) == -1) {
         self.chat('I\'ll take that into consideration.  Maybe.');
       } else {
         Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {

@@ -98,7 +98,7 @@ var personSchema = mongoose.Schema({
           , dj: { type: Number, default: 0 }
         }
       , lastChat: { type: Date }
-      , bio: { type: String, max: 255 }
+      , bio: { type: String, max: 1024 }
       , avatar: {
             'set': String
           , 'key': String
