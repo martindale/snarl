@@ -1,10 +1,24 @@
 module.exports = {
-    username : '' //TWITTER USERNAME GOES HERE
-  , password : '' //TWITTER PASSWORD GOES HERE
-  , adminIds : ["14022630"] //Array of users who have access to admin commands
-  , auth : "sdH4wfhWSEthrS6za3dfHs6df2k=?_expires=SADshDfEhe3SfHa6Hs==&user_id=UFasdgsdgjSdfGSgtFDt7asgw3sHfdsg7zaasFg6afs=" // fake key, lololololol
-  , room : 'coding-soundtrack'
-  , ga: {
-      account: '' // accountID for Google Analytics, if you want it.
+    general: {
+        port: 80 // Web server port
+      , room : 'coding-soundtrack' // Room you want to track
+      , adminIds : ['10000'] //Array of users who have access to admin commands 
+      , debugMode : false // Loads of JSON raw data in console
+      , disableChat: false // Should bot respond to chat commands? Good for debugging in live room.
+      , link: 'http://localhost' // Link to the website, used in chat links.
     }
+  , auth: {
+        username : '' // Twitter username
+      , password : '' // Twitter password
+      , token : 'TAeRDSAF3fadsf1KrC7o+fwY=?_expires=STEzNzAF32gasfaKLg==&user_id=Uyc1MGFlYAj0dClw02Mai2nf9C0samACi4=' // Value of "usr" cookie
+  }
+  , ga: {
+        account: '' // Account ID for Google Analytics, if you want to use it.
+  }
+  , lastfm: {
+        key: '' // Get info from http://last.fm/api
+      , secret: '' // Get info from http://last.fm/api
+      , username: ''
+      , password: ''
+  }
 }

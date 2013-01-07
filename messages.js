@@ -1,4 +1,5 @@
-var rest = require('restler')
+var config = require('./config')
+  , rest = require('restler')
   , google = require('google')
   , github = require('github')
   , _ = require('underscore')
@@ -7,7 +8,8 @@ var rest = require('restler')
   , mongoose = require('mongoose')
   , ObjectId = mongoose.Schema.Types.ObjectId
   , Schema = mongoose.Schema
-  , db = mongoose.createConnection('localhost', 'snarl');
+  , db = mongoose.createConnection('localhost', 'snarl')
+  , clc = require('cli-color');
 
 var facts = require('./facts');
 
@@ -77,32 +79,19 @@ module.exports = {
   , askforseat: 'Please don\'t ask for seats here.  It\'s first come, first serve, and free for all.'
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.org/ten-commendmants'
-  , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See /music for music suggestions, though there are no defined or enforced rules on music. More: http://codingsoundtrack.org/rules'  // formerly: http://goo.gl/b7UGO
-  , selection: 'Song Selection Guide: http://codingsoundtrack.org/song-selection'
-  , suitup: 'Suit up, motherfucker!'
   , netsplit: 'plug.dj has been having a lot of issues lately, especially with chat becoming fragmented.  Some people can chat with each other, and others can\'t see those messages.  Relax, @Boycey will have it fixed soon.'
   , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
+  , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See /music for music suggestions, though there are no defined or enforced rules on music. More: http://codingsoundtrack.org/rules'  // formerly: http://goo.gl/b7UGO
+  , selection: 'Song Selection Guide: http://codingsoundtrack.org/song-selection'
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , video: 'dat video.'
+  , get afpdj () { return this.afk; }
+  , get aftt () { return this.afk; }
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
-        console.log('Voted.');
-        self.chat('Agreed, this track is svelte!  Wooted.');
-      });
-    }
-  , lame: function(data) {
-      var self = this;
-      this.meh(function() {
-        console.log('Voted.');
-        self.chat('Mmm, not so hot.  Meh\'d.');
-      });
-    }
-  , notsmiff: function(data) {
-      var self = this;
-      this.meh(function() {
-        console.log('Voted.');
-        self.chat('Hey, wait a second.  This isn\'t smiff.  D:');
+        console.log('[' + clc.cyanBright('INFO') + '] Wooted the track.');
+        self.chatWrap('Agreed, this track is svelte!  Wooted.');
       });
     }
   , bio: function(data) {
@@ -110,47 +99,36 @@ module.exports = {
       if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {
         data.person.bio = data.params.trim();
         data.person.save(function(err) {
-          self.chat('Bio saved!  Profile link: http://codingsoundtrack.org/djs/' + data.fromID );
+          self.chatWrap('Bio saved!  Profile link: ' + config.general.link + '/djs/' + data.fromID );
         });
       } else {
         if (typeof(data.person.bio) != 'undefined' && data.person.bio.length > 0) {
-          self.chat('You must provide a string for your bio.  Markdown is accepted.  Your current bio is: “'+data.person.bio+'”');
+          self.chatWrap('You must provide a string for your bio.  Markdown is accepted.  Your current bio is: “'+data.person.bio+'”');
         } else {
-          self.chat('You must provide a string for your bio.  Markdown is accepted.');
+          self.chatWrap('You must provide a string for your bio.  Markdown is accepted.');
         }
         
       }
+    }
+  , boss: function(data) {
+      var self = this;
+      self.chatWrap('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: ' + config.general.room + '/history/' + self.records.boss._id );
     }
   , catfacts: function(data) {
       var self = this;
       rest.get('http://catfacts-api.appspot.com/api/facts').on('complete', function(response) {
         response = JSON.parse(response);
         if (response.facts && response.facts.length > 0) {
-          self.chat(response.facts[0]);
+          self.chatWrap(response.facts[0]);
         }
       });
     }
-  , topologyfacts: function(data) {
-      var self = this;
-      self.chat(randomFact('topology'));
-    }
-  , get smifffax () { return this.smifffacts }
-  , smifffacts: function(data) {
-      var self = this;
-      self.chat(randomFact('smiff'));
-    }
-  , remæusfacts: function(data) {
-      var self = this;
-      self.chat('remæus\' third word was "combine".  His first was "truck," and his second "bobtail".');
-    }
-  , boss: function(data) {
-      var self = this;
-      self.chat('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: http://codingsoundtrack.org/history/' + self.records.boss._id );
-    }
   , count: function(data) {
       var self = this;
-      self.chat('I am currently aware of ' + _.toArray(self.room.audience).length + ' audience members.  I am probably wrong.');
+      self.chatWrap('I am currently aware of ' + _.toArray(self.room.audience).length + ' audience members.  I am probably wrong.');
     }
+  , debug: function(data) { this.chatWrap(JSON.stringify(data)) }
+  , distracting: 'Try not to play songs that would be distracting to someone trying to write code.  Stay on theme as much as possible!'
   , djs: function(data) {
       var self = this;
       var now = new Date();
@@ -175,9 +153,9 @@ module.exports = {
       });
 
       if (idleDJs.length > 0) {
-        self.chat('Idle: ' + oxfordJoin(idleDJs));
+        self.chatWrap('Idle: ' + oxfordJoin(idleDJs));
       } else {
-        self.chat('No idle DJs!');
+        self.chatWrap('No idle DJs!');
       }
 
     }
@@ -187,9 +165,94 @@ module.exports = {
   , erm: function(data) {
       var self = this;
       if (typeof(data.params) != 'undefined') {
-        self.chat(ermgerd(data.params));
+        self.chatWrap(ermgerd(data.params));
       }
     }
+  , firstplayed: function(data) {
+      var self = this;
+      if (typeof(self.room.track._id) != 'undefined') {
+        History.findOne({ _song: self.room.track._id }).sort('+timestamp').populate('_dj').exec(function(err, firstPlay) {
+          History.count({ _song: self.room.track._id }).exec(function(err, count) {
+            self.chatWrap('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: ' + config.general.room + '/songs/' + self.room.track.id );
+          });
+        });
+      } else {
+        self.chatWrap('Hold on, I\'m still booting up.  Gimme a minute.');
+      }
+    }
+  , google: function(data) {
+      var self = this;
+      if (typeof(data.params) != 'undefined') {
+        google(data.params, function(err, next, links) {
+          if (err) { console.log(err); }
+
+          if (typeof(links[0]) != 'undefined') {
+            self.chatWrap(links[0].title + ': ' + links[0].link);
+          }
+
+        });
+      } else {
+        self.chatWrap('No query provided.');
+      }
+    }
+  , history: function(data) {
+      var self = this;
+      History.count({}, function(err, count) {
+        self.chatWrap('There are ' + count + ' songs in recorded history: ' + config.general.room + '/history');
+      });
+    }
+  , get jarplug () { return this.plugin; }
+  , karma: function(data) {
+      var self = this;
+      Person.findOne({ $or: [ { plugID: data.fromID }, { name: data.from } ] }).exec(function(err, person) {
+        if (!person) {
+          var person = new Person({
+              name: data.from
+            , plugID: data.fromID
+          });
+
+          person.save(function(err) {
+            self.chatWrap('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at ' + config.general.room + '/djs/' + data.fromID );
+          });
+        } else {
+          self.chatWrap('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at ' + config.general.room + '/djs/' + data.fromID );
+        }
+      });
+    }
+  , lame: function(data) {
+      var self = this;
+      this.meh(function() {
+        console.log('Voted.');
+        self.chat('Mmm, not so hot.  Meh\'d.');
+      });
+    }
+  , lastplayed: function(data) {
+      var self = this;
+      History.find({ _song: self.room.track._id }).sort('-timestamp').limit(2).populate('_dj').exec(function(err, history) {
+        var lastPlay = history[1];
+
+        if (lastPlay) {
+          History.count({ _song: self.room.track._id }).exec(function(err, count) {
+            self.chatWrap('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: ' + config.general.room + '/songs/' + self.room.track.id );
+          });
+        } else {
+          self.chatWrap('I haven\'t heard this song before now.');
+        }
+
+      });
+    }
+  , lastsong: function(data) {
+      var self = this;
+      History.find({}).sort('-timestamp').limit(2).populate('_song').exec(function(err, history) {
+        if (history.length <= 1) {
+          self.chatWrap("I've not been alive long enough to know that, Dave.");
+        } else {
+          var lastSong = history[1]._song;
+          self.chatWrap('The last song was “'+ lastSong.title +'” by '+ lastSong.author + '.');
+        }
+      });
+    }
+  , get meh () { return this.lame; }
   , mods: function(data) {
       var self = this;
       var onlineStaff = [];
@@ -213,35 +276,113 @@ module.exports = {
       });
 
       Person.find({ _id: { $in: onlineStaff } }).exec(function(err, staff) {
-        self.chat(staff.length + ' online staff members: ' + staff.map(function(staffMember) {
-          console.log(staffMember);
-          console.log(self.room.staff);
+        self.chatWrap(staff.length + ' online staff members: ' + staff.map(function(staffMember) {
+          if(config.general.debugMode) {
+            console.log(staffMember);
+            console.log(self.room.staff);
+          }
           //return staffMember.name + self.room.staff[staffMember.plugID].role;
           return '@' + staffMember.name;
         }).join(', ') );
       });
     }
+  , music: function(data) {
+      var self = this;
+      var time = new Date().getUTCHours() - 5;
+      
+      if ( 0 <= time && time < 5) {
+        self.chatWrap("Evening! Keep the tempo up, it's the only thing keeping the all nighters going.");
+      } else if ( 5 <= time && time < 12 ) {
+        self.chatWrap("AM! Chill tracks with good beats, most programmers are slow to wake so don't hit them with hard hitting tunes. Wubs are widely discouraged this early.");
+      } else if (12 <= time && time < 17 ){
+        self.chatWrap('Afternoon! Fresh tracks for fresh people.');
+      } else {
+        self.chatWrap("Evening! Most people are out of work so things are a lot more fluid and much less harsh. Seats are easy to get, spin a few if you want but don't hog the decks!");
+      }
+    }
+  , notsmiff: function(data) {
+      var self = this;
+      this.meh(function() {
+        console.log('Voted.');
+        self.chat('Hey, wait a second.  This isn\'t smiff.  D:');
+      });
+    }
   , nsfw: 'Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!'
   , permalink: function(data) {
       var self = this;
-      self.chat('Song: http://codingsoundtrack.org/songs/' + self.room.track.id );
+      self.chatWrap('Song: ' + config.general.room + '/songs/' + self.room.track.id );
     }
   , plugid: function(data) {
       var self = this;
-      self.chat('plug.dj calls you "'+ data.fromID +'".   Are you gonna take that?');
+      self.chatWrap('plug.dj calls you "'+ data.fromID +'".   Are you gonna take that?');
+    }
+  , popular: function(data) {
+      var self = this;
+      Person.find().sort('-karma').limit(3).exec(function(err, people) {
+        var names = people.map(function(person) {
+          return '@' + person.name;
+        });
+      
+        self.chatWrap(oxfordJoin(names) + ' are all the rage these days. See more: ' + config.general.room + '/djs');
+      });
     }
   , profile: function(data) {
       var self = this;
       if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {
         Person.findOne({ name: data.params }).exec(function(err, person) {
           if (!person) {
-            self.chat('/me could not find a profile by that name.');
+            self.chatWrap('/me could not find a profile by that name.');
           } else {
-            self.chat('@' + data.params + ': “'+person.bio+'”  More: http://codingsoundtrack.org/djs/'+ person.plugID)
+            self.chatWrap('@' + data.params + ': “'+person.bio+'”  More: ' + config.general.room + '/djs/'+ person.plugID)
           }
         });
       } else {
-        self.chat('Whose profile did you want?');
+        self.chatWrap('Whose profile did you want?');
+      }
+    }
+  , remæusfacts: function(data) {
+      var self = this;
+      self.chatWrap('remæus\' third word was "combine".  His first was "truck," and his second "bobtail".');
+    }
+  , get smifffax () { return this.smifffacts }
+  , smifffacts: function(data) {
+      var self = this;
+      self.chatWrap(randomFact('smiff'));
+    }
+  , get snarlsource () { return this.source; }
+  , songplays: function(data) {
+      var self = this;
+      if(config.general.debugMode) {
+        console.log('looking up: ' + JSON.stringify(self.currentSong));
+      }
+      
+      Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+        if (err) { console.log(err); } else {
+          History.count({ _song: song._id }, function(err, count) {
+            self.chatWrap('This song has been played ' + count + ' times in recorded history.');
+          });
+        }
+      });
+    }
+  , songartist: function(data) {
+      var self = this;
+      if (data.fromID != '50aeb41596fba52c3ca0d392') {
+        self.chat('I\'ll take that into consideration.  Maybe.');
+      } else {
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { console.log(err); } else {
+            if (data.params.length > 0) {
+              var previousAuthor = song.author;
+              song.author = data.params;
+
+              song.save(function(err) {
+                self.chatWrap('Song author updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: ' + config.general.room + '/songs/' + self.room.track.id );
+              });
+            } else {
+              self.chatWrap('What do you want to set the author of this song to?  I need a parameter.');
+            }
+          }
+        });
       }
     }
   , songtitle: function(data) {
@@ -256,159 +397,24 @@ module.exports = {
               song.title = data.params;
 
               song.save(function(err) {
-                self.chat('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://codingsoundtrack.org/songs/' + self.room.track.id );
+                self.chatWrap('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: ' + config.general.room + '/songs/' + self.room.track.id );
               });
             } else {
-              self.chat('What do you want to set the title of this song to?  I need a parameter.');
+              self.chatWrap('What do you want to set the title of this song to?  I need a parameter.');
             }
           }
         });
       }
     }
-  , songartist: function(data) {
+  , suitup: 'Suit up, motherfucker!'
+  , topologyfacts: function(data) {
       var self = this;
-      if (data.fromID != '50aeb41596fba52c3ca0d392') {
-        self.chat('I\'ll take that into consideration.  Maybe.');
-      } else {
-        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
-          if (err) { console.log(err); } else {
-            if (data.params.length > 0) {
-              var previousAuthor = song.author;
-              song.author = data.params;
-
-              song.save(function(err) {
-                self.chat('Song title updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://codingsoundtrack.org/songs/' + self.room.track.id );
-              });
-            } else {
-              self.chat('What do you want to set the author of this song to?  I need a parameter.');
-            }
-          }
-        });
-      }
-    }
-  , songplays: function(data) {
-      var self = this;
-      console.log('looking up: ' + JSON.stringify(self.currentSong));
-      
-      Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
-        if (err) { console.log(err); } else {
-          History.count({ _song: song._id }, function(err, count) {
-            self.chat('This song has been played ' + count + ' times in recorded history.');
-          });
-        }
-      });
-    }
-  , distracting: 'Try not to play songs that would be distracting to someone trying to write code.  Stay on theme as much as possible!'
-  , lastplayed: function(data) {
-      var self = this;
-      History.find({ _song: self.room.track._id }).sort('-timestamp').limit(2).populate('_dj').exec(function(err, history) {
-        var lastPlay = history[1];
-
-        if (lastPlay) {
-          History.count({ _song: self.room.track._id }).exec(function(err, count) {
-            self.chat('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: http://codingsoundtrack.org/songs/' + self.room.track.id );
-          });
-        } else {
-          self.chat('I haven\'t heard this song before now.');
-        }
-
-      });
-    }
-  , firstplayed: function(data) {
-      var self = this;
-      if (typeof(self.room.track._id) != 'undefined') {
-        History.findOne({ _song: self.room.track._id }).sort('+timestamp').populate('_dj').exec(function(err, firstPlay) {
-          History.count({ _song: self.room.track._id }).exec(function(err, count) {
-            self.chat('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: http://codingsoundtrack.org/songs/' + self.room.track.id );
-          });
-        });
-      } else {
-        self.chat('Hold on, I\'m still booting up.  Gimme a minute.');
-      }
-    }
-  , lastsong: function(data) {
-      var self = this;
-      History.find({}).sort('-timestamp').limit(2).populate('_song').exec(function(err, history) {
-        if (history.length <= 1) {
-          self.chat("I've not been alive long enough to know that, Dave.");
-        } else {
-          var lastSong = history[1]._song;
-          self.chat('The last song was “'+ lastSong.title +'” by '+ lastSong.author + '.');
-        }
-      });
-    }
-  , music: function(data) {
-      var self = this;
-      var time = new Date().getUTCHours() - 5;
-      
-      if ( 0 <= time && time < 5) {
-        self.chat("Evening! Keep the tempo up, it's the only thing keeping the all nighters going.");
-      } else if ( 5 <= time && time < 12 ) {
-        self.chat("AM! Chill tracks with good beats, most programmers are slow to wake so don't hit them with hard hitting tunes. Wubs are widely discouraged this early.");
-      } else if (12 <= time && time < 17 ){
-        self.chat('Afternoon! Fresh tracks for fresh people.');
-      } else {
-        self.chat("Evening! Most people are out of work so things are a lot more fluid and much less harsh. Seats are easy to get, spin a few if you want but don't hog the decks!");
-      }
-    }
-  , history: function(data) {
-      var self = this;
-      History.count({}, function(err, count) {
-        self.chat('There are ' + count + ' songs in recorded history: http://codingsoundtrack.org/history');
-      });
-    }
-  , popular: function(data) {
-      var self = this;
-      Person.find().sort('-karma').limit(3).exec(function(err, people) {
-        var names = people.map(function(person) {
-          return '@' + person.name;
-        });
-      
-        self.chat(oxfordJoin(names) + ' are all the rage these days. See more: http://codingsoundtrack.org/djs');
-      });
-    }
-  , karma: function(data) {
-      var self = this;
-      Person.findOne({ $or: [ { plugID: data.fromID }, { name: data.from } ] }).exec(function(err, person) {
-        if (!person) {
-          var person = new Person({
-              name: data.from
-            , plugID: data.fromID
-          });
-
-          person.save(function(err) {
-            self.chat('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://codingsoundtrack.org/djs/' + data.fromID );
-          });
-        } else {
-          self.chat('Karma is an arbitrary count of times that people have said your name followed by ++.  You can find yours at http://codingsoundtrack.org/djs/' + data.fromID );
-        }
-      });
+      self.chatWrap(randomFact('topology'));
     }
   , trout: function(data) {
-      this.chat('/me slaps ' + data.from + ' around a bit with a large trout.');
+      this.chatWrap('/me slaps ' + data.from + ' around a bit with a large trout.');
     }
-  , google: function(data) {
-      var self = this;
-      if (typeof(data.params) != 'undefined') {
-        google(data.params, function(err, next, links) {
-          if (err) { console.log(err); }
-
-          if (typeof(links[0]) != 'undefined') {
-            self.chat(links[0].title + ': ' + links[0].link);
-          }
-
-        });
-      } else {
-        self.chat('No query provided.');
-      }
-    }
-  , get snarlsource () { return this.source; }
-  , debug: function(data) { this.chat(JSON.stringify(data)) }
-  , get afpdj () { return this.afk; }
-  , get aftt () { return this.afk; }
-  , get jarplug () { return this.plugin; }
   , get woot () { return this.awesome; }
-  , get meh () { return this.lame; }
 }
 
 function oxfordJoin(array) {

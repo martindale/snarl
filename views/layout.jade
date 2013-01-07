@@ -4,61 +4,40 @@ html
     meta(charset="utf-8")
     title Coding Soundtrack
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-
-    link(rel="stylesheet", href="/css/bootstrap.css")
     style
-      body {
-        padding-top: 60px;
+      .subhead {
+        margin-top: 40px;
       }
-      .stage {
-        text-align: center;
-        margin-left: auto;
-        margin-right: auto;
-        width: 60%;
-      }
-      .stage a {
-        font-size: 1.5em;
-        font-weight: bold;
-        width: 20%;
-        display: inline-block;
-      }
-      .stage a:hover, .chat-message a:hover {
-        text-decoration: none;
-      }
-      .stage a span {
-        display: block;
-      }
-      .plug-sprite {
-        width: 150px;
-        height: 150px;
-      }
-      footer {
-        font-size: 0.8em;
-      }
+    link(rel="stylesheet", href="/css/bootstrap.css")
     link(rel="stylesheet", href="/css/bootstrap-responsive.css")
+    link(rel="stylesheet", href="/css/extra.css")
     
   body
     .navbar.navbar-inverse.navbar-fixed-top
       .navbar-inner
         .container
-          a.btn.btn-mini.pull-right(href="http://plug.dj/coding-soundtrack", style="margin-top: 0.8em;") &#9835; Listen Now &raquo;
-          a.brand(href="/") &#9835; Coding Soundtrack
+          a.btn.btn-navbar(data-toggle="collapse", data-target=".nav-collapse")
+            span.icon-bar
+            span.icon-bar
+            span.icon-bar
+          a.brand(href="/") Coding Soundtrack
           ul.nav
             li.active
               a(href="/") Home
             li
-              a(href="/history") Track History
-            li
-              a(href="/djs") DJs
+              a(href="/rules") Rules
             li
               a(href="/songs") Songs
             li
+              a(href="/djs") DJs
+            li
+              a(href="/history") History
+            li
               a(href="/chat") Chat
               
+    block content
 
     .container
-      block content
-
       footer
         hr
         .row
@@ -86,7 +65,6 @@ html
           .span6
             h4 About Us
             p Coding Soundtrack is fresh musical entertainment for those with robot ears. We are a community based around <a href="http://plug.dj/coding-soundtrack">a plug.dj room</a> where we play non-distracting music for coding sessions, and provide a creative community of Programmers, Developers, Administrators, Engineers, Hackers, and a Troll. They come for the Music, they stay for the Lolz.
-
 
     script(src="//code.jquery.com/jquery-1.8.3.min.js")
     script(src="/js/bootstrap.js")

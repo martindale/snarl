@@ -1,21 +1,29 @@
+var clc = require('cli-color');
+console.log(clc.greenBright('Snarl 0.0.1 by Eric Martindale'));
+process.stdout.write('[' + clc.cyanBright('INFO') + '] Loading dependencies... ');
+
 var config = require('./config')
+  , $ = require('jquery')
+  , _ = require('underscore')
+  , async = require('async')
+  , express = require('express')
+  , LastFM = require('./lib/simple-lastfm')
+  , messages = require('./messages')
+  , mongoose = require('mongoose')
   , PlugAPI = require('plugapi')
   , repl = require('repl')
-  , messages = require('./messages')
-  , _ = require('underscore')
-  , LastFM = require('./lib/simple-lastfm')
-  , async = require('async')
   , rest = require('restler')
-  , express = require('express')
-  , $ = require('jquery')
+  , subtitles = require('./subtitles')
+  
   , app = express()
-  , mongoose = require('mongoose')
+  , db = mongoose.createConnection('localhost', 'snarl')
   , ObjectId = mongoose.Schema.Types.ObjectId
   , Schema = mongoose.Schema
-  , db = mongoose.createConnection('localhost', 'snarl');
 
-var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
-var ROOM = config.room;
+console.log(clc.greenBright('done!'));
+
+var AUTH = config.auth.token;
+var ROOM = config.general.room;
 
 var bot = new PlugAPI(AUTH);
 bot.currentSong = {};
@@ -31,12 +39,33 @@ bot.room = {
 bot.records = {
   boss: {}
 };
+
+// Simple check if 'disableChat' is enabled in config.
+bot.chatWrap = function(message) {
+  if(!config.general.disableChat) {
+    bot.chat(message);
+  }
+}
+
+// Function to get the first key in the array.
+function getFirstKey(array) {
+  for(key in array) {
+    return key;
+  }
+}
+
 bot.connect();
 
 bot.on('connected', function() {
-  bot.joinRoom('coding-soundtrack', function(data) {
-    console.log(JSON.stringify(data));
 
+  bot.joinRoom(config.general.room, function(data) {
+
+    console.log('[' + clc.cyanBright('INFO') + '] Joined room ' + config.general.room + '!');
+
+    if(config.general.debugMode) {
+      console.log(JSON.stringify(data));
+    }
+    
     bot.updateDJs(data.room.djs);
     bot.currentSong       = data.room.media;
 
@@ -77,6 +106,7 @@ rest.get('http://plug.dj/_/static/js/avatars.4316486f.js').on('complete', functi
   // TODO: bug @Boycey to provide an endpoint for this.
   eval(data);  // oh christ. this is bad. 
   avatarManifest = AvatarManifest; 
+  console.log('[' + clc.cyanBright('INFO') + '] Downloaded avatar manifest.');
 });
 
 var lastfm = new LastFM({
@@ -149,6 +179,7 @@ app.use(function(req, res, next) {
   res.setHeader("X-Powered-By", 'speed.');
   next();
 });
+
 app.use(app.router);
 app.use(express.static(__dirname + '/public'));
 app.use(express.errorHandler());
@@ -207,18 +238,33 @@ function findOrCreatePerson(user, callback) {
   });
 }
 
-app.get('/search/name/:name', function(req, res) {
-  Person.findOne({ name: req.param('name') }).exec(function(err, person) {
-    if (!person) {
-      res.send('No such DJ found!');
-    } else {
-      if (typeof(person.plugID) != 'undefined') {
-        res.redirect('/djs/' + person.plugID);
-      } else {
-        res.send('DJ located, but no known plug.dj ID.');
-      }
-    }
-  })
+app.get('/', function(req, res) {
+  History.find().sort('-timestamp').limit(10).populate('_song').populate('_dj').exec(function(err,  history) {
+    
+    /* bot.room.djs = _.toArray(bot.room.djs).map(function(dj) {
+      dj.avatarImage = 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
+      return dj;
+    }); */
+
+    Chat.find().sort('-timestamp').limit(15).populate('_person').exec(function(err, chats) {
+      res.render('index', {
+          currentSong: bot.currentSong
+        , history: history
+        , room: bot.room
+        , currentDJ: getFirstKey(bot.room.djs)
+        , chats: chats
+        , subtitle: subtitles['subtitles'][Math.round(Math.random()*(subtitles['subtitles'].length-1))]
+      });
+    });
+  });
+});
+
+app.get('/about', function(req, res) {
+  res.render('about');
+});
+
+app.get('/audience', function(req, res) {
+  res.send(bot.room.audience);
 });
 
 app.get('/chat', function(req, res) {
@@ -232,6 +278,52 @@ app.get('/chat', function(req, res) {
 app.get('/commands', function(req, res) {
   res.render('commands', {
     commands: Object.keys(messages)
+  });
+});
+
+app.get('/copypasta/monthly', function (req, res) {
+  res.send('lol');
+});
+
+app.get('/djs', function(req, res) {
+  Person.find().sort('-karma').limit(10).exec(function(err, people) {
+     // one month
+    var time = new Date();
+    time.setDate( time.getDate() - 30 );
+
+    mostProlificDJs(time, function(monthlyDJs) {
+      res.render('djs', {
+          djs: people
+        , monthlyDJs: monthlyDJs
+      });
+    });
+
+  });
+});
+
+app.get('/djs/:plugID', function(req, res, next) {
+  Person.findOne({ plugID: req.param('plugID') }).exec(function(err, dj) {
+    if (dj) {
+      History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
+        dj.playHistory = djHistory;
+
+        if (typeof(dj.bio) == 'undefined') {
+          dj.bio = '';
+        }
+
+        History.count({ _dj: dj._id }).exec(function(err, playCount) {
+          res.render('dj', {
+              md: require('node-markdown').Markdown
+            , dj: dj
+            , avatarImage: 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
+            , playCount: playCount
+          });
+        });
+
+      });
+    } else {
+      next();
+    }
   });
 });
 
@@ -250,6 +342,28 @@ app.get('/history/:songInstance', function(req, res) {
       song: songInstance
     });
   })
+});
+
+app.get('/rules', function(req, res) {
+  res.redirect(301, 'ten-commandments');
+});
+
+app.get('/search/name/:name', function(req, res) {
+  Person.findOne({ name: req.param('name') }).exec(function(err, person) {
+    if (!person) {
+      res.send('No such DJ found!');
+    } else {
+      if (typeof(person.plugID) != 'undefined') {
+        res.redirect('/djs/' + person.plugID);
+      } else {
+        res.send('DJ located, but no known plug.dj ID.');
+      }
+    }
+  })
+});
+
+app.get('/song-selection', function(req, res) {
+  res.render('song-selection');
 });
 
 app.get('/songs', function(req, res) {
@@ -293,6 +407,173 @@ var mapDJ = function() { //map function
   emit(this._dj, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
 }
 
+app.get('/songs/:songID', function(req, res, next) {
+  Song.findOne({ id: req.param('songID') }).exec(function(err, song) {
+    if (song) {
+      song._song = song; // hack to simplify templates for now. this is the History schema, technically
+      History.count({ _song: song._id }, function(err, playCount) {
+        song.playCount = playCount;
+
+        History.find({ _song: song._id }).populate('_dj').exec(function(err, songPlays) {
+
+          song.firstPlay = songPlays[0];
+          song.mostRecently = songPlays[ songPlays.length - 1 ];
+
+          var songDJs = {};
+
+          songPlays.forEach(function(play) {
+            songDJs[play._dj.plugID] = play._dj;
+          });
+          songPlays.forEach(function(play) {
+            if (typeof(songDJs[play._dj.plugID].songPlays) != 'undefined') {
+              songDJs[play._dj.plugID].songPlays = songDJs[play._dj.plugID].songPlays + 1;
+            } else {
+              songDJs[play._dj.plugID].songPlays = 1;
+            }
+          });
+
+          songDJs = _.toArray(songDJs);
+          songDJs.sort(function(a, b) {
+            return b.songPlays - a.songPlays;
+          });
+
+          res.render('song', {
+              song: song
+            , songDJs: songDJs
+          });
+
+        });
+      });
+    } else {
+      next();
+    }
+  });
+});
+
+app.get('/stats', function(req, res) {
+
+  var map = function() { //map function
+    emit(this._dj, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
+  } 
+
+  var reduce = function(previous, current) { //reduce function
+    var count = 0;
+    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
+      count += current[index]; //increments the counter by the 'value' of 1
+    }
+    return count;
+  };
+
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+  }, function(err, djs) {
+
+    /* sort the results */
+    djs.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    djs = djs.slice(0, 25);
+
+    /* now get the real records for these songs */
+    async.parallel(djs.map(function(dj) {
+      return function(callback) {
+        Person.findOne({ _id: dj._id }).exec(function(err, realDJ) {
+          realDJ.plays = dj.value;
+          callback(null, realDJ);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.plays - a.plays;
+      });
+
+      res.render('djs', {
+        djs: results
+      });
+    });
+  });
+});
+
+app.get('/stats/plays', function(req, res) {
+  var map = function() { //map function
+    if (typeof(this.curates) == 'undefined') {
+      emit(this._id, 0);
+    } else {
+      emit(this._id, this.curates.length);
+    }
+  } 
+
+  var reduce = function(previous, current) { //reduce function
+    var count = 0;
+    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
+      count += current[index]; //increments the counter by the 'value' of 1
+    }
+    return count;
+  };
+
+  /* execute map reduce */
+  History.mapReduce({
+      map: map
+    , reduce: reduce
+  }, function(err, plays) {
+
+    if (err) {
+      console.log(err);
+    }
+
+    /* sort the results */
+    plays.sort(function(a, b) {
+      return b.value - a.value;
+    });
+
+    /* clip the top 25 */
+    plays = plays.slice(0, 25);
+
+    /* now get the real records for these songs */
+    async.parallel(plays.map(function(play) {
+      return function(callback) {
+        History.findOne({ _id: play._id }).populate('_song').exec(function(err, realPlay) {
+          if (err) { console.log(err); }
+
+          realPlay.curates = play.value;
+
+          callback(null, realPlay);
+        });
+      };
+    }), function(err, results) {
+
+      /* resort since we're in parallel */
+      results.sort(function(a, b) {
+        return b.curates - a.curates;
+      });
+
+      res.send(results);
+    });
+
+  });
+})
+
+app.get('/ten-commandments', function(req, res) {
+  res.render('rules');
+});
+
+app.listen(config.general.port);
+
+/* bot.on('userJoin', function(data) {
+  findOrCreatePerson({
+      name: data.username
+    , plugID: data.id
+  }, function(person) {
+    console.log('User ' + person._id + ' joined.  Added to database.');
+  });
+}); */
+
 function mostPopularSongsAlltime(callback) {
   /* execute map reduce */
   History.mapReduce({
@@ -324,14 +605,9 @@ function mostPopularSongsAlltime(callback) {
       });
 
       callback(results);
-
     });
   });
 }
-
-app.get('/copypasta/monthly', function (req, res) {
-  res.send('lol');
-});
 
 function mostPopularSongsBetween(start, end, callback) {
 
@@ -409,175 +685,6 @@ function mostPopularSongsSince(time, callback) {
   });
 }
 
-app.get('/stats/plays', function(req, res) {
-  var map = function() { //map function
-    if (typeof(this.curates) == 'undefined') {
-      emit(this._id, 0);
-    } else {
-      emit(this._id, this.curates.length);
-    }
-  } 
-
-  var reduce = function(previous, current) { //reduce function
-    var count = 0;
-    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
-      count += current[index]; //increments the counter by the 'value' of 1
-    }
-    return count;
-  };
-
-  /* execute map reduce */
-  History.mapReduce({
-      map: map
-    , reduce: reduce
-  }, function(err, plays) {
-
-    if (err) {
-      console.log(err);
-    }
-
-    /* sort the results */
-    plays.sort(function(a, b) {
-      return b.value - a.value;
-    });
-
-    /* clip the top 25 */
-    plays = plays.slice(0, 25);
-
-    /* now get the real records for these songs */
-    async.parallel(plays.map(function(play) {
-      return function(callback) {
-        History.findOne({ _id: play._id }).populate('_song').exec(function(err, realPlay) {
-          if (err) { console.log(err); }
-
-          realPlay.curates = play.value;
-
-          callback(null, realPlay);
-        });
-      };
-    }), function(err, results) {
-
-      /* resort since we're in parallel */
-      results.sort(function(a, b) {
-        return b.curates - a.curates;
-      });
-
-      res.send(results);
-    });
-
-  });
-})
-
-app.get('/stats', function(req, res) {
-
-  var map = function() { //map function
-    emit(this._dj, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
-  } 
-
-  var reduce = function(previous, current) { //reduce function
-    var count = 0;
-    for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
-      count += current[index]; //increments the counter by the 'value' of 1
-    }
-    return count;
-  };
-
-  /* execute map reduce */
-  History.mapReduce({
-      map: map
-    , reduce: reduce
-  }, function(err, djs) {
-
-    /* sort the results */
-    djs.sort(function(a, b) {
-      return b.value - a.value;
-    });
-
-    /* clip the top 25 */
-    djs = djs.slice(0, 25);
-
-    /* now get the real records for these songs */
-    async.parallel(djs.map(function(dj) {
-      return function(callback) {
-        Person.findOne({ _id: dj._id }).exec(function(err, realDJ) {
-          realDJ.plays = dj.value;
-          callback(null, realDJ);
-        });
-      };
-    }), function(err, results) {
-
-      /* resort since we're in parallel */
-      results.sort(function(a, b) {
-        return b.plays - a.plays;
-      });
-
-      res.render('djs', {
-        djs: results
-      });
-    });
-  });
-});
-
-app.get('/songs/:songID', function(req, res, next) {
-  Song.findOne({ id: req.param('songID') }).exec(function(err, song) {
-    if (song) {
-      song._song = song; // hack to simplify templates for now. this is the History schema, technically
-      History.count({ _song: song._id }, function(err, playCount) {
-        song.playCount = playCount;
-
-        History.find({ _song: song._id }).populate('_dj').exec(function(err, songPlays) {
-
-          song.firstPlay = songPlays[0];
-          song.mostRecently = songPlays[ songPlays.length - 1 ];
-
-          var songDJs = {};
-
-          songPlays.forEach(function(play) {
-            songDJs[play._dj.plugID] = play._dj;
-          });
-          songPlays.forEach(function(play) {
-            if (typeof(songDJs[play._dj.plugID].songPlays) != 'undefined') {
-              songDJs[play._dj.plugID].songPlays = songDJs[play._dj.plugID].songPlays + 1;
-            } else {
-              songDJs[play._dj.plugID].songPlays = 1;
-            }
-          });
-
-          songDJs = _.toArray(songDJs);
-          songDJs.sort(function(a, b) {
-            return b.songPlays - a.songPlays;
-          });
-
-          res.render('song', {
-              song: song
-            , songDJs: songDJs
-          });
-
-        });
-      });
-    } else {
-      next();
-    }
-  });
-});
-
-app.get('/djs', function(req, res) {
-  Person.find().sort('-karma').limit(10).exec(function(err, people) {
-
-    // one month
-    var time = new Date();
-    time.setDate( time.getDate() - 30 );
-
-    mostProlificDJs(time, function(monthlyDJs) {
-      res.render('djs', {
-          djs: people
-        , monthlyDJs: monthlyDJs
-      });
-    });
-
-  });
-});
-
 function mostProlificDJs(time, callback) {
   /* execute map reduce */
   History.mapReduce({
@@ -615,264 +722,14 @@ function mostProlificDJs(time, callback) {
   });
 }
 
-app.get('/djs/:plugID', function(req, res, next) {
-  Person.findOne({ plugID: req.param('plugID') }).exec(function(err, dj) {
-    if (dj) {
-      History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
-        dj.playHistory = djHistory;
-
-        if (typeof(dj.bio) == 'undefined') {
-          dj.bio = '';
-        }
-
-        History.count({ _dj: dj._id }).exec(function(err, playCount) {
-          res.render('dj', {
-              md: require('node-markdown').Markdown
-            , dj: dj
-            , avatarImage: 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
-            , playCount: playCount
-          });
-        });
-
-      });
-    } else {
-      next();
-    }
-  });
-});
-
-app.get('/', function(req, res) {
-  History.find().sort('-timestamp').limit(10).populate('_song').populate('_dj').exec(function(err, history) {
-
-    /* bot.room.djs = _.toArray(bot.room.djs).map(function(dj) {
-      dj.avatarImage = 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
-      return dj;
-    }); */
-
-    res.render('index', {
-        currentSong: bot.currentSong
-      , history: history
-      , room: bot.room
-    });
-
-
-  });
-});
-
-/* bot.on('userJoin', function(data) {
-  findOrCreatePerson({
-      name: data.username
-    , plugID: data.id
-  }, function(person) {
-    console.log('User ' + person._id + ' joined.  Added to database.');
-  });
-}); */
-
-
-bot.on('curateUpdate', function(data) {
-  console.log('CURATEUPDATE:');
-  console.log(data);
-
-  bot.observeUser(data, function(person) {
-
-    console.log(person.name + ' just added this song to their playlist.');
-
-    if (typeof(bot.room.currentPlay) != 'undefined' && typeof(bot.room.currentPlay.curates) != 'undefined') {
-      bot.room.currentPlay.curates.push({
-        _person: person._id
-      });
-
-      bot.room.currentPlay.save(function(err) {
-        if (err) { console.log(err); }
-        console.log('completed curation update.')
-        console.log('comparing curate records: ' + bot.records.boss.curates.length + ' and ' + bot.room.currentPlay.curates.length);
-        console.log('CURRENT DJ:');
-        console.log(bot.room.currentPlay._dj);
-
-
-        if (bot.records.boss.curates.length <= bot.room.currentPlay.curates.length) {
-          bot.chat('@' + bot.room.currentDJ.name + ' just stole the curation record from @' + bot.records.boss._dj.name + ' thanks to @' + person.name + '\'s playlist add!');
-          bot.getBoss(function(boss) {
-            bot.records.boss = boss;
-          });
-        }
-
-      });
-    }
-  });
-});
-
-bot.on('voteUpdate', function(data) {
-  console.log('VOTEUPDATE:');
-  console.log(data);
-
-  findOrCreatePerson({
-    plugID: data.id
-  }, function(person) {
-    bot.room.audience[data.id] = person;
-
-
-
-    switch (data.vote) {
-      case 1:
-        bot.currentSong.upvotes++;
-      break;
-      case -1:
-        bot.currentSong.downvotes++;
-      break;
-    }
-
-    if (typeof(bot.currentSong) != 'undefined') {
-      //bot.currentSong.save();
-    }
-
-  });
-});
-
-bot.on('userLeave', function(data) {
-  console.log('USERLEAVE EVENT:');
-  console.log(data);
-
-  delete bot.room.audience[data.id];
-});
-
-bot.on('userJoin', function(data) {
-  console.log('USERJOIN EVENT:');
-  console.log(data);
-
-  bot.observeUser(data);
-});
-
-bot.on('userUpdate', function(data) {
-  console.log('USER UPDATE:');
-  console.log(data);
-
-  bot.observeUser(data);
-});
-
-bot.on('djUpdate', function(data) {
-  console.log('DJ UPDATE EVENT:');
-  //console.log(data);
-
-  var currentDJs = [];
-  for (var dj in bot.room.djs) {
-    currentDJs.push(bot.room.djs[dj].plugID.toString());
-  }
-
-  var newDJs = data.map(function(dj) {
-    return dj.user.id;
-  });
-
-  console.log('OLD DJs: ' + currentDJs);
-  console.log('NEW DJs: ' + newDJs);
-
-  data.forEach(function(dj) {
-    console.log('DJ: ' + dj.user.id + ' ...');
-    findOrCreatePerson({
-      plugID: dj.user.id
-    }, function(person) {
-
-      console.log(currentDJs.indexOf(person.plugID.toString()));
-      if (currentDJs.indexOf(person.plugID.toString()) == -1) {
-        console.log('NEW DJ FOUND!!! ' + person.name);
-        History.count({ _dj: person._id }).exec(function(err, playCount) {
-          console.log('They have played ' + playCount + ' songs in this room before.');
-          if (playCount == 0) {
-            console.log(person.name + ' has never played any songs here before!');
-            bot.chat('Welcome to the stage, @'+person.name+'!  I\'m sure you\'re a good DJ, but I\'ve never seen you play a song in Coding Soundtrack before, so here\'s our song selection guide: http://codingsoundtrack.org/song-selection');
-          }
-        });
-      }
-    });
-  });
-
-  bot.updateDJs(data);
-
-});
-
-bot.on('djAdvance', function(data) {
-  console.log('New song: ' + JSON.stringify(data));
-
-  lastfm.getSessionKey(function(result) {
-    console.log("session key = " + result.session_key);
-    if (result.success) {
-      lastfm.scrobbleNowPlayingTrack({
-          artist: data.media.author
-        , track: data.media.title
-        , callback: function(result) {
-            console.log("in callback, finished: ", result);
-          }
-      });
-
-      var scrobbleDuration = 60000;
-      if (data.media.duration > 120000) {
-        scrobbleDuration = 240000;
-      } else {
-        scrobbleDuration = data.media.duration * 1000 / 2;
-      }
-
-      bot.room.track.scrobbleTimer = setTimeout(function() {
-        lastfm.scrobbleTrack({
-            artist: data.media.author,
-            track: data.media.title,
-            callback: function(result) {
-                console.log("in callback, finished: ", result);
-            }
-        });
-      //}, scrobbleDuration);
-      }, 5000); // scrobble after 30 seconds, no matter what.
-
-    } else {
-      console.log("Error: " + result.error);
-    }
-  });
-
-  bot.updateDJs(data.djs);
-  bot.currentSong = data.media;
-
-  Song.findOne({ id: data.media.id }).exec(function(err, song) {
-    if (!song) {
-      var song = new Song(data.media);
-    }
-
-    var now = new Date();
-
-    song.lastPlay = now;
-
-    song.save(function(err) {
-
-      bot.room.track = song;
-      bot.currentSongMongoose = song;
-
-      findOrCreatePerson({
-        plugID: data.currentDJ
-      }, function(dj) {
-
-        var history = new History({
-            _song: song._id
-          , _dj: dj._id
-          , timestamp: now
-        });
-        history.save(function(err) {
-          // hack to makein-memory record look work
-          bot.room.currentDJ    = dj;
-          bot.room.currentPlay  = history;
-        });
-      })
-
-    });
-
-  });
-});
-
 bot.on('chat', function(data) {
   var self = this;
   var now = new Date();
 
   if (data.type == 'emote') {
-    console.log(data.from+data.message);
+    console.log(clc.greenBright(data.from+data.message));
   } else {
-    console.log(data.from+"> "+data.message);
+    console.log(clc.blackBright(data.from) + ": " + clc.whiteBright(data.message));
   }
 
   findOrCreatePerson({
@@ -907,7 +764,7 @@ bot.on('chat', function(data) {
         parsedCommands.push(data.trigger);
 
         if (data.trigger == 'commands') {
-          bot.chat('I am a fully autonomous system capable of responding to a wide array of commands, which you can find here: http://snarl.ericmartindale.com/commands')
+          bot.chatWrap('I am a fully autonomous system capable of responding to a wide array of commands, which you can find here: http://snarl.ericmartindale.com/commands')
           //bot.chat('Available commands are: ' + Object.keys(messages).join(', '));
         } else {
 
@@ -918,7 +775,7 @@ bot.on('chat', function(data) {
 
           switch (typeof(messages[data.trigger])) {
             case 'string':
-              bot.chat(messages[data.trigger]);
+              bot.chatWrap(messages[data.trigger]);
             break;
             case 'function':
               messages[data.trigger].apply(bot, [ data ]);
@@ -936,7 +793,7 @@ bot.on('chat', function(data) {
           }
 
           if (target == data.from) {
-            self.chat('Don\'t be a whore.');
+            self.chatWrap('Don\'t be a whore.');
           } else if (target.toLowerCase() == 'c' || target.length == 0) {
             // pass. probably a language mention. ;)
           } else {
@@ -952,30 +809,224 @@ bot.on('chat', function(data) {
       }
     });
   });
-
 });
 
-app.get('/audience', function(req, res) {
-  res.send(bot.room.audience);
+bot.on('curateUpdate', function(data) {
+  if(config.general.debugMode) {
+    console.log('CURATEUPDATE:');
+    console.log(data);
+  }
+
+  bot.observeUser(data, function(person) {
+
+    console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + ' just added this song to their playlist.');
+
+    if (typeof(bot.room.currentPlay) != 'undefined' && typeof(bot.room.currentPlay.curates) != 'undefined') {
+      bot.room.currentPlay.curates.push({
+        _person: person._id
+      });
+
+      bot.room.currentPlay.save(function(err) {
+        if (err) { console.log(err); }
+        if(config.general.debugMode) {
+          console.log('completed curation update.')
+          console.log('comparing curate records: ' + bot.records.boss.curates.length + ' and ' + bot.room.currentPlay.curates.length);
+          console.log('CURRENT DJ:');
+          console.log(bot.room.currentPlay._dj);
+        }
+
+        if (bot.records.boss.curates.length <= bot.room.currentPlay.curates.length) {
+          bot.chatWrap('@' + bot.room.currentDJ.name + ' just stole the curation record from @' + bot.records.boss._dj.name + ' thanks to @' + person.name + '\'s playlist add!');
+          bot.getBoss(function(boss) {
+            bot.records.boss = boss;
+          });
+        }
+
+      });
+    }
+  });
 });
 
-app.get('/rules', function(req, res) {
-  res.redirect(301, 'ten-commandments');
+
+bot.on('djAdvance', function(data) {
+  if(config.general.debugMode) {
+    console.log('New song: ' + JSON.stringify(data));
+  }
+  console.log('[' + clc.cyanBright('INFO') + '] ' + clc.greenBright('Now playing: ') + data.media.author + ' - ' + data.media.title + ' (DJ: ' + clc.yellowBright(data.djs[0].user.username) + ')');
+
+  lastfm.getSessionKey(function(result) {
+    if(config.general.debugMode) {
+      console.log("Last.fm session key: " + result.session_key);
+    }
+    if(result.success) {
+      console.log('[' + clc.cyanBright('INFO') + '] Successfully obtained Last.fm session key.');
+      lastfm.scrobbleNowPlayingTrack({
+          artist: data.media.author
+        , track: data.media.title
+        , callback: function(result) {
+            if(config.general.debugMode) {
+              console.log("in callback, finished: ", result);
+            }
+          }
+      });
+
+      var scrobbleDuration = 60000;
+      if (data.media.duration > 120000) {
+        scrobbleDuration = 240000;
+      } else {
+        scrobbleDuration = data.media.duration * 1000 / 2;
+      }
+
+      bot.room.track.scrobbleTimer = setTimeout(function() {
+        lastfm.scrobbleTrack({
+            artist: data.media.author,
+            track: data.media.title,
+            callback: function(result) {
+                if(config.general.debugMode) {
+                  console.log("in callback, finished: ", result);
+                }
+            }
+        });
+      //}, scrobbleDuration);
+      }, 5000); // scrobble after 30 seconds, no matter what.
+
+    } else {
+      console.log('[' + clc.redBright('ERRO') + '] ' + clc.redBright('Failed') + ' to obtain Last.fm session key.');
+      if(config.general.debugMode) {
+        console.log("Error: " + result.error);
+      }
+    }
+  });
+
+  bot.updateDJs(data.djs);
+  bot.currentSong = data.media;
+
+  Song.findOne({ id: data.media.id }).exec(function(err, song) {
+    if (!song) {
+      var song = new Song(data.media);
+    }
+
+    var now = new Date();
+
+    song.lastPlay = now;
+
+    song.save(function(err) {
+
+      bot.room.track = song;
+      bot.currentSongMongoose = song;
+
+      findOrCreatePerson({
+        plugID: data.currentDJ
+      }, function(dj) {
+        var history = new History({
+            _song: song._id
+          , _dj: dj._id
+          , timestamp: now
+        });
+        history.save(function(err) {
+          // hack to makein-memory record look work
+          bot.room.currentDJ    = dj;
+          bot.room.currentPlay  = history;
+        });
+      })
+
+    });
+
+  });
 });
 
-app.get('/ten-commandments', function(req, res) {
-  res.render('rules');
+bot.on('djUpdate', function(data) {
+  console.log('DJ UPDATE EVENT:');
+  //console.log(data);
+
+  var currentDJs = [];
+  for (var dj in bot.room.djs) {
+    currentDJs.push(bot.room.djs[dj].plugID.toString());
+  }
+
+  var newDJs = data.map(function(dj) {
+    return dj.user.id;
+  });
+
+  console.log('OLD DJs: ' + currentDJs);
+  console.log('NEW DJs: ' + newDJs);
+
+  data.forEach(function(dj) {
+    console.log('DJ: ' + dj.user.id + ' ...');
+    findOrCreatePerson({
+      plugID: dj.user.id
+    }, function(person) {
+
+      console.log(currentDJs.indexOf(person.plugID.toString()));
+      if (currentDJs.indexOf(person.plugID.toString()) == -1) {
+        console.log('NEW DJ FOUND!!! ' + person.name);
+        History.count({ _dj: person._id }).exec(function(err, playCount) {
+          console.log('They have played ' + playCount + ' songs in this room before.');
+          if (playCount == 0) {
+            console.log(person.name + ' has never played any songs here before!');
+            bot.chatWrap('Welcome to the stage, @'+person.name+'!  I\'m sure you\'re a good DJ, but I\'ve never seen you play a song in Coding Soundtrack before, so here\'s our song selection guide: http://codingsoundtrack.org/song-selection');
+          }
+        });
+      }
+    });
+  });
+  bot.updateDJs(data);
 });
 
-app.get('/song-selection', function(req, res) {
-  res.render('song-selection');
+bot.on('userLeave', function(data) {
+  if(config.general.debugMode) {
+    console.log('USERLEAVE EVENT:');
+    console.log(data);
+  }
+  console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(bot.room.audience[data.id].name) + ' left the room!');
+  delete bot.room.audience[data.id];
 });
 
-app.get('/about', function(req, res) {
-  res.render('about');
+bot.on('userJoin', function(data) {
+  if(config.general.debugMode) {
+    console.log('USERJOIN EVENT:');
+    console.log(data);
+  }
+  console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(data.username) + ' joined the room!');
+  bot.observeUser(data);
 });
 
-app.listen(43001);
+bot.on('userUpdate', function(data) {
+  if(config.general.debugMode) {
+    console.log('USER UPDATE:');
+    console.log(data);
+  }
+
+  bot.observeUser(data);
+});
+
+bot.on('voteUpdate', function(data) {
+  if(config.general.debugMode) {
+    console.log('VOTEUPDATE:');
+    console.log(data);
+  }
+
+  findOrCreatePerson({
+    plugID: data.id
+  }, function(person) {
+    bot.room.audience[data.id] = person;
+
+    switch(data.vote) {
+      case 1:
+        bot.currentSong.upvotes++;
+        console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.greenBright(' wooted') + ' the track!');
+      break;
+      case -1:
+        bot.currentSong.downvotes++;
+        console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.redBright(' meh\'d') + ' the track!');
+      break;
+    }
+
+    if (typeof(bot.currentSong) != 'undefined') {
+      //bot.currentSong.save();
+    }
+  });
+});
 
 PlugAPI.prototype.getBoss = function(callback) {
   var self = this;
@@ -1078,10 +1129,10 @@ PlugAPI.prototype.updateDJs = function(djs) {
   });
 };
 
-var _reconnect = function() { bot.connect('coding-soundtrack'); };
+var _reconnect = function() { bot.connect(config.general.room); };
 var reconnect = function() { setTimeout(_reconnect, 500); };
 bot.on('close', reconnect);
 bot.on('error', reconnect);
 
-r = repl.start("node> ");
+r = repl.start('');
 r.context.bot = bot;
