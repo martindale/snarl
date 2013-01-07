@@ -175,6 +175,11 @@ var Song    = db.model('Song',    songSchema);
 var History = db.model('History', historySchema);
 var Chat    = db.model('Chat',    chatSchema);
 
+app.use(function(req, res, next) {
+  res.setHeader("X-Powered-By", 'speed.');
+  next();
+});
+
 app.use(app.router);
 app.use(express.static(__dirname + '/public'));
 app.use(express.errorHandler());
@@ -251,9 +256,11 @@ app.get('/', function(req, res) {
         , subtitle: subtitles['subtitles'][Math.round(Math.random()*(subtitles['subtitles'].length-1))]
       });
     });
-
-
   });
+});
+
+app.get('/about', function(req, res) {
+  res.render('about');
 });
 
 app.get('/audience', function(req, res) {
@@ -338,7 +345,7 @@ app.get('/history/:songInstance', function(req, res) {
 });
 
 app.get('/rules', function(req, res) {
-  res.render('rules');
+  res.redirect(301, 'ten-commandments');
 });
 
 app.get('/search/name/:name', function(req, res) {
@@ -353,6 +360,10 @@ app.get('/search/name/:name', function(req, res) {
       }
     }
   })
+});
+
+app.get('/song-selection', function(req, res) {
+  res.render('song-selection');
 });
 
 app.get('/songs', function(req, res) {
@@ -548,6 +559,10 @@ app.get('/stats/plays', function(req, res) {
   });
 })
 
+app.get('/ten-commandments', function(req, res) {
+  res.render('rules');
+});
+
 app.listen(config.general.port);
 
 /* bot.on('userJoin', function(data) {
@@ -707,6 +722,95 @@ function mostProlificDJs(time, callback) {
   });
 }
 
+bot.on('chat', function(data) {
+  var self = this;
+  var now = new Date();
+
+  if (data.type == 'emote') {
+    console.log(clc.greenBright(data.from+data.message));
+  } else {
+    console.log(clc.blackBright(data.from) + ": " + clc.whiteBright(data.message));
+  }
+
+  findOrCreatePerson({
+      name: data.from
+    , plugID: data.fromID
+  }, function(person) {
+    person.lastChat = now;
+    person.save(function(err) {
+      var chat = new Chat({
+          message: data.message
+        , _person: person._id
+      });
+      chat.save(function(err) {
+        if (err) { console.log(err); }
+      });
+    });
+
+    data.person = person;
+
+    if (typeof(bot.room.djs[data.fromID]) != 'undefined') {
+      bot.room.djs[data.fromID].lastChat = now;
+    }
+
+    var cmd = data.message;
+    var tokens = cmd.split(" ");
+
+    var parsedCommands = [];
+
+    tokens.forEach(function(token) {
+      if (token.substr(0, 1) === '!' && data.from != 'snarl' && parsedCommands.indexOf(token.substr(1)) == -1) {
+        data.trigger = token.substr(1).toLowerCase();
+        parsedCommands.push(data.trigger);
+
+        if (data.trigger == 'commands') {
+          bot.chatWrap('I am a fully autonomous system capable of responding to a wide array of commands, which you can find here: http://snarl.ericmartindale.com/commands')
+          //bot.chat('Available commands are: ' + Object.keys(messages).join(', '));
+        } else {
+
+          // if this is the very first token, it's a command and we need to grab the params.
+          if (tokens.indexOf(token) === 0) {
+            data.params = tokens.slice(1).join(' ');
+          }
+
+          switch (typeof(messages[data.trigger])) {
+            case 'string':
+              bot.chatWrap(messages[data.trigger]);
+            break;
+            case 'function':
+              messages[data.trigger].apply(bot, [ data ]);
+            break;
+          }
+
+        }
+      } else {
+        if (token.indexOf('++') != -1) {
+          var target = token.substr(0, token.indexOf('++'));
+          
+          // remove leading @ if it exists
+          if (target.indexOf('@') === 0) {
+            target = target.substr(1);
+          }
+
+          if (target == data.from) {
+            self.chatWrap('Don\'t be a whore.');
+          } else if (target.toLowerCase() == 'c' || target.length == 0) {
+            // pass. probably a language mention. ;)
+          } else {
+
+            findOrCreatePerson({ name: target }, function(person) {
+              person.karma++;
+              person.save(function(err) {
+                if (err) { console.log(err); }
+              });
+            });
+          }
+        }
+      }
+    });
+  });
+});
+
 bot.on('curateUpdate', function(data) {
   if(config.general.debugMode) {
     console.log('CURATEUPDATE:');
@@ -743,60 +847,6 @@ bot.on('curateUpdate', function(data) {
   });
 });
 
-bot.on('voteUpdate', function(data) {
-  if(config.general.debugMode) {
-    console.log('VOTEUPDATE:');
-    console.log(data);
-  }
-
-  findOrCreatePerson({
-    plugID: data.id
-  }, function(person) {
-    bot.room.audience[data.id] = person;
-
-    switch(data.vote) {
-      case 1:
-        bot.currentSong.upvotes++;
-        console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.greenBright(' wooted') + ' the track!');
-      break;
-      case -1:
-        bot.currentSong.downvotes++;
-        console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.redBright(' meh\'d') + ' the track!');
-      break;
-    }
-
-    if (typeof(bot.currentSong) != 'undefined') {
-      //bot.currentSong.save();
-    }
-  });
-});
-
-bot.on('userLeave', function(data) {
-  if(config.general.debugMode) {
-    console.log('USERLEAVE EVENT:');
-    console.log(data);
-  }
-  console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(bot.room.audience[data.id].name) + ' left the room!');
-  delete bot.room.audience[data.id];
-});
-
-bot.on('userJoin', function(data) {
-  if(config.general.debugMode) {
-    console.log('USERJOIN EVENT:');
-    console.log(data);
-  }
-  console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(data.username) + ' joined the room!');
-  bot.observeUser(data);
-});
-
-bot.on('userUpdate', function(data) {
-  if(config.general.debugMode) {
-    console.log('USER UPDATE:');
-    console.log(data);
-  }
-
-  bot.observeUser(data);
-});
 
 bot.on('djAdvance', function(data) {
   if(config.general.debugMode) {
@@ -885,92 +935,96 @@ bot.on('djAdvance', function(data) {
   });
 });
 
-bot.on('chat', function(data) {
-  var self = this;
-  var now = new Date();
+bot.on('djUpdate', function(data) {
+  console.log('DJ UPDATE EVENT:');
+  //console.log(data);
 
-  if (data.type == 'emote') {
-    console.log(clc.greenBright(data.from+data.message));
-  } else {
-    console.log(clc.blackBright(data.from) + ": " + clc.whiteBright(data.message));
+  var currentDJs = [];
+  for (var dj in bot.room.djs) {
+    currentDJs.push(bot.room.djs[dj].plugID.toString());
+  }
+
+  var newDJs = data.map(function(dj) {
+    return dj.user.id;
+  });
+
+  console.log('OLD DJs: ' + currentDJs);
+  console.log('NEW DJs: ' + newDJs);
+
+  data.forEach(function(dj) {
+    console.log('DJ: ' + dj.user.id + ' ...');
+    findOrCreatePerson({
+      plugID: dj.user.id
+    }, function(person) {
+
+      console.log(currentDJs.indexOf(person.plugID.toString()));
+      if (currentDJs.indexOf(person.plugID.toString()) == -1) {
+        console.log('NEW DJ FOUND!!! ' + person.name);
+        History.count({ _dj: person._id }).exec(function(err, playCount) {
+          console.log('They have played ' + playCount + ' songs in this room before.');
+          if (playCount == 0) {
+            console.log(person.name + ' has never played any songs here before!');
+            bot.chat('Welcome to the stage, @'+person.name+'!  I\'m sure you\'re a good DJ, but I\'ve never seen you play a song in Coding Soundtrack before, so here\'s our song selection guide: http://codingsoundtrack.org/song-selection');
+          }
+        });
+      }
+    });
+  });
+  bot.updateDJs(data);
+});
+
+bot.on('userLeave', function(data) {
+  if(config.general.debugMode) {
+    console.log('USERLEAVE EVENT:');
+    console.log(data);
+  }
+  console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(bot.room.audience[data.id].name) + ' left the room!');
+  delete bot.room.audience[data.id];
+});
+
+bot.on('userJoin', function(data) {
+  if(config.general.debugMode) {
+    console.log('USERJOIN EVENT:');
+    console.log(data);
+  }
+  console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(data.username) + ' joined the room!');
+  bot.observeUser(data);
+});
+
+bot.on('userUpdate', function(data) {
+  if(config.general.debugMode) {
+    console.log('USER UPDATE:');
+    console.log(data);
+  }
+
+  bot.observeUser(data);
+});
+
+bot.on('voteUpdate', function(data) {
+  if(config.general.debugMode) {
+    console.log('VOTEUPDATE:');
+    console.log(data);
   }
 
   findOrCreatePerson({
-      name: data.from
-    , plugID: data.fromID
+    plugID: data.id
   }, function(person) {
-    person.lastChat = now;
-    person.save(function(err) {
-      var chat = new Chat({
-          message: data.message
-        , _person: person._id
-      });
-      chat.save(function(err) {
-        if (err) { console.log(err); }
-      });
-    });
+    bot.room.audience[data.id] = person;
 
-    data.person = person;
-
-    if (typeof(bot.room.djs[data.fromID]) != 'undefined') {
-      bot.room.djs[data.fromID].lastChat = now;
+    switch(data.vote) {
+      case 1:
+        bot.currentSong.upvotes++;
+        console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.greenBright(' wooted') + ' the track!');
+      break;
+      case -1:
+        bot.currentSong.downvotes++;
+        console.log('[' + clc.cyanBright('INFO') + '] ' + clc.yellowBright(person.name) + clc.redBright(' meh\'d') + ' the track!');
+      break;
     }
 
-    var cmd = data.message;
-    var tokens = cmd.split(" ");
-
-    var parsedCommands = [];
-
-    tokens.forEach(function(token) {
-      if (token.substr(0, 1) === '!' && data.from != 'snarl' && parsedCommands.indexOf(token.substr(1)) == -1) {
-        data.trigger = token.substr(1).toLowerCase();
-        parsedCommands.push(data.trigger);
-
-        if (data.trigger == 'commands') {
-          bot.chatWrap('I am a fully autonomous system capable of responding to a wide array of commands, which you can find here: http://snarl.ericmartindale.com/commands')
-          //bot.chat('Available commands are: ' + Object.keys(messages).join(', '));
-        } else {
-
-          // if this is the very first token, it's a command and we need to grab the params.
-          if (tokens.indexOf(token) === 0) {
-            data.params = tokens.slice(1).join(' ');
-          }
-
-          switch (typeof(messages[data.trigger])) {
-            case 'string':
-              bot.chatWrap(messages[data.trigger]);
-            break;
-            case 'function':
-              messages[data.trigger].apply(bot, [ data ]);
-            break;
-          }
-
-        }
-      } else {
-        if (token.indexOf('++') != -1) {
-          var target = token.substr(0, token.indexOf('++'));
-          
-          // remove leading @ if it exists
-          if (target.indexOf('@') === 0) {
-            target = target.substr(1);
-          }
-
-          if (target == data.from) {
-            self.chatWrap('Don\'t be a whore.');
-          } else if (target.toLowerCase() == 'c' || target.length == 0) {
-            // pass. probably a language mention. ;)
-          } else {
-
-            findOrCreatePerson({ name: target }, function(person) {
-              person.karma++;
-              person.save(function(err) {
-                if (err) { console.log(err); }
-              });
-            });
-          }
-        }
-      }
-    });
+    if (typeof(bot.currentSong) != 'undefined') {
+      //bot.currentSong.save();
+    }
   });
 });
 
