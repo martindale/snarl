@@ -1,6 +1,10 @@
 extends layout
 
 block content
+
+  form(method="post", action='/chat').form-search.form-inline.pull-right
+    input(type="text", name="q", placeholder="search...").search-query
+
   h1 Chat History
   - for chat in chats
     p.chat-message
@@ -12,4 +16,5 @@ block content
           | #{chat._person.name}
         | : 
       | #{chat.message}
-      small.pull-right #{chat.timestamp}
+      small.pull-right
+        abbr.timeago(title="#{chat.isoDate}") #{chat.isoDate}

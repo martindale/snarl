@@ -10,4 +10,4 @@ block content
   .row-fluid
     p <strong>#{song.curates.length}</strong> people added this song because of this play: 
       - for curate in song.curates
-        a(href="/djs/#{curate._person.id}") #{curate._person.name} 
+        a(href="/djs/#{curate._person.plugID}") #{curate._person.name} 

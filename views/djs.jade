@@ -1,15 +1,26 @@
 extends layout
 
 block content
+
+
+  form(method="post", action='/djs').form-search.form-inline.pull-right
+    input(type="text", name="q", placeholder="search...").search-query
+
   h1 Top DJs
+
   .row
-    .span6
+    .span4
       h2 by Karma
       - for dj in djs
         small.pull-right ...with <strong>#{dj.karma}</strong> karma.
         include blocks/dj
-    .span6
+    .span4
       h2 by Plays <small>30 days</small>
       - for dj in monthlyDJs
-        small.pull-right ...with <strong>#{dj.plays}</strong> plays in the past 30 days.
+        small.pull-right ...with <strong>#{dj.plays}</strong> plays.
+        include blocks/dj
+    .span4
+      h2 by Points
+      - for dj in mostPoints
+        small.pull-right ...with <strong>#{dj.points.dj}</strong> points.
         include blocks/dj

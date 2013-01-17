@@ -2,4 +2,5 @@ h3
   a(href="/songs/#{song._song.id}") #{song._song.author} &mdash; #{song._song.title}
   - if (typeof(song.timestamp) != 'undefined')
     small 
-      a(href="/history/#{song._id}") #{song.timestamp}
+      a(href="/history/#{song._id}")
+        abbr.timeago(title="#{song.isoDate}")

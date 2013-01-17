@@ -1,6 +1,10 @@
 extends layout
 
 block content
+
+  form(method="post", action='/songs').form-search.form-inline.pull-right
+    input(type="text", name="q", placeholder="search...").search-query
+
   h1 Top Tracks
 
   .row

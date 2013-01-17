@@ -1,5 +1,7 @@
 var rest = require('restler')
   , google = require('google')
+  , ddg = require('ddg-api')
+  , urban = require('urban')
   , github = require('github')
   , _ = require('underscore')
   , async = require('async')
@@ -64,6 +66,14 @@ personSchema.virtual('points.total').get(function () {
   return this.points.dj + this.points.curator + this.points.listener;
 });
 
+historySchema.virtual('isoDate').get(function() {
+  return this.timestamp.toISOString();
+});
+
+chatSchema.virtual('isoDate').get(function() {
+  return this.timestamp.toISOString();
+});
+
 var Person  = db.model('Person',  personSchema);
 var Song    = db.model('Song',    songSchema);
 var History = db.model('History', historySchema);
@@ -77,7 +87,7 @@ module.exports = {
   , askforseat: 'Please don\'t ask for seats here.  It\'s first come, first serve, and free for all.'
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.org/ten-commendmants'
-  , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See /music for music suggestions, though there are no defined or enforced rules on music. More: http://codingsoundtrack.org/rules'  // formerly: http://goo.gl/b7UGO
+  , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See !music for music suggestions, though there are no defined or enforced rules on music. More: http://codingsoundtrack.org/rules'  // formerly: http://goo.gl/b7UGO
   , selection: 'Song Selection Guide: http://codingsoundtrack.org/song-selection'
   , suitup: 'Suit up, motherfucker!'
   , netsplit: 'plug.dj has been having a lot of issues lately, especially with chat becoming fragmented.  Some people can chat with each other, and others can\'t see those messages.  Relax, @Boycey will have it fixed soon.'
@@ -133,6 +143,10 @@ module.exports = {
   , topologyfacts: function(data) {
       var self = this;
       self.chat(randomFact('topology'));
+    }
+  , interstellafacts: function(data) {
+      var self = this;
+      self.chat(randomFact('interstella'));
     }
   , get smifffax () { return this.smifffacts }
   , smifffacts: function(data) {
@@ -293,7 +307,7 @@ module.exports = {
               song.author = data.params;
 
               song.save(function(err) {
-                self.chat('Song title updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://codingsoundtrack.org/songs/' + self.room.track.id );
+                self.chat('Song artist updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://codingsoundtrack.org/songs/' + self.room.track.id );
               });
             } else {
               self.chat('What do you want to set the author of this song to?  I need a parameter.');
@@ -403,6 +417,67 @@ module.exports = {
   , trout: function(data) {
       this.chat('/me slaps ' + data.from + ' around a bit with a large trout.');
     }
+  , brew: function(data) {
+      var self = this;
+
+      if (typeof(data.params) != 'undefined') {
+        rest.get('http://api.brewerydb.com/v2/search?q=' + data.params + '&key=7c05e35f30f5fbb823ec4731735eb2eb').on('complete', function(api) {
+          if (typeof(api.data) != 'undefined' && api.data.length > 0) {
+            if (typeof(api.data[0].description) != 'undefined') {
+              self.chat(api.data[0].name + ': ' + api.data[0].description);
+            } else {
+              self.chat(api.data[0].name + ' is a good beer, but I don\'t have a good way to describe it.');
+            }
+            
+          } else {
+            self.chat('Damn, I\'ve never heard of that.  Where do I need to go to find it?');
+          }
+        });
+      } else {
+        self.chat('No query provided.');
+      }
+
+    }
+  , urban: function(data) {
+      var self = this;
+
+
+      if (typeof(data.params) != 'undefined') {
+
+        rest.get('http://api.urbandictionary.com/v0/define?term='+data.params).on('complete', function(data) {
+          self.chat(data.list[0].definition);
+        });
+
+      } else {
+        self.chat('No query provided.');
+      }
+
+    }
+  , duckduckgo: function(data) {
+      var self = this;
+      var client = new ddg.SearchClient();
+
+      if (typeof(data.params) != 'undefined') {
+        client.search(data.params, function(error, response, ddgData) {
+          if (!error && response.statusCode == 200) {
+            console.log(ddgData);
+
+            if (ddgData.Abstract.length > 0) {
+            self.chat(ddgData.Abstract);
+            } else if (ddgData.Definition.length > 0) {
+              self.chat(ddgData.Definition);
+            } else {
+              self.chat('No results found.');
+            }
+
+          } else {
+            console.log("ERROR! " + error + "/" + response.statusCode);
+          }
+        });
+      } else {
+        self.chat('No query provided.');
+      }
+    }
   , google: function(data) {
       var self = this;
       if (typeof(data.params) != 'undefined') {
@@ -422,6 +497,7 @@ module.exports = {
   , debug: function(data) { this.chat(JSON.stringify(data)) }
   , get afpdj () { return this.afk; }
   , get aftt () { return this.afk; }
+  , get ddg () { return this.duckduckgo; }
   , get jarplug () { return this.plugin; }
   , get woot () { return this.awesome; }
   , get meh () { return this.lame; }

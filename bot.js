@@ -7,6 +7,7 @@ var config = require('./config')
   , async = require('async')
   , rest = require('restler')
   , express = require('express')
+  , ElizaBot = require('./eliza')
   , $ = require('jquery')
   , app = express()
   , mongoose = require('mongoose')
@@ -140,11 +141,20 @@ personSchema.virtual('points.total').get(function () {
   return this.points.dj + this.points.curator + this.points.listener;
 });
 
+historySchema.virtual('isoDate').get(function() {
+  return this.timestamp.toISOString();
+});
+
+chatSchema.virtual('isoDate').get(function() {
+  return this.timestamp.toISOString();
+});
+
 var Person  = db.model('Person',  personSchema);
 var Song    = db.model('Song',    songSchema);
 var History = db.model('History', historySchema);
 var Chat    = db.model('Chat',    chatSchema);
 
+app.use(express.bodyParser());
 app.use(function(req, res, next) {
   res.setHeader("X-Powered-By", 'speed.');
   next();
@@ -155,6 +165,7 @@ app.use(express.errorHandler());
 app.set('view engine', 'jade');
 app.locals.config = config; // WARNING: this exposes your config to jade! be careful not to render your bot's cookie.
 app.locals.pretty = true;
+app.locals.wideformat = false;
 
 History.find().limit(1).populate('_song').exec(function(err, oldestHistory) {
   app.locals.oldestPlay = oldestHistory[0];
@@ -225,6 +236,25 @@ app.get('/chat', function(req, res) {
   Chat.find().sort('-timestamp').limit(50).populate('_person').exec(function(err, chats) {
     res.render('chats', {
       chats: chats
+    });
+  });
+});
+
+app.post('/chat', function(req, res) {
+  Chat.find({ message: new RegExp('(.*)'+req.param('q')+'(.*)', 'i') }).sort('-timestamp').limit(50).populate('_person').exec(function(err, chats) {
+    res.render('chats', {
+      chats: chats
+    });
+  });
+});
+
+app.post('/songs', function(req, res) {
+  Song.find({ $or: [
+        { author: new RegExp('(.*)'+req.param('q')+'(.*)', 'i') }
+      , { title: new RegExp('(.*)'+req.param('q')+'(.*)', 'i') }
+    ] }).limit(50).exec(function(err, songs) {
+    res.render('songlist', {
+      songs: songs
     });
   });
 });
@@ -569,12 +599,26 @@ app.get('/djs', function(req, res) {
     time.setDate( time.getDate() - 30 );
 
     mostProlificDJs(time, function(monthlyDJs) {
-      res.render('djs', {
-          djs: people
-        , monthlyDJs: monthlyDJs
+      Person.find().sort('-points.dj').limit(10).exec(function(err, mostPoints) {
+        res.render('djs', {
+            djs: people
+          , monthlyDJs: monthlyDJs
+          , mostPoints: mostPoints
+        });
       });
     });
 
+  });
+});
+
+app.post('/djs', function(req, res) {
+  Person.find({ $or: [
+        { name: new RegExp('(.*)'+req.param('q')+'(.*)', 'i') }
+      , { bio: new RegExp('(.*)'+req.param('q')+'(.*)', 'i') }
+    ] }).sort('-karma').limit(50).exec(function(err, djs) {
+    res.render('dj-list', {
+      djs: djs
+    });
   });
 });
 
@@ -653,6 +697,7 @@ app.get('/', function(req, res) {
         currentSong: bot.currentSong
       , history: history
       , room: bot.room
+      , wideformat: true
     });
 
 
@@ -865,6 +910,8 @@ bot.on('djAdvance', function(data) {
   });
 });
 
+var AI = new ElizaBot();
+
 bot.on('chat', function(data) {
   var self = this;
   var now = new Date();
@@ -894,6 +941,10 @@ bot.on('chat', function(data) {
 
     if (typeof(bot.room.djs[data.fromID]) != 'undefined') {
       bot.room.djs[data.fromID].lastChat = now;
+    }
+
+    if (data.from == 'roboJar' && data.message != 'Isn\'t this !awesome snarl') {
+      self.chat( AI.transform(data.message) );
     }
 
     var cmd = data.message;
@@ -948,6 +999,20 @@ bot.on('chat', function(data) {
               });
             });
           }
+        } else {
+
+          if (tokens.length === 1) {
+            Chat.find({}).sort('-timestamp').limit(1).exec(function(err, lastChat) {
+              var now = new Date();
+              var difference = ( now - lastChat.timestamp ) / 1000;
+              if (difference >= 300) {
+                rest.get('http://api.urbandictionary.com/v0/define?term='+token).on('complete', function(data) {
+                  self.chat(data.list[0].definition);
+                });
+              }
+            });
+          }
+
         }
       }
     });
@@ -973,6 +1038,10 @@ app.get('/song-selection', function(req, res) {
 
 app.get('/about', function(req, res) {
   res.render('about');
+});
+
+app.get('/player', function(req, res) {
+  res.render('player');
 });
 
 app.listen(43001);
@@ -1015,13 +1084,13 @@ PlugAPI.prototype.getBoss = function(callback) {
 
     /* now get the real records for these songs */
     async.parallel(plays.map(function(play) {
-      return function(callback) {
+      return function(innerCallback) {
         History.findOne({ _id: play._id }).populate('_song').populate('_dj').exec(function(err, realPlay) {
           if (err) { console.log(err); }
 
           realPlay.curates = play.value;
 
-          callback(null, realPlay);
+          innerCallback(null, realPlay);
         });
       };
     }), function(err, results) {

@@ -153,5 +153,15 @@ module.exports = {
       "Will Smith's Birth Card is the Queen of Hearts.",
       "Will Smith has solved Rubik's cubes in both The Fresh Prince of Bel Air and The Pursuit of Happiness. This is a real talent of his; he has shown on live TV that he can solve a Rubik's Cube in under 55 seconds.",
       "The Bridge On The River Kwai is Will Smith's favorite movie."
+    ],
+    interstella: [
+      'Only Shep, Earl and Octave speak in the film. Shep sings "Digital Love"; Octave sings "One More Time" and appears to convey information in "Short Circuit"; Earl talks to Stella during "Crescendolls", but is unheard.',
+      'Daft Punk themselves make a brief cameo appearance in the film during the Golden Record Awards scene (obviously, losing to The Crescendolls); as the candidates are being named, they appear in the audience with their robotic faces saying "Happy" and "?", and they appear in the nominations reel with said robotic faces saying "Peace" and a star emoticon, followed by "Great" and a broken heart emoticon once the winner is announced.',
+      'When Octave enters the record company\'s building, the security guard is watching a soccer match between France and Japan, with the score being even 1-1. The score later changes to 2-1 as France scores. Both members of Daft Punk are French, and Matsumoto is Japanese.',
+      'The last scene of the film contains a lot of Daft Punk merchandise. What can be seen are vinyl records of Homework, Discovery (with side D being played on the record player), Alive 1997, and a DVD copy of D.A.F.T.',
+      'The song featured in the end credits is listed as "Aerodynamic (Daft Punk Remix)", though this version differs from the remix featured in Daft Club.',
+      'There\'s no dialogue in the entire film.',
+      'The names of the characters can be found in the extras on the DVD. The band member\'s names are Octave (keyboard), Stella (the female bass player), Arpegius (the blond guitar player), and Baryl (drums). The hero that comes to the band\'s rescue is named Shep. The villain is named The Earl of Darkwood.',
+      'In Earl de Darkwood\'s backstory, the aliens shown captured and disguised as humans are Wolfgang Amadeus Mozart, Jimi Hendrix, Ella Fitzgerald, Janis Joplin, and Jimmy Page.',
     ]
 };
