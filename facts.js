@@ -1,5 +1,17 @@
 module.exports = {
     topology: [
+      'It takes six colors to color a map on a Möbius strip, seven for a map on a torus.',
+      '\'There is no branch of math, however abstract, which may not some day be applied to phenomena in the real world.\' -- Nikolai Lobachevsky',
+      'Is there an ALGORITHM for coloring any map in the plane with four colors? If so, how efficient is it?',
+      'Archimedean solids are dual to the Catalan solids.',
+      'Any isometry of the plane is a composition of at most three reflections.',
+      'Thales theorem: A line drawn parallel to one side of a triangle cuts the other two sides proportionately.',
+      'For n >= 7, there are no convex n-gons which tesselate.',
+      'Poincaré-Perelman theorem: The 3-sphere is the only simply connected closed 3-manifold.',
+      'Legendre gave the first rigorous proof of Euler\'s formula V - E + F = 2. Proof projected out to a sphere used spherical trig.',
+      'Every cross section of a sphere by a plane is a circle.',
+      '"That student is taught the best who is told the least." -- topologist R. L. Moore of Moore Method fame',
+      'The Euler characteristic of a closed 3-manifold is zero.',
       'A sphere has the least surface area for a given volume in n dimensions.',
       'The fundamental group of a circle is isomorphic to the integers.',
       'OH: "The relationship between the geometers was solid, but Platonic."',
