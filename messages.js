@@ -197,6 +197,18 @@ module.exports = {
 
     }
   , donkeypunch: function(data) {
+      var self = this;
+
+      var randomSeed = getRandomInt(1, 100);
+
+      if (randomSeed >= 95 || data.fromID == '50aeb41596fba52c3ca0d392') {
+        self.chat('@' + data.from + ' is a damn smooth mother.');
+      } else if ( randomSeed >= 20 ) {
+        self.chat('@' + data.from + ' is alright.');
+      } else {
+        self.chat('DONKEY PUNNNNNCH! ' + randomFact('donkey'));
+        self.chat('/me donkeypunches ' + data.from);
+      }
 
     }
   , erm: function(data) {
@@ -502,6 +514,7 @@ module.exports = {
   , get afpdj () { return this.afk; }
   , get aftt () { return this.afk; }
   , get ddg () { return this.duckduckgo; }
+  , get dp () { return this.donkeypunch; }
   , get jarplug () { return this.plugin; }
   , get woot () { return this.awesome; }
   , get meh () { return this.lame; }
@@ -545,6 +558,10 @@ function secondsToTime(secs) {
 function randomFact(type) {
   var ar = facts[type];
   return ar[Math.round(Math.random()*(ar.length-1))];
+}
+
+function getRandomInt (min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function ermgerd(text) {
