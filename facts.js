@@ -180,5 +180,9 @@ module.exports = {
       'http://i.imgur.com/q2DVKAi.jpg',
       'http://i.imgur.com/0z8xnE1.jpg',
       'http://i.imgur.com/h0lbxPg.jpg'
+    ],
+    compliment: [
+      'a damn smooth mother',
+      'one manly mother',
     ]
 };

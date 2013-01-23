@@ -22,6 +22,7 @@ var personSchema = mongoose.Schema({
             listener: { type: Number, default: 0 }
           , curator: { type: Number, default: 0 }
           , dj: { type: Number, default: 0 }
+          , man: { type: Number, default: 0 }
         }
       , lastChat: { type: Date }
       , bio: { type: String, max: 1024 }
@@ -198,18 +199,68 @@ module.exports = {
     }
   , donkeypunch: function(data) {
       var self = this;
-
       var randomSeed = getRandomInt(1, 100);
 
-      if (randomSeed >= 95 || data.fromID == '50aeb41596fba52c3ca0d392') {
-        self.chat('@' + data.from + ' is a damn smooth mother.');
-      } else if ( randomSeed >= 20 ) {
-        self.chat('@' + data.from + ' is alright.');
-      } else {
-        self.chat('DONKEY PUNNNNNCH! ' + randomFact('donkey'));
-        self.chat('/me donkeypunches ' + data.from);
-      }
+      Person.findOne({ $or: [ { plugID: data.fromID }, { name: data.from } ] }).exec(function(err, person) {
+        if (!person) {
+          var person = new Person({
+              name: data.from
+            , plugID: data.fromID
+          });
+        }
 
+        person.points.man += randomSeed;
+
+        person.save(function(err) {
+
+          Person.count({}, function(totalPeople) {
+
+            var fivePercent = Math.floor(totalPeople * 0.05);
+
+            Person.find({}).sort('-points.man').limit(fivePercent).exec(function(err, manlyMen) {
+              var manlyMenMap = manlyMen.map(function(man) {
+                return man.plugID;
+              });
+
+              if (manlyMenMap.indexOf(data.fromID) >= 0) {
+                self.chat('@' + data.from + ' is ' + randomFact('compliment') + '.');
+              } else if ( randomSeed >= 20 ) {
+                self.chat('@' + data.from + ' is alright.');
+              } else {
+                self.chat('DONKEY PUNNNNNCH! ' + randomFact('donkey'));
+                self.chat('/me donkeypunches ' + data.from);
+
+                person.points.man = 0;
+                person.save(function(err) {
+                  if (err) { console.log(err); }
+                });
+
+              }
+
+            });
+
+
+          });
+        });
+      });
+
+    }
+  , manly: function(data) {
+      var self = this;
+      Person.count({}, function(totalPeople) {
+
+        var fivePercent = Math.floor(totalPeople * 0.05);
+
+        Person.find({}).sort('-points.man').limit(fivePercent).exec(function(err, manlyMen) {
+
+          var manlyManMap = manlyMen.map(function(man) {
+            return '@' + man.name;
+          });
+
+          self.chat('Manly: ' + manlyManMap.join(', '));
+
+        });
+      });
     }
   , erm: function(data) {
       var self = this;
