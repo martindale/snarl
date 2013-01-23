@@ -94,7 +94,7 @@ module.exports = {
   , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , video: 'dat video.'
-  , force: '/me senses a disturbance in the force o.0'
+  , force: '/me senses a disturbance in the force.'
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
@@ -419,8 +419,8 @@ module.exports = {
       this.chat('/me slaps ' + data.from + ' around a bit with a large trout.');
     }
   , falconpunch: function(data) {
-      this.chat('/me falcon punches ' + data.from + ' out a 13 story window.')
-  }
+      this.chat('/me falcon punches ' + data.from + ' out of a 13-story window.')
+    }
   , brew: function(data) {
       var self = this;
 
