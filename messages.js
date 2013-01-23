@@ -203,8 +203,11 @@ module.exports = {
 
       if (randomSeed >= 95 || data.fromID == '50aeb41596fba52c3ca0d392') {
         self.chat('@' + data.from + ' is a damn smooth mother.');
+      } else if ( randomSeed >= 75 ) {
+        self.chat('/me Double Penetrates @' + data.from)
+      }
       } else if ( randomSeed >= 20 ) {
-        self.chat('@' + data.from + ' is alright.');
+        self.chat('@' + data.from + ' isn't paris hilton. No punch administered.');
       } else {
         self.chat('DONKEY PUNNNNNCH! ' + randomFact('donkey'));
         self.chat('/me donkeypunches ' + data.from);
