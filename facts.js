@@ -182,6 +182,7 @@ module.exports = {
       'http://i.imgur.com/h0lbxPg.jpg'
     ],
     compliment: [
+      'manly as fuck',
       'a damn smooth mother',
       'one manly mother',
     ]

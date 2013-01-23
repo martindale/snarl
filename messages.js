@@ -213,28 +213,30 @@ module.exports = {
 
         person.save(function(err) {
 
-          Person.count({}, function(totalPeople) {
+          Person.count({}, function(err, totalPeople) {
 
-            var fivePercent = Math.floor(totalPeople * 0.05);
+            var fivePercent = Math.floor(totalPeople * 0.0006);
+            var chanceToLose = 50;
 
             Person.find({}).sort('-points.man').limit(fivePercent).exec(function(err, manlyMen) {
               var manlyMenMap = manlyMen.map(function(man) {
                 return man.plugID;
               });
 
-              if (manlyMenMap.indexOf(data.fromID) >= 0) {
-                self.chat('@' + data.from + ' is ' + randomFact('compliment') + '.');
-              } else if ( randomSeed >= 20 ) {
-                self.chat('@' + data.from + ' is alright.');
-              } else {
+              if (randomSeed <= chanceToLose) {
                 self.chat('DONKEY PUNNNNNCH! ' + randomFact('donkey'));
-                self.chat('/me donkeypunches ' + data.from);
+                self.chat('/me donkeypunches ' + data.from +'.');
 
                 person.points.man = 0;
                 person.save(function(err) {
                   if (err) { console.log(err); }
                 });
-
+              } else {
+                if (manlyMenMap.indexOf(data.fromID) >= 0) {
+                  self.chat('@' + data.from + ' is ' + randomFact('compliment') + '.');
+                } else if ( randomSeed > chanceToLose ) {
+                  self.chat('@' + data.from + ' is alright.');
+                }
               }
 
             });
@@ -247,9 +249,9 @@ module.exports = {
     }
   , manly: function(data) {
       var self = this;
-      Person.count({}, function(totalPeople) {
+      Person.count({}, function(err, totalPeople) {
 
-        var fivePercent = Math.floor(totalPeople * 0.05);
+        var fivePercent = Math.floor(totalPeople * 0.0006);
 
         Person.find({}).sort('-points.man').limit(fivePercent).exec(function(err, manlyMen) {
 
@@ -257,6 +259,7 @@ module.exports = {
             return '@' + man.name;
           });
 
+          //console.log( 'Manly: ' + manlyManMap.join(', ') )
           self.chat('Manly: ' + manlyManMap.join(', '));
 
         });
