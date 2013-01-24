@@ -22,6 +22,7 @@ var personSchema = mongoose.Schema({
             listener: { type: Number, default: 0 }
           , curator: { type: Number, default: 0 }
           , dj: { type: Number, default: 0 }
+          , man: { type: Number, default: 0 }
         }
       , lastChat: { type: Date }
       , bio: { type: String, max: 1024 }
@@ -95,6 +96,8 @@ module.exports = {
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , video: 'dat video.'
   , smellslike: 'PISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS'
+  , force: '/me senses a disturbance in the force.'
+  , smiffhour: 'Lock & Load your smiff tracks !djs for the next hour we spin strictly smiff.'
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
@@ -197,7 +200,72 @@ module.exports = {
 
     }
   , donkeypunch: function(data) {
+      var self = this;
+      var randomSeed = getRandomInt(1, 100);
 
+      Person.findOne({ $or: [ { plugID: data.fromID }, { name: data.from } ] }).exec(function(err, person) {
+        if (!person) {
+          var person = new Person({
+              name: data.from
+            , plugID: data.fromID
+          });
+        }
+
+        person.points.man += randomSeed;
+
+        person.save(function(err) {
+
+          Person.count({}, function(err, totalPeople) {
+
+            var fivePercent = Math.floor(totalPeople * 0.0006);
+            var chanceToLose = 50;
+
+            Person.find({}).sort('-points.man').limit(fivePercent).exec(function(err, manlyMen) {
+              var manlyMenMap = manlyMen.map(function(man) {
+                return man.plugID;
+              });
+
+              if (randomSeed <= chanceToLose) {
+                self.chat('DONKEY PUNNNNNCH! ' + randomFact('donkey'));
+                self.chat('/me donkeypunches ' + data.from +'.');
+
+                person.points.man = 0;
+                person.save(function(err) {
+                  if (err) { console.log(err); }
+                });
+              } else {
+                if (manlyMenMap.indexOf(data.fromID) >= 0) {
+                  self.chat('@' + data.from + ' is ' + randomFact('compliment') + '.');
+                } else if ( randomSeed > chanceToLose ) {
+                  self.chat('@' + data.from + ' is alright.');
+                }
+              }
+
+            });
+
+
+          });
+        });
+      });
+
+    }
+  , manly: function(data) {
+      var self = this;
+      Person.count({}, function(err, totalPeople) {
+
+        var fivePercent = Math.floor(totalPeople * 0.0006);
+
+        Person.find({}).sort('-points.man').limit(fivePercent).exec(function(err, manlyMen) {
+
+          var manlyManMap = manlyMen.map(function(man) {
+            return '@' + man.name;
+          });
+
+          //console.log( 'Manly: ' + manlyManMap.join(', ') )
+          self.chat('Manly: ' + manlyManMap.join(', '));
+
+        });
+      });
     }
   , erm: function(data) {
       var self = this;
@@ -418,6 +486,9 @@ module.exports = {
   , trout: function(data) {
       this.chat('/me slaps ' + data.from + ' around a bit with a large trout.');
     }
+  , falconpunch: function(data) {
+      this.chat('/me falcon punches ' + data.from + ' out of a 13-story window.')
+    }
   , brew: function(data) {
       var self = this;
 
@@ -499,6 +570,7 @@ module.exports = {
   , get afpdj () { return this.afk; }
   , get aftt () { return this.afk; }
   , get ddg () { return this.duckduckgo; }
+  , get dp () { return this.donkeypunch; }
   , get jarplug () { return this.plugin; }
   , get woot () { return this.awesome; }
   , get meh () { return this.lame; }
@@ -542,6 +614,10 @@ function secondsToTime(secs) {
 function randomFact(type) {
   var ar = facts[type];
   return ar[Math.round(Math.random()*(ar.length-1))];
+}
+
+function getRandomInt (min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function ermgerd(text) {
