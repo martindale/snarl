@@ -1,4 +1,5 @@
 var config = require('./config')
+  , fs =  require('fs')
   , PlugAPI = require('plugapi')
   , repl = require('repl')
   , messages = require('./messages')
@@ -241,10 +242,21 @@ app.get('/chat', function(req, res) {
   });
 });
 
+/* app.get('/chat', function(req, res) {
+  Chat.find().sort('-timestamp').limit(50).populate('_person').exec(function(err, chats) {
+    fs.readFile('./public/analysis.html', function(err, data) {
+      res.render('chats', {
+          chats: chats
+        , chatStats: data
+      });
+    });
+  });
+}); */
+
 app.post('/chat', function(req, res) {
   Chat.find({ message: new RegExp('(.*)'+req.param('q')+'(.*)', 'i') }).sort('-timestamp').limit(50).populate('_person').exec(function(err, chats) {
     res.render('chats', {
-      chats: chats
+        chats: chats
     });
   });
 });
@@ -306,6 +318,10 @@ app.get('/songs', function(req, res) {
       });
     });
   });
+});
+
+app.get('/boycey', function(req, res) {
+  res.render('boycey');
 });
 
 var map = function() { //map function

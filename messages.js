@@ -87,7 +87,8 @@ module.exports = {
   , afk: 'If you\'re AFK at the end of your song for longer than 30 minutes you get warning 1. One minute later you get warning 2, another minute last warning, 30 seconds [boot].'
   , askforseat: 'Please don\'t ask for seats here.  It\'s first come, first serve, and free for all.'
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
-  , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.org/ten-commendmants'
+  , overlord: 'ALL HAIL THE OVERLORD!  http://codingsoundtrack.org/boycey'
+  , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.org/ten-commandments'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See !music for music suggestions, though there are no defined or enforced rules on music. More: http://codingsoundtrack.org/rules'  // formerly: http://goo.gl/b7UGO
   , selection: 'Song Selection Guide: http://codingsoundtrack.org/song-selection'
   , suitup: 'Suit up, motherfucker!'
@@ -163,9 +164,13 @@ module.exports = {
       var self = this;
       self.chat('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: http://codingsoundtrack.org/history/' + self.records.boss._id );
     }
+  , cb: function(data) {
+      var self = this;
+      self.chat('GTFO, @' + self.from +'!');
+    }
   , count: function(data) {
       var self = this;
-      self.chat('I am currently aware of ' + _.toArray(self.room.audience).length + ' audience members.  I am probably wrong.');
+      self.chat('I am currently aware of ' + _.toArray(self.room.audience).length + ' audience members.');
     }
   , djs: function(data) {
       var self = this;
@@ -567,6 +572,7 @@ module.exports = {
   , debug: function(data) { this.chat(JSON.stringify(data)) }
   , get afpdj () { return this.afk; }
   , get aftt () { return this.afk; }
+  , get boycey () { return this.overlord; }
   , get ddg () { return this.duckduckgo; }
   , get dp () { return this.donkeypunch; }
   , get jarplug () { return this.plugin; }
