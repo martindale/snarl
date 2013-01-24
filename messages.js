@@ -96,6 +96,7 @@ module.exports = {
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , video: 'dat video.'
   , force: '/me senses a disturbance in the force.'
+  , smiffhour: 'Lock & Load your smiff tracks !djs for the next hour we spin strictly smiff.'
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
