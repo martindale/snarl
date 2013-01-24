@@ -94,6 +94,7 @@ module.exports = {
   , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , video: 'dat video.'
+  , smellslike: 'PISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS'
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
