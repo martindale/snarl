@@ -96,7 +96,7 @@ module.exports = {
   , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , video: 'dat video.'
-  , smellslike: 'PISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS'
+  , smellslike: 'PISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS'
   , force: '/me senses a disturbance in the force.'
   , smiffhour: 'Lock & Load your smiff tracks !djs for the next hour we spin strictly smiff.'
   , awesome: function(data) {
