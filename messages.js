@@ -489,7 +489,13 @@ module.exports = {
       });
     }
   , trout: function(data) {
-      this.chat('/me slaps ' + data.from + ' around a bit with a large trout.');
+      var target = data.from;
+
+      if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {
+        target = data.params.trim();
+      }
+
+      this.chat('/me slaps ' + target + ' around a bit with a large trout.');
     }
   , falconpunch: function(data) {
       this.chat('/me falcon punches ' + data.from + ' out of a 13-story window.')
