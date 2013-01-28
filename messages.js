@@ -98,10 +98,20 @@ module.exports = {
   , smiffhour: 'Lock & Load your smiff tracks !djs for the next hour we spin strictly smiff.'
   , awesome: function(data) {
       var self = this;
-      this.woot(function() {
-        console.log('Voted.');
-        self.chat('Agreed, this track is svelte!  Wooted.');
-      });
+      this.woot(function()  {
+        }
+      var randomSeed = getRandomInt(1, 100);
+
+      if (randomSeed >= 95) {
+        self.chat('you know what, @' + data.from + 'this track IS AWESOME. WOOT');
+      } else if ( randomSeed >= 20 ) {
+        self.chat('Agreed, this track is svelte! Wooted.');
+      } else {
+        self.chat('this track is so amazing I might just...')
+        self.chat('DONKEY PUNNNNNCH! ' + randomFact('donkey'));
+        self.chat('/me donkeypunches ' + data.from);
+      }
+
     }
   , lame: function(data) {
       var self = this;
