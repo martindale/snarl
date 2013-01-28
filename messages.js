@@ -99,6 +99,7 @@ module.exports = {
   , awesome: function(data) {
       var self = this;
       this.woot(function()  {
+        console.log('Voted.');
         }
       var randomSeed = getRandomInt(1, 100);
 
