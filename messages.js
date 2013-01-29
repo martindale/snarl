@@ -95,11 +95,23 @@ module.exports = {
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , video: 'dat video.'
   , awesome: function(data) {
-      var self = this;
-      this.woot(function() {
+    var self = this;
+      this.woot(function()  {
         console.log('Voted.');
-        self.chat('Agreed, this track is svelte!  Wooted.');
-      });
+        }
+      var randomSeed = getRandomInt(1, 100);
+
+      if (randomSeed >= 90) {
+        self.chat('you know what, @' + data.from + 'this track IS AWESOME. WOOT');
+      } else if (randomSeed >= 20) {
+        self.chat('Agreed, this track is svelte! Wooted.');
+      } else if (randomSeed >=10) {
+        self.chat('Aw yeah, great spin DJ!)
+      } else {
+        self.chat('this track is so amazing I might just... DONKEY PUNNNNNCH! ' + randomFact('donkey'));
+        self.chat('/me donkeypunches ' + data.from);
+      }
+
     }
   , lame: function(data) {
       var self = this;
