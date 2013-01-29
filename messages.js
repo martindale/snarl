@@ -106,7 +106,7 @@ module.exports = {
       } else if (randomSeed >= 20) {
         self.chat('Agreed, this track is svelte! Wooted.');
       } else if (randomSeed >=10) {
-        self.chat('Aw yeah, great spin DJ!);
+        self.chat('Aw yeah, great spin DJ!');
       } else {
         self.chat('this track is so amazing I might just... DONKEY PUNNNNNCH! ' + randomFact('donkey'));
         self.chat('/me donkeypunches ' + data.from);
