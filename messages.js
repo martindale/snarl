@@ -557,15 +557,15 @@ module.exports = {
       }
     }
   ,define: function (data) {
-    var sn = this, finalMsg;
+    var self = this, finalMsg;
 
-    if (!data) {
+    if (!data.params) {
       finalMsg = "You have to provide the word...";
       self.chat(finalMsg);
       
     } else {
 
-      var word = data.split(" ").join("").split(',');
+      var word = data.params.split(" ").join("").split(',');
 
       var url = "http://api.wordnik.com//v4/word.json/" + word[0] + "/definitions?includeRelated=false&includeTags=false&limit=1&useCanonical=false&api_key=4b9d570699e20d6a5d00104d9e50a041c7e8547b7f448c627";
 
