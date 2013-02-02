@@ -42,6 +42,7 @@ var songSchema = mongoose.Schema({
     , title: String
     , duration: Number
     , lastPlay: Date
+    , nsfw: Boolean
 });
 var historySchema = mongoose.Schema({
     _song: { type: ObjectId, ref: 'Song', required: true }
@@ -242,8 +243,6 @@ module.exports = {
               }
 
             });
-
-
           });
         });
       });
@@ -304,7 +303,69 @@ module.exports = {
         }).join(', ') );
       });
     }
-  , nsfw: 'Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!'
+  , nsfw: function() {
+      var self = this;
+
+      var staffMap = [];
+      _.toArray(self.room.staff).forEach(function(staffMember) {
+        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+          staffMap.push(staffMember.plugID);
+        }
+      });
+
+      if (staffMap.indexOf( data.fromID ) > -1) {
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { 
+            console.log(err); 
+          } 
+          else {
+            song.nsfw = true;
+            song.save(function(err) {
+              if (err) { 
+                console.log(err); 
+              } 
+              else {
+                self.chat('Song updated. NSFW tag added.')               
+              }
+            });
+          }
+        });
+      }
+       
+      self.chat('Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!');
+    } 
+  , sfw: function() {
+      var self = this;
+
+      var staffMap = [];
+      _.toArray(self.room.staff).forEach(function(staffMember) {
+        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+          staffMap.push(staffMember.plugID);
+        }
+      });
+
+      if (staffMap.indexOf( data.fromID ) > -1) {
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { 
+            console.log(err); 
+          } 
+          else {
+            song.nsfw = false;
+            song.save(function(err) {
+              if (err) { 
+                console.log(err); 
+              } 
+              else {
+                self.chat('Song updated to SFW.')               
+              }
+            });
+          }
+        });
+      }
+      else {
+        self.chat('I\'ll take that into consideration.  Maybe.');
+      }
+    }
   , permalink: function(data) {
       var self = this;
       self.chat('Song: http://codingsoundtrack.org/songs/' + self.room.track.id );
