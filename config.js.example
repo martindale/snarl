@@ -1,10 +1,20 @@
 module.exports = {
     username : '' //TWITTER USERNAME GOES HERE
   , password : '' //TWITTER PASSWORD GOES HERE
+  , botName: 'PdjBot'
   , adminIds : ["14022630"] //Array of users who have access to admin commands
   , auth : "sdH4wfhWSEthrS6za3dfHs6df2k=?_expires=SADshDfEhe3SfHa6Hs==&user_id=UFasdgsdgjSdfGSgtFDt7asgw3sHfdsg7zaasFg6afs=" // fake key, lololololol
   , room : 'coding-soundtrack'
   , ga: {
       account: '' // accountID for Google Analytics, if you want it.
     }
+  , lastfm: {
+	key: '67ebbd8abab742d9bb909bfd5fea5ec8',
+	secret: '2bb7770fe0806b9c8b11ab7917926f7d',
+	username: 'pdjbot',
+	password: '2N{Un&AN'
+  }
+  , disabledCommands: ['erm']
+  , welcomeNewDjs: false
+  , commandPrefix: '&'
 }

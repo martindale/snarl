@@ -35,7 +35,7 @@ bot.records = {
 bot.connect();
 
 bot.on('connected', function() {
-  bot.joinRoom('coding-soundtrack', function(data) {
+  bot.joinRoom(config.room, function(data) {
     console.log(JSON.stringify(data));
 
     bot.updateDJs(data.room.djs);
@@ -97,6 +97,7 @@ var personSchema = mongoose.Schema({
             listener: { type: Number, default: 0 }
           , curator: { type: Number, default: 0 }
           , dj: { type: Number, default: 0 }
+          , man: { type: Number, default: 0 }
         }
       , lastChat: { type: Date }
       , bio: { type: String, max: 1024 }
@@ -116,6 +117,7 @@ var songSchema = mongoose.Schema({
     , title: String
     , duration: Number
     , lastPlay: Date
+    , nsfw: Boolean
 });
 var historySchema = mongoose.Schema({
     _song: { type: ObjectId, ref: 'Song', required: true }
@@ -818,7 +820,8 @@ bot.on('djUpdate', function(data) {
     }, function(person) {
 
       console.log(currentDJs.indexOf(person.plugID.toString()));
-      if (currentDJs.indexOf(person.plugID.toString()) == -1) {
+      if ((typeof(config.welcomeNewDjs) === 'undefined' || config.welcomeNewDjs)
+          && currentDJs.indexOf(person.plugID.toString()) == -1) {
         console.log('NEW DJ FOUND!!! ' + person.name);
         History.count({ _dj: person._id }).exec(function(err, playCount) {
           console.log('They have played ' + playCount + ' songs in this room before.');
@@ -832,52 +835,62 @@ bot.on('djUpdate', function(data) {
   });
 
   bot.updateDJs(data);
-
 });
 
 bot.on('djAdvance', function(data) {
+  var self = this;
+
   console.log('New song: ' + JSON.stringify(data));
 
-  lastfm.getSessionKey(function(result) {
-    console.log("session key = " + result.session_key);
-    if (result.success) {
-      lastfm.scrobbleNowPlayingTrack({
-          artist: data.media.author
-        , track: data.media.title
-        , callback: function(result) {
-            console.log("in callback, finished: ", result);
-          }
-      });
-
-      var scrobbleDuration = 60000;
-      if (data.media.duration > 120000) {
-        scrobbleDuration = 240000;
-      } else {
-        scrobbleDuration = data.media.duration * 1000 / 2;
-      }
-
-      bot.room.track.scrobbleTimer = setTimeout(function() {
-        lastfm.scrobbleTrack({
-            artist: data.media.author,
-            track: data.media.title,
-            callback: function(result) {
-                console.log("in callback, finished: ", result);
+  try {
+    lastfm.getSessionKey(function(result) {
+      console.log("session key = " + result.session_key);
+      if (result.success) {
+        lastfm.scrobbleNowPlayingTrack({
+            artist: data.media.author
+          , track: data.media.title
+          , callback: function(result) {
+              console.log("in callback, finished: ", result);
             }
         });
-      //}, scrobbleDuration);
-      }, 5000); // scrobble after 30 seconds, no matter what.
 
-    } else {
-      console.log("Error: " + result.error);
-    }
-  });
+        var scrobbleDuration = 60000;
+        if (data.media.duration > 120000) {
+          scrobbleDuration = 240000;
+        } else {
+          scrobbleDuration = data.media.duration * 1000 / 2;
+        }
 
+        bot.room.track.scrobbleTimer = setTimeout(function() {
+          lastfm.scrobbleTrack({
+              artist: data.media.author,
+              track: data.media.title,
+              callback: function(result) {
+                  console.log("in callback, finished: ", result);
+              }
+          });
+        //}, scrobbleDuration);
+        }, 5000); // scrobble after 30 seconds, no matter what.
+
+      } else {
+        console.log("Error: " + result.error);
+      }
+    });
+  }
+  catch (err) {
+    console.log('lastfm scrobble failed')
+  }
+  
   bot.updateDJs(data.djs);
   bot.currentSong = data.media;
 
   Song.findOne({ id: data.media.id }).exec(function(err, song) {
     if (!song) {
       var song = new Song(data.media);
+    }
+
+    if(song.nsfw) {
+      self.chat('Warning: This track may contain NSFW content.');
     }
 
     var now = new Date();
@@ -953,7 +966,7 @@ bot.on('chat', function(data) {
     var parsedCommands = [];
 
     tokens.forEach(function(token) {
-      if (token.substr(0, 1) === '!' && data.from != 'snarl' && parsedCommands.indexOf(token.substr(1)) == -1) {
+      if (token.substr(0, 1) === (config.commandPrefix || '!') && data.from != (config.botName || 'snarl') && parsedCommands.indexOf(token.substr(1)) == -1) {
         data.trigger = token.substr(1).toLowerCase();
         parsedCommands.push(data.trigger);
 
@@ -1147,7 +1160,7 @@ PlugAPI.prototype.updateDJs = function(djs) {
   });
 };
 
-var _reconnect = function() { bot.connect('coding-soundtrack'); };
+var _reconnect = function() { bot.connect(config.room); };
 var reconnect = function() { setTimeout(_reconnect, 500); };
 bot.on('close', reconnect);
 bot.on('error', reconnect);
