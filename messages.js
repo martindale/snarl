@@ -308,7 +308,7 @@ module.exports = {
         }).join(', ') );
       });
     }
-  , nsfw: function() {
+  , nsfw: function(data) {
       var self = this;
 
       var staffMap = [];
@@ -339,7 +339,7 @@ module.exports = {
        
       self.chat('Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!');
     } 
-  , sfw: function() {
+  , sfw: function(data) {
       var self = this;
 
       var staffMap = [];
@@ -639,7 +639,7 @@ module.exports = {
         url = url + "&partOfSpeech=" + word[1];
       };
 
-      $.ajax(url).done(function  (msg) {
+      rest.get(url).on('complete', function  (msg) {
 
         if (msg[0]) {
           finalMsg = msg[0].text;
