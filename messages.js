@@ -42,6 +42,7 @@ var songSchema = mongoose.Schema({
     , title: String
     , duration: Number
     , lastPlay: Date
+    , nsfw: Boolean
 });
 var historySchema = mongoose.Schema({
     _song: { type: ObjectId, ref: 'Song', required: true }
@@ -247,8 +248,6 @@ module.exports = {
               }
 
             });
-
-
           });
         });
       });
@@ -309,7 +308,69 @@ module.exports = {
         }).join(', ') );
       });
     }
-  , nsfw: 'Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!'
+  , nsfw: function() {
+      var self = this;
+
+      var staffMap = [];
+      _.toArray(self.room.staff).forEach(function(staffMember) {
+        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+          staffMap.push(staffMember.plugID);
+        }
+      });
+
+      if (staffMap.indexOf( data.fromID ) > -1) {
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { 
+            console.log(err); 
+          } 
+          else {
+            song.nsfw = true;
+            song.save(function(err) {
+              if (err) { 
+                console.log(err); 
+              } 
+              else {
+                self.chat('Song updated. NSFW tag added.')               
+              }
+            });
+          }
+        });
+      }
+       
+      self.chat('Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!');
+    } 
+  , sfw: function() {
+      var self = this;
+
+      var staffMap = [];
+      _.toArray(self.room.staff).forEach(function(staffMember) {
+        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+          staffMap.push(staffMember.plugID);
+        }
+      });
+
+      if (staffMap.indexOf( data.fromID ) > -1) {
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { 
+            console.log(err); 
+          } 
+          else {
+            song.nsfw = false;
+            song.save(function(err) {
+              if (err) { 
+                console.log(err); 
+              } 
+              else {
+                self.chat('Song updated to SFW.')               
+              }
+            });
+          }
+        });
+      }
+      else {
+        self.chat('I\'ll take that into consideration.  Maybe.');
+      }
+    }
   , permalink: function(data) {
       var self = this;
       self.chat('Song: http://codingsoundtrack.org/songs/' + self.room.track.id );
@@ -561,6 +622,37 @@ module.exports = {
         self.chat('No query provided.');
       }
     }
+  ,define: function (data) {
+    var self = this, finalMsg;
+
+    if (!data.params) {
+      finalMsg = "You have to provide the word...";
+      self.chat(finalMsg);
+      
+    } else {
+
+      var word = data.params.split(" ").join("").split(',');
+
+      var url = "http://api.wordnik.com//v4/word.json/" + word[0] + "/definitions?includeRelated=false&includeTags=false&limit=1&useCanonical=false&api_key=4b9d570699e20d6a5d00104d9e50a041c7e8547b7f448c627";
+
+      if (word[1]) {
+        url = url + "&partOfSpeech=" + word[1];
+      };
+
+      $.ajax(url).done(function  (msg) {
+
+        if (msg[0]) {
+          finalMsg = msg[0].text;
+        } else {
+          finalMsg = "No definitions found :*(";
+        }
+
+        self.chat(finalMsg);
+          
+      });
+
+    }
+  }
   , google: function(data) {
       var self = this;
       if (typeof(data.params) != 'undefined') {
