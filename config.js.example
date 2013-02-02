@@ -9,10 +9,10 @@ module.exports = {
       account: '' // accountID for Google Analytics, if you want it.
     }
   , lastfm: {
-	key: '67ebbd8abab742d9bb909bfd5fea5ec8',
-	secret: '2bb7770fe0806b9c8b11ab7917926f7d',
-	username: 'pdjbot',
-	password: '2N{Un&AN'
+	key: '',
+	secret: '',
+	username: '',
+	password: ''
   }
   , disabledCommands: ['erm']
   , welcomeNewDjs: false
