@@ -88,7 +88,14 @@ module.exports = {
   , afk: 'If you\'re AFK at the end of your song for longer than 30 minutes you get warning 1. One minute later you get warning 2, another minute last warning, 30 seconds [boot].'
   , askforseat: 'Please don\'t ask for seats here.  It\'s first come, first serve, and free for all.'
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
-  , stfu: 'Please, shut your mouth and just enjoy the music.'
+  , stfu: function(data) {
+      var self = this;
+      if (typeof(data.params) != 'undefined') {
+        self.chat("Please shut up "+data.params+" and just enjoy the music! P.S. No one loves you.");
+      }else{
+        self.chat("Please shut up and just enjoy the music! P.S. No one loves you.");
+      }
+    }
   , overlord: 'ALL HAIL THE OVERLORD!  http://codingsoundtrack.org/boycey'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.org/ten-commandments'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See !music for music suggestions, though there are no defined or enforced rules on music. More: http://codingsoundtrack.org/rules'  // formerly: http://goo.gl/b7UGO
