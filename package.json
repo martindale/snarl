@@ -32,10 +32,9 @@
     "jquery"	: ">= 1.6.3",
     "node-markdown": ">= 0.1.1",
     "ddg-api"	: ">= 0.0.1",
-    "urban" 	: ">= 0.3.0",
     "github" 	: ">= 0.1.8",
-    "timeago"   : ">= 0.1.0"
- 		
+    "timeago"   : ">= 0.1.0",
+    "urban"  	: ">= 0.2.0"	 		
   },
   "devDependencies": {
     "phantom"	: "<=0.3.5",
