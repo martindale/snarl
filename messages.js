@@ -147,6 +147,10 @@ module.exports = {
         }
       });
     }
+  , dogfacts: function(data) {
+      var self = this;
+      self.chat(randomFact('dog'));
+    }
   , topologyfacts: function(data) {
       var self = this;
       self.chat(randomFact('topology'));
@@ -669,6 +673,23 @@ module.exports = {
         self.chat('No query provided.');
       }
     }
+   , weather: function(data) {
+      
+	var self = this;
+      
+	var cityName = data.params.split(" ").join("").split(',');
+      
+        url = "http://query.yahooapis.com/v1/public/yql?q=use%20'http%3A%2F%2Fgithub.com%2Fyql%2Fyql-tables%2Fraw%2Fmaster%2Fweather%2Fweather.bylocation.xml'%20as%20we%3Bselect%20*%20from%20we%20where%20location%3D%22" + cityName[0] + "%2CUSA%22%20and%20unit%3D'f'&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback="
+      	
+	rest.get(url).on('complete', function(result, response) {
+		if (result) {
+			self.chat("Conditions in " + cityName[0] + " are currently \"" + result.query.results.weather.rss.channel.item.condition.text + "\", with a temperature around " + result.query.results.weather.rss.channel.item.condition.temp + "F. But don't take my word for it... " + result.query.results.weather.rss.channel.item.link);
+		} else {
+			self.chat("@HoldTheLine... would you please fix this?");
+		}
+	}
+     	);
+   }     
   , get snarlsource () { return this.source; }
   , debug: function(data) { this.chat(JSON.stringify(data)) }
   , get afpdj () { return this.afk; }
