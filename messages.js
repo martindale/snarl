@@ -195,7 +195,8 @@ module.exports = {
         var idleTime = secondsToTime(item.idleTime);
         var idleTimeString = '';
         var idleTimeString = (idleTime.h > 0) ? '('+ idleTime.h +'h'+ idleTime.m +'m'+idleTime.s+'s)' : '('+ idleTime.m +'m'+idleTime.s+'s)';
-
+        if(item.idleTime < 600)
+            return item.name + ' '+idleTimeString;
         return '@' + item.name + ' '+idleTimeString;
       });
 
