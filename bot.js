@@ -181,6 +181,7 @@ function findOrCreatePerson(user, callback) {
       var person = new Person({
           name: user.name
         , plugID: user.plugID
+        , lastChat: new Date()
       });
     }
 
@@ -819,10 +820,7 @@ bot.on('djUpdate', function(data) {
 
   var currentDJs = [];
   for (var dj in bot.room.djs) {
-    currentDJs.push(bot.room.djs[dj].plugID.toString());
-      if (!dj.lastChat) {
-          dj.lastChat = new Date();
-      }
+     currentDJs.push(bot.room.djs[dj].plugID.toString());
   }
 
   var newDJs = data.map(function(dj) {
