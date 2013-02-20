@@ -1084,7 +1084,7 @@ PlugAPI.prototype.getBoss = function(callback) {
       emit(this._id, this.curates.length);
     }
   }
-
+ 
   var reduce = function(previous, current) { //reduce function
     var count = 0;
     for (index in current) {  //in this example, 'current' will only have 1 index and the 'value' is 1
@@ -1092,47 +1092,48 @@ PlugAPI.prototype.getBoss = function(callback) {
     }
     return count;
   };
-
+ 
   /* execute map reduce */
   History.mapReduce({
       map: map
     , reduce: reduce
   }, function(err, plays) {
-
+ 
     if (err) {
       console.log(err);
-    }
-
-    /* sort the results */
-    plays.sort(function(a, b) {
-      return b.value - a.value;
-    });
-
-    /* clip the top 25 */
-    plays = plays.slice(0, 1);
-
-    /* now get the real records for these songs */
-    async.parallel(plays.map(function(play) {
-      return function(innerCallback) {
-        History.findOne({ _id: play._id }).populate('_song').populate('_dj').exec(function(err, realPlay) {
-          if (err) { console.log(err); }
-
-          realPlay.curates = play.value;
-
-          innerCallback(null, realPlay);
-        });
-      };
-    }), function(err, results) {
-
-      /* resort since we're in parallel */
-      results.sort(function(a, b) {
-        return b.curates - a.curates;
+      callback();
+    } else {
+      /* sort the results */
+      plays.sort(function(a, b) {
+        return b.value - a.value;
       });
-
-      callback(results[0]);
-
-    });
-
+ 
+      /* clip the top 25 */
+      plays = plays.slice(0, 1);
+ 
+      /* now get the real records for these songs */
+      async.parallel(plays.map(function(play) {
+        return function(innerCallback) {
+          History.findOne({ _id: play._id }).populate('_song').populate('_dj').exec(function(err, realPlay) {
+            if (err) { console.log(err); }
+ 
+            realPlay.curates = play.value;
+ 
+            innerCallback(null, realPlay);
+          });
+        };
+      }), function(err, results) {
+ 
+        /* resort since we're in parallel */
+        results.sort(function(a, b) {
+          return b.curates - a.curates;
+        });
+ 
+        callback(results[0]);
+ 
+      });
+    }
+ 
   });
 };
 
