@@ -15,4 +15,6 @@ Copy `config.js.example` to `config.js` and configure the values therein.  Most 
 
 Run `npm install` to install all the necessary packages.
 
+Run `cd lib && git clone git://github.com/atomjack/simple-lastfm.git` to install `simple-lastfm`.
+
 Run `node bot.js` to get the bot started. :)

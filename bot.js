@@ -181,6 +181,7 @@ function findOrCreatePerson(user, callback) {
       var person = new Person({
           name: user.name
         , plugID: user.plugID
+        , lastChat: new Date()
       });
     }
 
