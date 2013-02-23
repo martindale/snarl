@@ -4,3 +4,5 @@ h3
     small 
       a(href="/history/#{song._id}")
         abbr.timeago(title="#{song.isoDate}")
+  - if (song.nsfw)
+    span.label.label-warning NSFW

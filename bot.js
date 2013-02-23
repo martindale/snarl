@@ -909,6 +909,12 @@ bot.on('djAdvance', function(data) {
       self.chat('Warning: This track may contain NSFW content.');
     }
 
+    if (data.media.id == '1:QK8mJJJvaes') { // thrift shop
+      setTimeout(function() {
+        self.chat(messages['piss']);
+      }, 62000);
+    }
+
     var now = new Date();
 
     song.lastPlay = now;
