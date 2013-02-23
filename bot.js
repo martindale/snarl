@@ -820,7 +820,7 @@ bot.on('djUpdate', function(data) {
 
   var currentDJs = [];
   for (var dj in bot.room.djs) {
-     currentDJs.push(bot.room.djs[dj].plugID.toString());
+    currentDJs.push(bot.room.djs[dj].plugID.toString());
   }
 
   var newDJs = data.map(function(dj) {

@@ -1,19 +1,5 @@
 /config.js
 
-.idea/.name
+.idea/
 
-.idea/encodings.xml
-
-.idea/libraries/sass_stdlib.xml
-
-.idea/misc.xml
-
-.idea/modules.xml
-
-.idea/scopes/scope_settings.xml
-
-.idea/vcs.xml
-
-.idea/snarl.iml
-
-.idea/workspace.xml
+.DS_Store

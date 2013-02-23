@@ -101,6 +101,7 @@ module.exports = {
   , smellslike: 'PISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS'
   , force: '/me senses a disturbance in the force.'
   , smiffhour: 'Lock & Load your smiff tracks !djs for the next hour we spin strictly smiff.'
+  , ping: 'pong!'
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
@@ -195,8 +196,10 @@ module.exports = {
         var idleTime = secondsToTime(item.idleTime);
         var idleTimeString = '';
         var idleTimeString = (idleTime.h > 0) ? '('+ idleTime.h +'h'+ idleTime.m +'m'+idleTime.s+'s)' : '('+ idleTime.m +'m'+idleTime.s+'s)';
+        
         if(item.idleTime < 600)
-            return item.name + ' '+idleTimeString;
+    	  return item.name + ' '+idleTimeString;
+            
         return '@' + item.name + ' '+idleTimeString;
       });
 
