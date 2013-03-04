@@ -19,6 +19,8 @@ var config = require('./config')
 var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
 var ROOM = config.room;
 
+var antiPDJSuckageTimer;
+
 var bot = new PlugAPI(AUTH);
 bot.currentSong = {};
 bot.currentRoom = {};
@@ -893,11 +895,19 @@ bot.on('djAdvance', function(data) {
         console.log("Error: " + result.error);
       }
     });
-  }
-  catch (err) {
+  } catch (err) {
     console.log('lastfm scrobble failed')
   }
-  
+
+  // deal with plug.djs's failure to serve disconnection events
+  // by expecting the next djAdvance event based on the time of the 
+  // current media.
+  clearTimeout(antiPDJSuckageTimer);
+  antiPDJSuckageTimer = setTimeout(function() {
+    console.log('PLUG.DJ FAILED TO SEND DJADVANCE EVENT IN EXPECTED TIMEFRAME.');
+    reconnect();
+  }, (data.media + 10) * 1000);
+
   bot.updateDJs(data.djs);
   bot.currentSong = data.media;
 
