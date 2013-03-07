@@ -589,7 +589,7 @@ module.exports = {
       }
 
     }
-  , urban: function(data) {
+  /* , urban: function(data) {
       var self = this;
 
 
@@ -603,8 +603,8 @@ module.exports = {
         self.chat('No query provided.');
       }
 
-    }
-  , duckduckgo: function(data) {
+    } */
+  /*, duckduckgo: function(data) {
       var self = this;
       var client = new ddg.SearchClient();
 
@@ -628,8 +628,8 @@ module.exports = {
       } else {
         self.chat('No query provided.');
       }
-    }
-  ,define: function (data) {
+    } */
+  /*, define: function (data) {
     var self = this, finalMsg;
 
     if (!data.params) {
@@ -659,8 +659,8 @@ module.exports = {
       });
 
     }
-  }
-  , google: function(data) {
+  } */
+  /*, google: function(data) {
       var self = this;
       if (typeof(data.params) != 'undefined') {
         google(data.params, function(err, next, links) {
@@ -674,13 +674,13 @@ module.exports = {
       } else {
         self.chat('No query provided.');
       }
-    }
+    } */
   , get snarlsource () { return this.source; }
   , debug: function(data) { this.chat(JSON.stringify(data)) }
   , get afpdj () { return this.afk; }
   , get aftt () { return this.afk; }
   , get boycey () { return this.overlord; }
-  , get ddg () { return this.duckduckgo; }
+  //, get ddg () { return this.duckduckgo; }
   , get dp () { return this.donkeypunch; }
   , get jarplug () { return this.plugin; }
   , get woot () { return this.awesome; }

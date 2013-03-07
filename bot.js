@@ -905,7 +905,10 @@ bot.on('djAdvance', function(data) {
   clearTimeout(antiPDJSuckageTimer);
   antiPDJSuckageTimer = setTimeout(function() {
     console.log('PLUG.DJ FAILED TO SEND DJADVANCE EVENT IN EXPECTED TIMEFRAME.');
-    reconnect();
+    //reconnect();
+    bot.joinRoom('plugdj-sockets-are-broken', function() {
+      bot.joinRoom('coding-soundtrack');
+    });
   }, (data.media + 10) * 1000);
 
   bot.updateDJs(data.djs);
