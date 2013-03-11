@@ -95,7 +95,7 @@ module.exports = {
   , selection: 'Song Selection Guide: http://codingsoundtrack.org/song-selection'
   , suitup: 'Suit up, motherfucker!'
   , netsplit: 'plug.dj has been having a lot of issues lately, especially with chat becoming fragmented.  Some people can chat with each other, and others can\'t see those messages.  Relax, @Boycey will have it fixed soon.'
-  , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
+  , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa or http://userscripts.org/scripts/show/152203'
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , thanks: 'If you like what I do (track stats at codingsoundtrack.org), lend a hand to my creator: http://gittip.com/martindale'
   , video: 'dat video.'
