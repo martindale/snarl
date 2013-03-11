@@ -1,21 +1,20 @@
-jarPlug
-=======
+snarl
+=====
 
-A modification for Plug.dj
+snarl is a bot designed for the [Coding Soundtrack Music Room](http://snarl.ericmartindale.com) on plug.dj.
 
-Currently only supports autowoot and some ui adjustments, however boasts the backend features required for INFINITE COMPLEXITY.
+# Requirements
+The following things need to be installed in your environment to proceed.
 
-Coming soon are features are versioning, better welcome message/help, 3rd party module loading, app store.
+node.js
+MongoDB
 
-Thanks to my friends who have helped me fill in features, given brilliant suggestions, or written hilarious reviews on the chrome web store. I love you all!!!
+# Instructions
 
-Installing
-======
-Chrome Extension:
-https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa
+Copy `config.js.example` to `config.js` and configure the values therein.  Most importantly, copy `auth` from the cookies of your bot account's plug.dj account.
 
-Bookmarklet:
-javascript:(function(){$.getScript("https://raw.github.com/chrisinajar/jarPlug/master/init.js")})()
+Run `npm install` to install all the necessary packages.
 
-Manually load:
-$.getScript("https://raw.github.com/chrisinajar/jarPlug/master/init.js");
+Run `cd lib && git clone git://github.com/atomjack/simple-lastfm.git` to install `simple-lastfm`.
+
+Run `node bot.js` to get the bot started. :)
