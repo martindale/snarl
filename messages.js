@@ -99,7 +99,7 @@ module.exports = {
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
   , thanks: 'If you like what I do (track stats at codingsoundtrack.org), lend a hand to my creator: http://gittip.com/martindale'
   , video: 'dat video.'
-  , smellslike: 'PISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS'
+  , smellslike: 'PISSSSSSSSSSSSSSSSSSSS'
   , force: '/me senses a disturbance in the force.'
   , smiffhour: 'Lock & Load your smiff tracks, !djs... for the next hour we spin strictly smiff!'
   , ping: 'pong!'
