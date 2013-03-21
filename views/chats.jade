@@ -19,4 +19,5 @@ block content
           strong
             a(href="/djs/#{chat._person.plugID}") #{chat._person.name}
           | : #{chat.message}
-          small.pull-right.muted #{chat.timestamp}
+          small.pull-right
+             abbr.timeago(title="#{chat.isoDate}") #{chat.isoDate}
