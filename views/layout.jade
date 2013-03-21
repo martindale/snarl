@@ -8,14 +8,10 @@ html
     meta(itemprop="description", content="Coding Soundtrack is fresh musical entertainment for those with robot ears. We play non-distracting music for coding sessions, and provide a creative community of Programmers, Developers, Administrators, Engineers, Hackers, and a Troll. They come for the Music, they stay for the Lolz.")
     meta(itemprop="image", content="/img/mixer.jpg")
 
-
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
 
     link(rel="stylesheet", href="/css/bootstrap.css")
     style
-      body {
-        padding-top: 60px;
-      }
       #wide {
         background-repeat: no-repeat;
         background-position: center;
@@ -46,7 +42,8 @@ html
         font-size: 0.8em;
       }
     link(rel="stylesheet", href="/css/bootstrap-responsive.css")
-    
+    link(rel="stylesheet", href="/css/screen.css")
+
   body
     .navbar.navbar-inverse.navbar-fixed-top
       .navbar-inner
@@ -67,11 +64,9 @@ html
 
     if wideformat
       #wide
-        .container
-          block content
-    else 
-      .container
         block content
+    else 
+      block content
 
     .container
       footer
