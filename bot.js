@@ -909,7 +909,7 @@ bot.on('djAdvance', function(data) {
     bot.joinRoom('test', function() {
       bot.joinRoom('coding-soundtrack');
     });
-  }, (data.media + 10) * 1000);
+  }, (data.media.duration + 10) * 1000);
 
   bot.updateDJs(data.djs);
   bot.currentSong = data.media;
