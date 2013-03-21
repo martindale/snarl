@@ -42,6 +42,7 @@ var songSchema = mongoose.Schema({
     , title: String
     , duration: Number
     , lastPlay: Date
+    , nsfw: Boolean
 });
 var historySchema = mongoose.Schema({
     _song: { type: ObjectId, ref: 'Song', required: true }
@@ -87,16 +88,21 @@ module.exports = {
   , afk: 'If you\'re AFK at the end of your song for longer than 30 minutes you get warning 1. One minute later you get warning 2, another minute last warning, 30 seconds [boot].'
   , askforseat: 'Please don\'t ask for seats here.  It\'s first come, first serve, and free for all.'
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
-  , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.org/ten-commendmants'
+  , stfu: 'Please, shut your mouth and just enjoy the music.'
+  , overlord: 'ALL HAIL THE OVERLORD!  http://codingsoundtrack.org/boycey'
+  , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.org/ten-commandments'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See !music for music suggestions, though there are no defined or enforced rules on music. More: http://codingsoundtrack.org/rules'  // formerly: http://goo.gl/b7UGO
   , selection: 'Song Selection Guide: http://codingsoundtrack.org/song-selection'
   , suitup: 'Suit up, motherfucker!'
   , netsplit: 'plug.dj has been having a lot of issues lately, especially with chat becoming fragmented.  Some people can chat with each other, and others can\'t see those messages.  Relax, @Boycey will have it fixed soon.'
-  , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa'
+  , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa or http://userscripts.org/scripts/show/152203'
   , tags: 'Please edit the tags of the songs on your playlists to exclude things like [VIDEO] and [OFFICIAL].  It\'s a data thing, man!'
+  , thanks: 'If you like what I do (track stats at codingsoundtrack.org), lend a hand to my creator: http://gittip.com/martindale'
   , video: 'dat video.'
+  , smellslike: 'PISSSSSSSSSSSSSSSSSSSS'
   , force: '/me senses a disturbance in the force.'
-  , smiffhour: 'Lock & Load your smiff tracks !djs for the next hour we spin strictly smiff.'
+  , smiffhour: 'Lock & Load your smiff tracks, !djs... for the next hour we spin strictly smiff!'
+  , ping: 'pong!'
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
@@ -164,9 +170,13 @@ module.exports = {
       var self = this;
       self.chat('The best play of all time was... @' + self.records.boss._dj.name + ' with ' + self.records.boss.curates.length + ' snags of their play of ' + self.records.boss._song.title + ' on ' + self.records.boss.timestamp + '!  More: http://codingsoundtrack.org/history/' + self.records.boss._id );
     }
+  , cb: function(data) {
+      var self = this;
+      self.chat('GTFO, @' + self.from +'!');
+    }
   , count: function(data) {
       var self = this;
-      self.chat('I am currently aware of ' + _.toArray(self.room.audience).length + ' audience members.  I am probably wrong.');
+      self.chat('I am currently aware of ' + _.toArray(self.room.audience).length + ' audience members.');
     }
   , djs: function(data) {
       var self = this;
@@ -187,7 +197,11 @@ module.exports = {
         var idleTime = secondsToTime(item.idleTime);
         var idleTimeString = '';
         var idleTimeString = (idleTime.h > 0) ? '('+ idleTime.h +'h'+ idleTime.m +'m'+idleTime.s+'s)' : '('+ idleTime.m +'m'+idleTime.s+'s)';
-
+        
+        if (item.idleTime < 600) {
+      	  return item.name + ' '+idleTimeString;
+        }
+            
         return '@' + item.name + ' '+idleTimeString;
       });
 
@@ -241,8 +255,6 @@ module.exports = {
               }
 
             });
-
-
           });
         });
       });
@@ -303,7 +315,69 @@ module.exports = {
         }).join(', ') );
       });
     }
-  , nsfw: 'Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!'
+  , nsfw: function(data) {
+      var self = this;
+
+      var staffMap = [];
+      _.toArray(self.room.staff).forEach(function(staffMember) {
+        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+          staffMap.push(staffMember.plugID);
+        }
+      });
+
+      if (staffMap.indexOf( data.fromID ) > -1) {
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { 
+            console.log(err); 
+          } 
+          else {
+            song.nsfw = true;
+            song.save(function(err) {
+              if (err) { 
+                console.log(err); 
+              } 
+              else {
+                self.chat('Song updated. NSFW tag added.')               
+              }
+            });
+          }
+        });
+      }
+       
+      self.chat('Please give people who are listening at work fair warning about NSFW videos.  It\'s common courtesy for people who don\'t code from home or at an awesome startup like LocalSense!');
+    } 
+  , sfw: function(data) {
+      var self = this;
+
+      var staffMap = [];
+      _.toArray(self.room.staff).forEach(function(staffMember) {
+        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+          staffMap.push(staffMember.plugID);
+        }
+      });
+
+      if (staffMap.indexOf( data.fromID ) > -1) {
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { 
+            console.log(err); 
+          } 
+          else {
+            song.nsfw = false;
+            song.save(function(err) {
+              if (err) { 
+                console.log(err); 
+              } 
+              else {
+                self.chat('Song updated to SFW.')               
+              }
+            });
+          }
+        });
+      }
+      else {
+        self.chat('I\'ll take that into consideration.  Maybe.');
+      }
+    }
   , permalink: function(data) {
       var self = this;
       self.chat('Song: http://codingsoundtrack.org/songs/' + self.room.track.id );
@@ -483,7 +557,13 @@ module.exports = {
       });
     }
   , trout: function(data) {
-      this.chat('/me slaps ' + data.from + ' around a bit with a large trout.');
+      var target = data.from;
+
+      if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {
+        target = data.params.trim();
+      }
+
+      this.chat('/me slaps ' + target + ' around a bit with a large trout.');
     }
   , falconpunch: function(data) {
       this.chat('/me falcon punches ' + data.from + ' out of a 13-story window.')
@@ -509,7 +589,7 @@ module.exports = {
       }
 
     }
-  , urban: function(data) {
+  /* , urban: function(data) {
       var self = this;
 
 
@@ -523,8 +603,8 @@ module.exports = {
         self.chat('No query provided.');
       }
 
-    }
-  , duckduckgo: function(data) {
+    } */
+  /*, duckduckgo: function(data) {
       var self = this;
       var client = new ddg.SearchClient();
 
@@ -548,8 +628,39 @@ module.exports = {
       } else {
         self.chat('No query provided.');
       }
+    } */
+  /*, define: function (data) {
+    var self = this, finalMsg;
+
+    if (!data.params) {
+      finalMsg = "You have to provide the word...";
+      self.chat(finalMsg);
+      
+    } else {
+
+      var word = data.params.split(" ").join("").split(',');
+
+      var url = "http://api.wordnik.com//v4/word.json/" + word[0] + "/definitions?includeRelated=false&includeTags=false&limit=1&useCanonical=false&api_key=4b9d570699e20d6a5d00104d9e50a041c7e8547b7f448c627";
+
+      if (word[1]) {
+        url = url + "&partOfSpeech=" + word[1];
+      };
+
+      rest.get(url).on('complete', function  (msg) {
+
+        if (msg[0]) {
+          finalMsg = msg[0].text;
+        } else {
+          finalMsg = "No definitions found :*(";
+        }
+
+        self.chat(finalMsg);
+          
+      });
+
     }
-  , google: function(data) {
+  } */
+  /*, google: function(data) {
       var self = this;
       if (typeof(data.params) != 'undefined') {
         google(data.params, function(err, next, links) {
@@ -563,12 +674,13 @@ module.exports = {
       } else {
         self.chat('No query provided.');
       }
-    }
+    } */
   , get snarlsource () { return this.source; }
   , debug: function(data) { this.chat(JSON.stringify(data)) }
   , get afpdj () { return this.afk; }
   , get aftt () { return this.afk; }
-  , get ddg () { return this.duckduckgo; }
+  , get boycey () { return this.overlord; }
+  //, get ddg () { return this.duckduckgo; }
   , get dp () { return this.donkeypunch; }
   , get jarplug () { return this.plugin; }
   , get woot () { return this.awesome; }
