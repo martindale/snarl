@@ -1,13 +1,18 @@
 extends layout
 
 block content
-
-  form(method="post", action='/songs').form-search.form-inline.pull-right
-    input(type="text", name="q", placeholder="search...").search-query
-
-  h1 Songs
-
-  ul
-    - for song in songs
-      li
-        a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
+  header.jumbotron.subhead
+    .container
+      form(method="post", action='/songs').form-search.form-inline.pull-right
+        input(type="text", name="q", placeholder="search...").search-query
+      h1 Search Results
+      p.lead
+        | Everything that have been played.
+  br
+  .container
+    .row
+      .span6
+        ul
+          - for song in songs
+            li
+              a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
