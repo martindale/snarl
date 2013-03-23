@@ -1,4 +1,5 @@
 var config = require('./config')
+  , subtitles = require('./subtitles')
   , fs =  require('fs')
   , PlugAPI = require('plugapi')
   , repl = require('repl')
@@ -719,6 +720,7 @@ app.get('/', function(req, res) {
       , history: history
       , room: bot.room
       , wideformat: true
+      , subtitle: subtitles['subtitles'][Math.round(Math.random()*(subtitles['subtitles'].length-1))]
     });
 
 
