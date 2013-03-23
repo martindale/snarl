@@ -112,12 +112,12 @@ only screen and (     -o-min-device-pixel-ratio: 2/1) {
   color: #fff;
 }
 .masthead h1 {
-  font-size: 100px;
+  font-size: 5em;
   line-height: 1;
   letter-spacing: -2px;
 }
 .masthead p {
-  font-size: 32px;
+  font-size: 2em;
   font-weight: 200;
   line-height: 1.25;
 }
@@ -140,7 +140,7 @@ only screen and (     -o-min-device-pixel-ratio: 2/1) {
   border-bottom: 1px solid #ddd;
 }
 .subhead h1 {
-  font-size: 60px;
+  font-size: 3em;
 }
 .subhead p {
   margin-bottom: 20px;
