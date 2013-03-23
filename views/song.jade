@@ -34,6 +34,7 @@ block content
           br
           a(href="/history/#{song.mostRecently._id}")
             abbr(title="#{song.mostRecently.isoDate}").timeago
+              | #{song.mostRecently.timestamp}
           br
           |  by 
           a(href="/djs/#{song.mostRecently._dj.plugID}") 
@@ -46,6 +47,7 @@ block content
           br 
           a(href="/history/#{song.firstPlay._id}")
             abbr(title="#{song.firstPlay.isoDate}").timeago
+              | #{song.firstPlay.timestamp}
           br
           |  by 
           a(href="/djs/#{song.firstPlay._dj.plugID}") 
@@ -55,5 +57,6 @@ block content
           br
           a(href="/history/#{song.id}")
             abbr(title="#{song.firstPlay.isoDate}").timeago
+              | #{song.firstPlay.timestamp}
         br
         br
