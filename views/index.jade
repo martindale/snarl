@@ -26,6 +26,9 @@ block content
             .media-body
               h4.media-heading
                 a(href="/djs/#{dj.plugID}") #{dj.name}
+                small  has played <strong>#{dj.plays}</strong> tracks since getting on deck 
+                  abbr.timeago(title="#{dj.onDeckTimeISO}") #{dj.onDeckTime}
+                  | .
       .span4
         .page-header
           h1 Song History
