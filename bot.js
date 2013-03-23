@@ -102,6 +102,7 @@ var personSchema = mongoose.Schema({
       , plugID: { type: String, unique: true, sparse: true }
       , role: { type: Number }
       , karma: { type: Number, default: 0 }
+      , plays: { type: Number, default: 0 }
       , points: {
             listener: { type: Number, default: 0 }
           , curator: { type: Number, default: 0 }
@@ -839,32 +840,45 @@ bot.on('djUpdate', function(data) {
   console.log('OLD DJs: ' + currentDJs);
   console.log('NEW DJs: ' + newDJs);
 
-  data.forEach(function(dj) {
-    console.log('DJ: ' + dj.user.id + ' ...');
-    findOrCreatePerson({
-      plugID: dj.user.id
-    }, function(person) {
+  var djsAddedThisTime = [];
 
-      console.log(currentDJs.indexOf(person.plugID.toString()));
-      if ((typeof(config.welcomeNewDjs) === 'undefined' || config.welcomeNewDjs)
-          && currentDJs.indexOf(person.plugID.toString()) == -1) {
-        console.log('NEW DJ FOUND!!! ' + person.name);
+  async.series(data.map(function(dj) {
+    return function(callback) {
+      console.log('DJ: ' + dj.user.id + ' ...');
+      findOrCreatePerson({
+        plugID: dj.user.id
+      }, function(person) {
 
-        bot.room.djs[dj].onDeckTime = new Date();
-        bot.room.djs[dj].onDeckTimeISO = bot.room.djs[dj].onDeckTime.toISOString();
+        console.log(currentDJs.indexOf(person.plugID.toString()));
+        if ((typeof(config.welcomeNewDjs) === 'undefined' || config.welcomeNewDjs)
+            && currentDJs.indexOf(person.plugID.toString()) == -1) {
+          console.log('NEW DJ FOUND!!! ' + person.name);
 
-        History.count({ _dj: person._id }).exec(function(err, playCount) {
-          console.log('They have played ' + playCount + ' songs in this room before.');
-          if (playCount == 0) {
-            console.log(person.name + ' has never played any songs here before!');
-            bot.chat('Welcome to the stage, @'+person.name+'!  I\'m sure you\'re a good DJ, but I\'ve never seen you play a song in Coding Soundtrack before, so here\'s our song selection guide: http://codingsoundtrack.org/song-selection');
-          }
-        });
-      }
+          djsAddedThisTime.push( dj.user.id );
+
+          History.count({ _dj: person._id }).exec(function(err, playCount) {
+            console.log('They have played ' + playCount + ' songs in this room before.');
+            if (playCount == 0) {
+              console.log(person.name + ' has never played any songs here before!');
+              bot.chat('Welcome to the stage, @'+person.name+'!  I\'m sure you\'re a good DJ, but I\'ve never seen you play a song in Coding Soundtrack before, so here\'s our song selection guide: http://codingsoundtrack.org/song-selection');
+            }
+
+            callback(null, person);
+          });
+        }
+      });
+    };
+  }), function(err, results) {
+
+    bot.updateDJs(data, function() {
+      djsAddedThisTime.forEach(function(dj) {
+        bot.room.djs[ dj ].onDeckTime     = new Date();
+        bot.room.djs[ dj ].onDeckTimeISO  = bot.room.djs[ dj ].onDeckTime.toISOString();
+      });
     });
+
   });
 
-  bot.updateDJs(data);
 });
 
 bot.on('djAdvance', function(data) {
@@ -1189,7 +1203,7 @@ PlugAPI.prototype.observeUser = function(user, callback) {
 
 PlugAPI.prototype.updateDJs = function(djs, callback) {
   var bot = this;
-  bot.room.djs = {};
+  //bot.room.djs = {};
 
   async.parallel(djs.map(function(dj) {
     return function(innerCallback) {
@@ -1203,12 +1217,16 @@ PlugAPI.prototype.updateDJs = function(djs, callback) {
             , dj: dj.user.djPoints
           }
       }, function(person) {
+
+        person.onDeckTime     = (typeof(bot.room.djs[dj.user.id]) != 'undefined') ? bot.room.djs[dj.user.id].onDeckTime : new Date();
+        person.onDeckTimeISO  = person.onDeckTime.toISOString();
+
         bot.room.djs[dj.user.id]      = person;
         bot.room.audience[dj.user.id] = person;
 
         /* Add values that we don't keep permanently (in the database),
            but want to use later. */
-        bot.room.djs[dj.user.id].plays = dj.plays;
+        bot.room.djs[ dj.user.id].plays = dj.plays;
 
         innerCallback(null, dj);
 
