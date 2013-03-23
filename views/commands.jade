@@ -1,9 +1,14 @@
 extends layout
 
 block content
-  h1 Available Commands:
-
-  code
-    - for command in commands
-      | !#{command}
-      | 
+  header.jumbotron.subhead
+    .container
+      h1 Commands
+      p.lead
+        | Commands available on chat.
+  br
+  .container
+    code
+      - for command in commands
+        | !#{command}
+        | 

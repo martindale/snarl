@@ -1,36 +1,53 @@
 extends layout
 
 block content
-  .row-fluid
-    div.plug-sprite.pull-right(style="background: url('#{avatarImage}');")
-    - if (typeof(dj.avatar) != 'undefined' && typeof(dj.avatar.thumb) != 'undefined')
-      img.pull-left(src="#{dj.avatar.thumb}", style="margin-right: 1em;")
-
-    h1 #{dj.name} 
-      small <strong>#{dj.points.total}</strong> points
-        |  <strong>#{dj.karma}</strong> karma
-
-    - if (typeof(dj.points) != 'undefined')
-      h2
-        small
+  header.jumbotron.subhead
+    .container
+      div.pull-right.plug-sprite(style="background: url(#{avatarImage}) 0 -25px; height: 125px; width: 150px;")
+      h1
+        - if (typeof(dj.avatar) != 'undefined' && typeof(dj.avatar.thumb) != 'undefined')
+          img(src="http://plug.dj/_/static/images/avatars/thumbs/animal08.6b608fae.png")
+        - else
+          img(src="http://plug.dj/_/static/images/avatars/thumbs/animal08.6b608fae.png")
+        |  #{dj.name}
+      p.lead
+        strong #{dj.points.total} 
+        | points, 
+        strong #{dj.karma} 
+        | karma
+  br
+  .container
+    .row
+      .span8
+        .page-header
+          h1 Bio
+        != md(dj.bio, true)
+        
+        .page-header
+          h1 Play History
+          ul
+            - for song in dj.playHistory
+              li
+                a(href="/history/#{song.id}")
+                  abbr.timeago(title="#{song.isoDate}") #{song.timestamp}
+                |  
+                a(href="/songs/#{song._song.id}") #{song._song.title}
+      .span4
+        .page-header
+          h1 Stats
+        - if (typeof(dj.points) != 'undefined')
           - if (typeof(dj.points.dj) != 'undefined')
-            |  <strong>#{dj.points.dj}</strong> DJ points
+            strong #{dj.points.dj}
+            |  DJ points
+            br
           - if (typeof(dj.points.curator) != 'undefined')
-            |  <strong>#{dj.points.curator}</strong> curator points
+            strong #{dj.points.curator}
+            |  curator points
+            br
           - if (typeof(dj.points.listener) != 'undefined')
-            |  <strong>#{dj.points.listener}</strong> listener points
-
-    .bio
-      != md(dj.bio, true)
-
-    h2
-      small ...has played <strong>#{playCount}</strong> tracks in Coding Soundtrack.
-
-  .row-fluid
-    h3 Play History
-    - for song in dj.playHistory
-      li
-        a(href="/history/#{song.id}")
-          abbr.timeago(title="#{song.isoDate}") #{song.timestamp}
-        |  
-        a(href="/songs/#{song._song.id}") #{song._song.title}
+            strong #{dj.points.listener}
+            |  listener points
+            br
+        strong #{playCount}
+        |  played tracks
+        br

@@ -1,13 +1,18 @@
 extends layout
 
 block content
-
-
-  form(method="post", action='/djs').form-search.form-inline.pull-right
-    input(type="text", name="q", placeholder="search...").search-query
-
-  h1 DJs
-
-  - for dj in djs
-    small.pull-right ...with <strong>#{dj.karma}</strong> karma.
-    include blocks/dj
+  header.jumbotron.subhead
+    .container
+      form(method="post", action='/djs').form-search.form-inline.pull-right
+        input(type="text", name="q", placeholder="search...").search-query
+      h1 Search Results
+      p.lead
+        | DJs in the room.
+  br
+  .container
+    .row
+      .span12
+        ul
+          - for dj in djs
+            small.pull-right ...with <strong>#{dj.karma}</strong> karma.
+            include blocks/dj
