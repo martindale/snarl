@@ -720,7 +720,7 @@ app.get('/', function(req, res) {
       , history: history
       , room: bot.room
       , wideformat: true
-      , subtitle: subtitles[Math.round(Math.random()*(subtitles.length-1))]
+      , subtitle: subtitles['subtitles'][Math.round(Math.random()*(subtitles['subtitles'].length-1))]
     });
 
 
