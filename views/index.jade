@@ -41,4 +41,6 @@ block content
               - if(typeof(song._dj) != 'undefined')
                 br
                 small  played by 
-                  a(href="/djs/#{song._dj.plugID}") #{song._dj.name}
+                  a(href="/djs/#{song._dj.plugID}") #{song._dj.name}  
+                  a(href="/history/#{song.id}")
+                    abbr(title="#{song.isoDate}").timeago
