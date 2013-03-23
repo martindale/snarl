@@ -42,7 +42,12 @@ bot.on('connected', function() {
   bot.joinRoom(config.room, function(data) {
     console.log(JSON.stringify(data));
 
-    bot.updateDJs(data.room.djs);
+    bot.updateDJs(data.room.djs, function() {
+      for (var dj in bot.room.djs) {
+        bot.room.djs[dj].onDeckTime = new Date();
+        bot.room.djs[dj].onDeckTimeISO = bot.room.djs[dj].onDeckTime.toISOString();
+      }
+    });
     bot.currentSong       = data.room.media;
 
     Song.findOne({ id: data.room.media.id }).exec(function(err, song) {
@@ -844,6 +849,10 @@ bot.on('djUpdate', function(data) {
       if ((typeof(config.welcomeNewDjs) === 'undefined' || config.welcomeNewDjs)
           && currentDJs.indexOf(person.plugID.toString()) == -1) {
         console.log('NEW DJ FOUND!!! ' + person.name);
+
+        bot.room.djs[dj].onDeckTime = new Date();
+        bot.room.djs[dj].onDeckTimeISO = bot.room.djs[dj].onDeckTime.toISOString();
+
         History.count({ _dj: person._id }).exec(function(err, playCount) {
           console.log('They have played ' + playCount + ' songs in this room before.');
           if (playCount == 0) {
@@ -1178,24 +1187,39 @@ PlugAPI.prototype.observeUser = function(user, callback) {
   });
 }
 
-PlugAPI.prototype.updateDJs = function(djs) {
+PlugAPI.prototype.updateDJs = function(djs, callback) {
   var bot = this;
   bot.room.djs = {};
-  djs.forEach(function(dj) {
-    findOrCreatePerson({
-        plugID: dj.user.id
-      , name: dj.user.username
-      , avatarID: dj.user.avatarID
-      , points: {
-            listener: dj.user.listenerPoints
-          , curator: dj.user.curatorPoints
-          , dj: dj.user.djPoints
-        }
-    }, function(person) {
-      bot.room.djs[dj.user.id]      = person;
-      bot.room.audience[dj.user.id] = person;
-    });
+
+  async.parallel(djs.map(function(dj) {
+    return function(innerCallback) {
+      findOrCreatePerson({
+          plugID: dj.user.id
+        , name: dj.user.username
+        , avatarID: dj.user.avatarID
+        , points: {
+              listener: dj.user.listenerPoints
+            , curator: dj.user.curatorPoints
+            , dj: dj.user.djPoints
+          }
+      }, function(person) {
+        bot.room.djs[dj.user.id]      = person;
+        bot.room.audience[dj.user.id] = person;
+
+        /* Add values that we don't keep permanently (in the database),
+           but want to use later. */
+        bot.room.djs[dj.user.id].plays = dj.plays;
+
+        innerCallback(null, dj);
+
+      });
+    }
+  }), function(err, results) {
+    if (typeof(callback) == 'function') {
+      callback();
+    }
   });
+
 };
 
 var _reconnect = function() { bot.connect(config.room); };
