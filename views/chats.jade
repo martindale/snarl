@@ -1,20 +1,23 @@
 extends layout
 
 block content
-
-  form(method="post", action='/chat').form-search.form-inline.pull-right
-    input(type="text", name="q", placeholder="search...").search-query
-
-  h1 Chat History
-  - for chat in chats
-    p.chat-message
-      strong
-        a(href="/djs/#{chat._person.plugID}")
-          - if (typeof(chat._person.avatar) != 'undefined' && typeof(chat._person.avatar.thumb) != 'undefined')
-            img(src="#{chat._person.avatar.thumb}", style="height: 1.2em; border: 1px solid black;")
-            |  
-          | #{chat._person.name}
-        | : 
-      | #{chat.message}
-      small.pull-right
-        abbr.timeago(title="#{chat.isoDate}") #{chat.isoDate}
+  header.jumbotron.subhead
+    .container
+      form(method="post", action='/chat').form-search.form-inline.pull-right
+        input(type="text", name="q", placeholder="search...").search-query
+      h1 Chat
+      p.lead
+        | Everything that has been spoken.
+  br
+  .container
+    - for chat in chats
+      .media
+        a.pull-left(href="/djs/#{chat._person.plugID}")
+          - if(typeof(chat._person.avatar) != 'undefined' && typeof(chat._person.avatar.thumb) != 'undefined')
+              img.media-object(src="#{chat._person.avatar.thumb}", height="16", width="16")
+        .media-body
+          strong
+            a(href="/djs/#{chat._person.plugID}") #{chat._person.name}
+          | : #{chat.message}
+          small.pull-right
+             abbr.timeago(title="#{chat.isoDate}") #{chat.isoDate}

@@ -1,24 +1,25 @@
 extends layout
 
 block content
+  header.jumbotron.subhead
+    .container
+      form(method="post", action='/songs').form-search.form-inline.pull-right
+        input(type="text", name="q", placeholder="search...").search-query
+      h1 Songs
+      p.lead
+        | Everything that have been played.
+  br
+  .container
+    .row
+      .span6
+        h2 All Time
+        ol
+          - for song in allTime
+            li
+              a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
+              |  was played <strong>#{song.plays}</strong> times.
 
-  form(method="post", action='/songs').form-search.form-inline.pull-right
-    input(type="text", name="q", placeholder="search...").search-query
-
-  h1 Top Tracks
-
-  .row
-    .span6
-      h2 All Time
-      ol
-        - for song in allTime
-          li
-            a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
-            |  was played <strong>#{song.plays}</strong> times.
-
-    .span6
-    
-      .span12
+      .span6
         h2 Month
         ol
           - for song in month
@@ -26,7 +27,6 @@ block content
               a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
               |  was played <strong>#{song.plays}</strong> times.
 
-      .span12
         h2 Week
         ol
           - for song in week

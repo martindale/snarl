@@ -88,10 +88,12 @@ module.exports = {
   , afk: 'If you\'re AFK at the end of your song for longer than 30 minutes you get warning 1. One minute later you get warning 2, another minute last warning, 30 seconds [boot].'
   , askforseat: 'Please don\'t ask for seats here.  It\'s first come, first serve, and free for all.'
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
+  , cowbell: 'NEEDZ MOAR COWBALLS.'
   , stfu: 'Please, shut your mouth and just enjoy the music.'
   , overlord: 'ALL HAIL THE OVERLORD!  http://codingsoundtrack.org/boycey'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.org/ten-commandments'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See !music for music suggestions, though there are no defined or enforced rules on music. More: http://codingsoundtrack.org/rules'  // formerly: http://goo.gl/b7UGO
+  , meetup: 'Coding Soundtrack Meetups: http://www.meetup.com/coding-soundtrack/'
   , selection: 'Song Selection Guide: http://codingsoundtrack.org/song-selection'
   , suitup: 'Suit up, motherfucker!'
   , netsplit: 'plug.dj has been having a lot of issues lately, especially with chat becoming fragmented.  Some people can chat with each other, and others can\'t see those messages.  Relax, @Boycey will have it fixed soon.'
