@@ -30,7 +30,9 @@ block content
           if (typeof(song.mostRecently._dj) != 'undefined' && typeof(song.mostRecently._dj.name) != 'undefined')
             strong Last played:
             br
-            a(href="/history/#{song.mostRecently._id}") #{song.mostRecently.timestamp}
+            a(href="/history/#{song.mostRecently._id}")
+              abbr(title="#{song.mostRecently.isoDate}").timeago
+                | #{song.mostRecently.timestamp}
             br
             |  by 
             a(href="/djs/#{song.mostRecently._dj.plugID}") 
@@ -40,7 +42,9 @@ block content
           if (typeof(song.firstPlay._dj) != 'undefined' && typeof(song.firstPlay._dj.name) != 'undefined')
             strong First played:
             br 
-            a(href="/history/#{song.firstPlay._id}") #{song.firstPlay.timestamp}
+            a(href="/history/#{song.firstPlay._id}")
+              abbr(title="#{song.firstPlay.isoDate}").timeago
+                | #{song.firstPlay.timestamp}
             br
             |  by 
             a(href="/djs/#{song.firstPlay._dj.plugID}") 
@@ -48,7 +52,9 @@ block content
           - else
             strong Last played:
             br
-            | #{song.mostRecently.timestamp}
+            a(href="/history/#{song.id}")
+              abbr(title="#{song.firstPlay.isoDate}").timeago
+                | #{song.firstPlay.timestamp}
 
     .row-fluid
       h2 Comments
