@@ -8,10 +8,8 @@ block content
         | #{song._song.author}
   br
   .container
-    .row
+    .row-fluid
       .span8
-        .page-header
-          h1 Listen
         case song.format
           when '1'
             iframe(width="100%", height="480", src="http://www.youtube.com/embed/#{song.cid}", frameborder="0", allowfullscreen)
@@ -19,38 +17,39 @@ block content
             iframe(width="100%", height="166", scrolling="no", frameborder="no", src="http://w.soundcloud.com/player/?url=http%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F#{song.cid}&show_artwork=true")
       .span4
         .page-header
-          h1 Info
+          h3 Info
 
         p Played <strong>#{song.playCount}</strong> times by <strong>#{songDJs.length}</strong> different DJs: 
-        ul
-        - for dj in songDJs
-          li
-            a(href="/djs/#{dj.plugID}") #{dj.name}
-            |  (<strong>#{dj.songPlays}</strong> plays)
-          br
+          ul
+            - for dj in songDJs
+              li
+                a(href="/djs/#{dj.plugID}") #{dj.name}
+                |  (<strong>#{dj.songPlays}</strong> plays)
 
-        - if (typeof(song.mostRecently._dj) != 'undefined' && typeof(song.mostRecently._dj.name) != 'undefined')
-          strong Last played:
-          br
-          a(href="/history/#{song.mostRecently._id}") #{song.mostRecently.timestamp}
-          br
-          |  by 
-          a(href="/djs/#{song.mostRecently._dj.plugID}") 
-            strong #{song.mostRecently._dj.name}
-          | 
-          br
-          br
-        - if (typeof(song.firstPlay._dj) != 'undefined' && typeof(song.firstPlay._dj.name) != 'undefined')
-          strong First played:
-          br 
-          a(href="/history/#{song.firstPlay._id}") #{song.firstPlay.timestamp}
-          br
-          |  by 
-          a(href="/djs/#{song.firstPlay._dj.plugID}") 
-            strong #{song.firstPlay._dj.name}
-        - else
-          strong Last played:
-          br
-          | #{song.mostRecently.timestamp}
-        br
-        br
+        p
+          if (typeof(song.mostRecently._dj) != 'undefined' && typeof(song.mostRecently._dj.name) != 'undefined')
+            strong Last played:
+            br
+            a(href="/history/#{song.mostRecently._id}") #{song.mostRecently.timestamp}
+            br
+            |  by 
+            a(href="/djs/#{song.mostRecently._dj.plugID}") 
+              strong #{song.mostRecently._dj.name}
+
+        p
+          if (typeof(song.firstPlay._dj) != 'undefined' && typeof(song.firstPlay._dj.name) != 'undefined')
+            strong First played:
+            br 
+            a(href="/history/#{song.firstPlay._id}") #{song.firstPlay.timestamp}
+            br
+            |  by 
+            a(href="/djs/#{song.firstPlay._dj.plugID}") 
+              strong #{song.firstPlay._dj.name}
+          - else
+            strong Last played:
+            br
+            | #{song.mostRecently.timestamp}
+
+    .row-fluid
+      h2 Comments
+      p No comments have been made on this track yet.
