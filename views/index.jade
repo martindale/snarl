@@ -18,7 +18,7 @@ block content
     .row
       .span4
         .page-header
-          h1 Current DJs
+          h2 Current DJs
         - for dj in room.djs
           .media
             a.pull-left(href="/djs/#{dj.plugID}")
@@ -31,7 +31,7 @@ block content
                   | .
       .span4
         .page-header
-          h1 Song History
+          h2 Song History
         - for song in history
           .media
             a.pull-left(href="#")
