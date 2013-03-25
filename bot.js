@@ -88,7 +88,6 @@ rest.get('http://plug.dj/_/static/js/avatars.4316486f.js').on('complete', functi
   eval(data);  // oh christ. this is bad. 
   avatarManifest = AvatarManifest; 
 });
-
 var lastfm = new LastFM({
     api_key:    config.lastfm.key
   , api_secret: config.lastfm.secret
@@ -357,7 +356,7 @@ function mostPopularSongsAlltime(callback) {
       map: map
     , reduce: reduce
   }, function(err, songs) {
-
+	if (songs == undefined){songs = []}
     /* sort the results */
     songs.sort(function(a, b) {
       return b.value - a.value;
@@ -399,7 +398,7 @@ function mostPopularSongsBetween(start, end, callback) {
     , reduce: reduce
     , query: { timestamp: { $gte: start, $lte: end } }
   }, function(err, songs) {
-
+	if (songs == undefined){songs = []}
     /* sort the results */
     songs.sort(function(a, b) {
       return b.value - a.value;
@@ -437,7 +436,8 @@ function mostPopularSongsSince(time, callback) {
     , reduce: reduce
     , query: { timestamp: { $gte: time } }
   }, function(err, songs) {
-
+	
+	if (songs == undefined){songs = []}
     /* sort the results */
     songs.sort(function(a, b) {
       return b.value - a.value;
@@ -493,7 +493,7 @@ app.get('/stats/plays', function(req, res) {
     if (err) {
       console.log(err);
     }
-
+	if (plays == undefined){ plays = []}
     /* sort the results */
     plays.sort(function(a, b) {
       return b.value - a.value;
@@ -545,7 +545,7 @@ app.get('/stats', function(req, res) {
       map: map
     , reduce: reduce
   }, function(err, djs) {
-
+	if (djs == undefined){ djs = [] }
     /* sort the results */
     djs.sort(function(a, b) {
       return b.value - a.value;
@@ -657,7 +657,7 @@ function mostProlificDJs(time, callback) {
     , reduce: reduce
     , query: { timestamp: { $gte: time } }
   }, function(err, songs) {
-
+	if (songs == undefined){ songs = []}
     /* sort the results */
     songs.sort(function(a, b) {
       return b.value - a.value;
@@ -1155,7 +1155,7 @@ PlugAPI.prototype.getBoss = function(callback) {
     if (err) {
       console.log(err);
     }
-
+	if (plays == undefined){plays = []}
     /* sort the results */
     plays.sort(function(a, b) {
       return b.value - a.value;
