@@ -126,10 +126,10 @@ html
 
     block scripts
 
-    - if (typeof(config.ga.account) != 'undefined' && config.ga.account.length > 0)
+    - if (typeof(config.ga.id) != 'undefined' && config.ga.id.length > 0)
       script(type="text/javascript")
         var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', '#{config.ga.account}']);
+        _gaq.push(['_setAccount', '#{config.ga.id}']);
         _gaq.push(['_trackPageview']);
 
         (function() {

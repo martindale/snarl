@@ -17,8 +17,8 @@ var config = require('./config')
   , Schema = mongoose.Schema
   , db = mongoose.createConnection('localhost', 'snarl');
 
-var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
-var ROOM = config.room;
+var AUTH = config.auth.token; // Put your auth token here, it's the cookie value for usr
+var ROOM = config.general.room;
 
 var antiPDJSuckageTimer;
 
@@ -39,7 +39,7 @@ bot.records = {
 bot.connect();
 
 bot.on('connected', function() {
-  bot.joinRoom(config.room, function(data) {
+  bot.joinRoom(config.general.room, function(data) {
     console.log(JSON.stringify(data));
 
     bot.updateDJs(data.room.djs, function() {
@@ -865,7 +865,7 @@ bot.on('djUpdate', function(data) {
             console.log('They have played ' + playCount + ' songs in this room before.');
             if (playCount == 0) {
               console.log(person.name + ' has never played any songs here before!');
-              if (typeof(config.welcomeNewDjs) === 'undefined' || config.welcomeNewDjs) {
+              if (typeof(config.general.welcome) === 'undefined' || config.general.welcome) {
                 bot.chat('Welcome to the stage, @'+person.name+'!  I\'m sure you\'re a good DJ, but I\'ve never seen you play a song in Coding Soundtrack before, so here\'s our song selection guide: http://codingsoundtrack.org/song-selection');
               }
             }
@@ -940,7 +940,7 @@ bot.on('djAdvance', function(data) {
     console.log('PLUG.DJ FAILED TO SEND DJADVANCE EVENT IN EXPECTED TIMEFRAME.');
     //reconnect();
     bot.joinRoom('test', function() {
-      bot.joinRoom('coding-soundtrack');
+      bot.joinRoom(config.general.room);
     });
   }, (data.media.duration + 10) * 1000);
 
@@ -1035,7 +1035,7 @@ bot.on('chat', function(data) {
     var parsedCommands = [];
 
     tokens.forEach(function(token) {
-      if (token.substr(0, 1) === (config.commandPrefix || '!') && data.from != (config.botName || 'snarl') && parsedCommands.indexOf(token.substr(1)) == -1) {
+      if (token.substr(0, 1) === (config.general.prefix || '!') && data.from != (config.general.name || 'snarl') && parsedCommands.indexOf(token.substr(1)) == -1) {
         data.trigger = token.substr(1).toLowerCase();
         parsedCommands.push(data.trigger);
 
@@ -1248,7 +1248,7 @@ PlugAPI.prototype.updateDJs = function(djs, callback) {
 
 };
 
-var _reconnect = function() { bot.connect(config.room); };
+var _reconnect = function() { bot.connect(config.general.room); };
 var reconnect = function() { setTimeout(_reconnect, 500); };
 bot.on('close', reconnect);
 bot.on('error', reconnect);
