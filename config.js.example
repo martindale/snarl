@@ -1,20 +1,25 @@
 module.exports = {
-    username : '' //TWITTER USERNAME GOES HERE
-  , password : '' //TWITTER PASSWORD GOES HERE
-  , botName: 'PdjBot'
-  , adminIds : ["14022630"] //Array of users who have access to admin commands
-  , auth : "sdH4wfhWSEthrS6za3dfHs6df2k=?_expires=SADshDfEhe3SfHa6Hs==&user_id=UFasdgsdgjSdfGSgtFDt7asgw3sHfdsg7zaasFg6afs=" // fake key, lololololol
-  , room : 'coding-soundtrack'
-  , ga: {
-      account: '' // accountID for Google Analytics, if you want it.
-    }
-  , lastfm: {
-	key: '',
-	secret: '',
-	username: '',
-	password: ''
+    general: {
+        name: 'ExampleSnarlCopy' // Bot nickname used in the room.
+      , room: 'example-room' // Room ID.
+      , admins: [] // Array of users who have access to admin commands (not working)
+      , disabled: [] // Array of commands that will be disabled (TODO)
+      , prefix: '&' // Prefix for the commands that bot will recognize.
+      , welcome: false // Whether to welcome new DJs with instructional message, or not.
   }
-  , disabledCommands: ['erm']
-  , welcomeNewDjs: false
-  , commandPrefix: '&'
+  , auth: {
+        type: 'twitter' // Currently a placeholder; doesn't do anything.
+      , username: 'example' // Twitter username; placeholder.
+      , password: 'password' // Twitter password; placeholder.
+      , token: "H833jfcdjc91mw09d9ajs89du2j=?_expires=J92mdlK02msm0Sm2ms==&user_id=H83nsna92md0JK9s932moS9nkdMposioK23kdJ9sjk2=" // The value of auth cookie; TODO: how to get it
+  }
+  , ga: {
+        id: '' // Tracking ID for Google Analytics (e.g. UA-XXXXX-Y); leave blank to disable.
+  }
+  , lastfm: {
+        key: '' // Key from last.fm API; get it on http://www.last.fm/api
+      , secret: '' // Same as the key, get it from registering app on http://www.last.fm/api
+      , username: '' // The last.fm username where you want to scrobble, obviously.
+      , password: '' // Come on, you know the drill.
+  }
 }
