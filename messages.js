@@ -89,7 +89,7 @@ module.exports = {
   , askforseat: 'Please don\'t ask for seats here.  It\'s first come, first serve, and free for all.'
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
   , cowbell: 'NEEDZ MOAR COWBALLS.'
-  , stfu: 'Please, shut your mouth and just enjoy the music.'
+  , stfu: '!bitch Please, shut your whore mouth and just enjoy the music.'
   , overlord: 'ALL HAIL THE OVERLORD!  http://codingsoundtrack.org/boycey'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.org/ten-commandments'
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See !music for music suggestions, though there are no defined or enforced rules on music. More: http://codingsoundtrack.org/rules'  // formerly: http://goo.gl/b7UGO
