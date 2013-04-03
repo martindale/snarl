@@ -51,3 +51,8 @@ block content
         strong #{playCount}
         |  played tracks
         br
+    .row
+      .page-header
+        h3 Achievements
+        - for achievement in dj.achievements
+           li #{dj.descriptions[achievement.name]}     
