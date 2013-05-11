@@ -95,6 +95,7 @@ module.exports = {
   , rules: 'No song limits, no queues, no auto-DJ. Pure FFA. DJ\'s over 10 minutes idle (measured by chat) face the [boot]. See !music for music suggestions, though there are no defined or enforced rules on music. More: http://codingsoundtrack.org/rules'  // formerly: http://goo.gl/b7UGO
   , meetup: 'Coding Soundtrack Meetups: http://www.meetup.com/coding-soundtrack/'
   , selection: 'Song Selection Guide: http://codingsoundtrack.org/song-selection'
+  , slutup: 'Slut up, bitches!'
   , suitup: 'Suit up, motherfucker!'
   , netsplit: 'plug.dj has been having a lot of issues lately, especially with chat becoming fragmented.  Some people can chat with each other, and others can\'t see those messages.  Relax, @Boycey will have it fixed soon.'
   , plugin: 'Coding Soundtrack is best enjoyed with jarPlug: https://chrome.google.com/webstore/detail/jarplug/anhldmgeompmlcmdcpbgdecdokhedlaa or http://userscripts.org/scripts/show/152203'
@@ -141,6 +142,16 @@ module.exports = {
         }
         
       }
+    }
+  , bitcoin: function(data) {
+      var self = this;
+      rest.get('http://data.mtgox.com/api/1/BTCUSD/ticker').on('complete', function(data) {
+        if (typeof(data.return) != 'undefined') {
+          self.chat('Bitcoin is currently trading at ' + data.return.last.display + ' per BTC: http://bitcoinity.org/markets');
+        } else {
+          self.chat('The Bitcoin trading API appears broken... check the other exchanges: http://bitcoinity.org/markets');
+        }
+      });
     }
   , catfacts: function(data) {
       var self = this;
