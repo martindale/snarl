@@ -106,6 +106,7 @@ module.exports = {
   , force: '/me senses a disturbance in the force.'
   , smiffhour: 'Lock & Load your smiff tracks, !djs... for the next hour we spin strictly smiff!'
   , ping: 'pong!'
+  , yourmom: 'B===:punch:=D:sweat_drops::ok_woman:'
   , awesome: function(data) {
       var self = this;
       this.woot(function() {
