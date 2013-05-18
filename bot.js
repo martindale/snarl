@@ -15,7 +15,8 @@ var config = require('./config')
   , mongoose = require('mongoose')
   , ObjectId = mongoose.Schema.Types.ObjectId
   , Schema = mongoose.Schema
-  , db = mongoose.createConnection('localhost', 'snarl');
+  , db = mongoose.createConnection('localhost', 'snarl')
+  , achievements = require('./achievements');
 
 var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
 var ROOM = config.room;
@@ -53,10 +54,12 @@ bot.on('connected', function() {
     Song.findOne({ id: data.room.media.id }).exec(function(err, song) {
       bot.room.track  = song;
     });
+    console.log("made it")
+    /*
     bot.getBoss(function(boss) {
       bot.records.boss = boss;
     });
-
+    */
     for (var plugID in data.room.staff) {
       findOrCreatePerson({
           plugID: plugID
@@ -88,7 +91,6 @@ rest.get('http://plug.dj/_/static/js/avatars.4316486f.js').on('complete', functi
   eval(data);  // oh christ. this is bad. 
   avatarManifest = AvatarManifest; 
 });
-
 var lastfm = new LastFM({
     api_key:    config.lastfm.key
   , api_secret: config.lastfm.secret
@@ -117,6 +119,10 @@ var personSchema = mongoose.Schema({
           , 'uri': String
           , 'thumb': String
         }
+      , achievements: [ {
+			  name: {type: String, required: true}
+			, date: {type: Date, default: Date.now}
+			  }]	
     });
 var songSchema = mongoose.Schema({
       author: String
@@ -160,6 +166,22 @@ historySchema.virtual('isoDate').get(function() {
 chatSchema.virtual('isoDate').get(function() {
   return this.timestamp.toISOString();
 });
+
+personSchema.methods.playHistory =  function(q, fields, callback){
+	var query = {_dj: this._id}	
+	for (var arg in q){ query[a] = q[arg]}
+	return History.find(query, fields).populate('_song').exec(callback)
+} 
+
+personSchema.virtual('achievementsList').set(function(achs){
+	var currentAchievements = this.achievements.map(function(n){return n.name})
+	achs.forEach(function(a){
+		if (currentAchievements.indexOf(a) == -1){
+			console.log("New Achievement for " + this.name + ": " + a)
+			this.achievements.push({name: a})
+		}
+	}, this)
+})
 
 var Person  = db.model('Person',  personSchema);
 var Song    = db.model('Song',    songSchema);
@@ -231,6 +253,24 @@ function findOrCreatePerson(user, callback) {
   });
 }
 
+// Takes a person object and checks achievements, arguments are a person object and a callback in the form callback(error, person, descriptions)
+function updateAchievements(p, callback){
+  var as = achievements.achievements
+  user = {}
+  for (var ach in as){
+	user[ach] = as[ach].apply(null, [p])
+  }
+  async.parallel(user, function(err, rs){
+	  var achs = []
+	  for (a in rs){
+	  achs.push.apply(achs, rs[a])
+	  }
+	  p.achievementsList = achs
+    p.save(function(err, p){
+      callback(err, p, achievements.description)
+	  })
+  })
+}
 app.get('/search/name/:name', function(req, res) {
   Person.findOne({ name: req.param('name') }).exec(function(err, person) {
     if (!person) {
@@ -357,7 +397,7 @@ function mostPopularSongsAlltime(callback) {
       map: map
     , reduce: reduce
   }, function(err, songs) {
-
+	if (songs == undefined){songs = []}
     /* sort the results */
     songs.sort(function(a, b) {
       return b.value - a.value;
@@ -399,7 +439,7 @@ function mostPopularSongsBetween(start, end, callback) {
     , reduce: reduce
     , query: { timestamp: { $gte: start, $lte: end } }
   }, function(err, songs) {
-
+	if (songs == undefined){songs = []}
     /* sort the results */
     songs.sort(function(a, b) {
       return b.value - a.value;
@@ -437,7 +477,8 @@ function mostPopularSongsSince(time, callback) {
     , reduce: reduce
     , query: { timestamp: { $gte: time } }
   }, function(err, songs) {
-
+	
+	if (songs == undefined){songs = []}
     /* sort the results */
     songs.sort(function(a, b) {
       return b.value - a.value;
@@ -493,7 +534,7 @@ app.get('/stats/plays', function(req, res) {
     if (err) {
       console.log(err);
     }
-
+	if (plays == undefined){ plays = []}
     /* sort the results */
     plays.sort(function(a, b) {
       return b.value - a.value;
@@ -545,7 +586,7 @@ app.get('/stats', function(req, res) {
       map: map
     , reduce: reduce
   }, function(err, djs) {
-
+	if (djs == undefined){ djs = [] }
     /* sort the results */
     djs.sort(function(a, b) {
       return b.value - a.value;
@@ -657,7 +698,7 @@ function mostProlificDJs(time, callback) {
     , reduce: reduce
     , query: { timestamp: { $gte: time } }
   }, function(err, songs) {
-
+	if (songs == undefined){ songs = []}
     /* sort the results */
     songs.sort(function(a, b) {
       return b.value - a.value;
@@ -690,9 +731,11 @@ function mostProlificDJs(time, callback) {
 app.get('/djs/:plugID', function(req, res, next) {
   Person.findOne({ plugID: req.param('plugID') }).exec(function(err, dj) {
     if (dj) {
+      updateAchievements(dj, function(err, dj, descriptions){ 
+      console.log(descriptions)
       History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
         dj.playHistory = djHistory;
-
+        dj.descriptions = descriptions
         if (typeof(dj.bio) == 'undefined') {
           dj.bio = '';
         }
@@ -707,6 +750,7 @@ app.get('/djs/:plugID', function(req, res, next) {
         });
 
       });
+    })
     } else {
       next();
     }
@@ -1155,7 +1199,7 @@ PlugAPI.prototype.getBoss = function(callback) {
     if (err) {
       console.log(err);
     }
-
+	if (plays == undefined){plays = []}
     /* sort the results */
     plays.sort(function(a, b) {
       return b.value - a.value;
@@ -1205,7 +1249,7 @@ PlugAPI.prototype.observeUser = function(user, callback) {
       }
   }, function(person) {
     bot.room.audience[user.id] = person;
-    callback(person);
+    updateAchievements(person, function(err, person, desc){callback(person)})
   });
 }
 
