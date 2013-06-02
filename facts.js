@@ -176,6 +176,11 @@ module.exports = {
       'The names of the characters can be found in the extras on the DVD. The band member\'s names are Octave (keyboard), Stella (the female bass player), Arpegius (the blond guitar player), and Baryl (drums). The hero that comes to the band\'s rescue is named Shep. The villain is named The Earl of Darkwood.',
       'In Earl de Darkwood\'s backstory, the aliens shown captured and disguised as humans are Wolfgang Amadeus Mozart, Jimi Hendrix, Ella Fitzgerald, Janis Joplin, and Jimmy Page.',
     ],
+    remaeus: [
+      'remæus\' third word was "combine".  His first was "truck," and his second "bobtail".',
+      'remæus was the Director of SkyNet Operations at Mirascape.',
+      'remæus prefers tau to pi.'
+    ],
     donkey: [
       'http://i.imgur.com/q2DVKAi.jpg',
       'http://i.imgur.com/0z8xnE1.jpg',

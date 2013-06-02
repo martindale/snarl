@@ -178,7 +178,7 @@ module.exports = {
     }
   , remæusfacts: function(data) {
       var self = this;
-      self.chat('remæus\' third word was "combine".  His first was "truck," and his second "bobtail".');
+      self.chat(randomFact('remaeus'));
     }
   , boss: function(data) {
       var self = this;
