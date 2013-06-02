@@ -1,0 +1,10 @@
+twitterUserInfo.js
+.DS_Store
+node-twitter
+session.vim
+*.sw*
+stats/*
+bot.js
+.*.sw[a-z]
+.*.un~
+node_modules
