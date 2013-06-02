@@ -1,3 +1,6 @@
 [submodule "lib/twss.js"]
 	path = lib/twss.js
 	url = https://github.com/martindale/twss.js.git
+[submodule "lib/simple-lastfm"]
+	path = lib/simple-lastfm
+	url = https://github.com/martindale/simple-lastfm.git
