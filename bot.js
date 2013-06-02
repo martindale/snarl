@@ -8,6 +8,7 @@ var config = require('./config')
   , LastFM = require('./lib/simple-lastfm')
   , async = require('async')
   , rest = require('restler')
+  , twss = require('twss')
   , express = require('express')
   , ElizaBot = require('./eliza')
   , $ = require('jquery')
@@ -21,6 +22,7 @@ var AUTH = config.auth; // Put your auth token here, it's the cookie value for u
 var ROOM = config.room;
 
 var antiPDJSuckageTimer;
+twss.threshold = 0.99995;
 
 var bot = new PlugAPI(AUTH);
 bot.currentSong = {};
@@ -1027,6 +1029,10 @@ bot.on('chat', function(data) {
 
     if (data.from == 'roboJar' && data.message != 'Isn\'t this !awesome snarl') {
       self.chat( AI.transform(data.message) );
+    }
+
+    if ((data.from != 'snarl') && (twss.is(data.message))) {
+      self.chat('Yeah, that\'s what she said.');
     }
 
     var cmd = data.message;

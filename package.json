@@ -30,13 +30,14 @@
     "xml2js": ">= 0.1.13",
     "querystring": ">= 0.1.0",
     "jquery": ">= 1.6.3",
-    "node-markdown": ">= 0.1.1"
+    "node-markdown": ">= 0.1.1",
+    "twss": "~0.1.6"
   },
   "devDependencies": {
     "phantom": "<=0.3.5",
     "plugapi": ">=0.2.0",
     "repl": ">=0.1.3"
-  }, 
+  },
   "licenses": {
     "type": "MIT",
     "url": "http://www.opensource.org/licenses/MIT"
