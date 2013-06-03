@@ -118,14 +118,14 @@ module.exports = {
     }
   , count: function(data) {
       var self = this;
-      self.chat('I am currently aware of ' + _.toArray(self.room.audience).length + ' audience members.');
+      self.chat('I am currently aware of ' + _.toArray(self.customRoom.audience).length + ' audience members.');
     }
   , djs: function(data) {
       var self = this;
       var now = new Date();
 
       var idleDJs = [];
-      _.toArray(self.room.djs).forEach(function(dj) {
+      _.toArray(self.customRoom.djs).forEach(function(dj) {
 
         if (typeof(dj.lastChat) != 'undefined') {
           if (dj.lastChat.getTime() <= (now.getTime() - 300000)) {
@@ -226,13 +226,50 @@ module.exports = {
         self.chat(ermgerd(data.params));
       }
     }
+  , removedj: function(data) {
+      var self = this;
+      var realModerators = [];
+      _.toArray(self.customRoom.staff).forEach(function(staffMember) {
+        if ( self.customRoom.staff[staffMember.plugID].role > 1 ) {
+          realModerators.push(staffMember);
+        }
+      });
+
+      if (realModerators.map(function(person) { return person.plugID; }).indexOf( data.fromID ) > -1) {
+        Person.findOne({ name: data.params }).exec(function(err, person) {
+          self.removeDj(person.plugID, function(data) {
+
+          });
+        });
+      } else {
+        self.chat('I\'m sorry ' + data.from +', I can\'t do that right now.');
+      }
+    }
+  , kick: function(data) {
+      var self = this;
+      var realModerators = [];
+      _.toArray(self.customRoom.staff).forEach(function(staffMember) {
+        if ( self.customRoom.staff[staffMember.plugID].role > 1 ) {
+          realModerators.push(staffMember);
+        }
+      });
+      if (realModerators.map(function(person) { return person.plugID; }).indexOf( data.fromID ) > -1) {
+        Person.findOne({ name: data.params }).exec(function(err, person) {
+          self.moderateKickUser(person.plugID, 'Luser.', function(data) {
+
+          });
+        });
+      } else {
+        self.chat('I\'m sorry ' + data.from +', I can\'t do that right now.');
+      }
+    }
   , mods: function(data) {
       var self = this;
       var onlineStaff = [];
 
       var realModerators = [];
-      _.toArray(self.room.staff).forEach(function(staffMember) {
-        if ( self.room.staff[staffMember.plugID].role > 1 ) {
+      _.toArray(self.customRoom.staff).forEach(function(staffMember) {
+        if ( self.customRoom.staff[staffMember.plugID].role > 1 ) {
           realModerators.push(staffMember);
         }
       });
@@ -241,7 +278,7 @@ module.exports = {
         _.toArray(realModerators).map(function(staffMember) {
           return staffMember._id.toString();
         }),
-        _.toArray(self.room.audience).map(function(audienceMember) {
+        _.toArray(self.customRoom.audience).map(function(audienceMember) {
           return audienceMember._id.toString();
         })
       ).forEach(function(staffMember) {
@@ -251,8 +288,8 @@ module.exports = {
       Person.find({ _id: { $in: onlineStaff } }).exec(function(err, staff) {
         self.chat(staff.length + ' online staff members: ' + staff.map(function(staffMember) {
           console.log(staffMember);
-          console.log(self.room.staff);
-          //return staffMember.name + self.room.staff[staffMember.plugID].role;
+          console.log(self.customRoom.staff);
+          //return staffMember.name + self.customRoom.staff[staffMember.plugID].role;
           return '@' + staffMember.name;
         }).join(', ') );
       });
@@ -261,8 +298,8 @@ module.exports = {
       var self = this;
 
       var staffMap = [];
-      _.toArray(self.room.staff).forEach(function(staffMember) {
-        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+      _.toArray(self.customRoom.staff).forEach(function(staffMember) {
+        if ( self.customRoom.staff[staffMember.plugID].role >= 1 ) {
           staffMap.push(staffMember.plugID);
         }
       });
@@ -292,8 +329,8 @@ module.exports = {
       var self = this;
 
       var staffMap = [];
-      _.toArray(self.room.staff).forEach(function(staffMember) {
-        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+      _.toArray(self.customRoom.staff).forEach(function(staffMember) {
+        if ( self.customRoom.staff[staffMember.plugID].role >= 1 ) {
           staffMap.push(staffMember.plugID);
         }
       });
@@ -322,7 +359,7 @@ module.exports = {
     }
   , permalink: function(data) {
       var self = this;
-      self.chat('Song: http://codingsoundtrack.org/songs/' + self.room.track.id );
+      self.chat('Song: http://codingsoundtrack.org/songs/' + self.customRoom.track.id );
     }
   , plugid: function(data) {
       var self = this;
@@ -346,8 +383,8 @@ module.exports = {
       var self = this;
 
       var staffMap = [];
-      _.toArray(self.room.staff).forEach(function(staffMember) {
-        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+      _.toArray(self.customRoom.staff).forEach(function(staffMember) {
+        if ( self.customRoom.staff[staffMember.plugID].role >= 1 ) {
           staffMap.push(staffMember.plugID);
         }
       });
@@ -362,7 +399,7 @@ module.exports = {
               song.title = data.params;
 
               song.save(function(err) {
-                self.chat('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://codingsoundtrack.org/songs/' + self.room.track.id );
+                self.chat('Song title updated, from "'+previousTitle+ '" to "'+song.title+'".  Link: http://codingsoundtrack.org/songs/' + self.customRoom.track.id );
               });
             } else {
               self.chat('What do you want to set the title of this song to?  I need a parameter.');
@@ -375,8 +412,8 @@ module.exports = {
       var self = this;
 
       var staffMap = [];
-      _.toArray(self.room.staff).forEach(function(staffMember) {
-        if ( self.room.staff[staffMember.plugID].role >= 1 ) {
+      _.toArray(self.customRoom.staff).forEach(function(staffMember) {
+        if ( self.customRoom.staff[staffMember.plugID].role >= 1 ) {
           staffMap.push(staffMember.plugID);
         }
       });
@@ -391,7 +428,7 @@ module.exports = {
               song.author = data.params;
 
               song.save(function(err) {
-                self.chat('Song artist updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://codingsoundtrack.org/songs/' + self.room.track.id );
+                self.chat('Song artist updated, from "'+previousAuthor+ '" to "'+song.author+'".  Link: http://codingsoundtrack.org/songs/' + self.customRoom.track.id );
               });
             } else {
               self.chat('What do you want to set the author of this song to?  I need a parameter.');
@@ -415,12 +452,12 @@ module.exports = {
   , distracting: 'Try not to play songs that would be distracting to someone trying to write code.  Stay on theme as much as possible!'
   , lastplayed: function(data) {
       var self = this;
-      History.find({ _song: self.room.track._id }).sort('-timestamp').limit(2).populate('_dj').exec(function(err, history) {
+      History.find({ _song: self.customRoom.track._id }).sort('-timestamp').limit(2).populate('_dj').exec(function(err, history) {
         var lastPlay = history[1];
 
         if (lastPlay) {
-          History.count({ _song: self.room.track._id }).exec(function(err, count) {
-            self.chat('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: http://codingsoundtrack.org/songs/' + self.room.track.id );
+          History.count({ _song: self.customRoom.track._id }).exec(function(err, count) {
+            self.chat('This song was last played ' + timeago(lastPlay.timestamp) + ' by @' + lastPlay._dj.name + '.  It\'s been played ' + count + ' times in total.  More: http://codingsoundtrack.org/songs/' + self.customRoom.track.id );
           });
         } else {
           self.chat('I haven\'t heard this song before now.');
@@ -430,10 +467,10 @@ module.exports = {
     }
   , firstplayed: function(data) {
       var self = this;
-      if (typeof(self.room.track._id) != 'undefined') {
-        History.findOne({ _song: self.room.track._id }).sort('+timestamp').populate('_dj').exec(function(err, firstPlay) {
-          History.count({ _song: self.room.track._id }).exec(function(err, count) {
-            self.chat('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: http://codingsoundtrack.org/songs/' + self.room.track.id );
+      if (typeof(self.customRoom.track._id) != 'undefined') {
+        History.findOne({ _song: self.customRoom.track._id }).sort('+timestamp').populate('_dj').exec(function(err, firstPlay) {
+          History.count({ _song: self.customRoom.track._id }).exec(function(err, count) {
+            self.chat('@' + firstPlay._dj.name + ' was the first person to play this song!  Since then, it\'s been played ' + count + ' times.  More: http://codingsoundtrack.org/songs/' + self.customRoom.track.id );
           });
         });
       } else {
@@ -622,6 +659,8 @@ module.exports = {
   , get afpdj () { return this.afk; }
   , get aftt () { return this.afk; }
   , get boycey () { return this.overlord; }
+  , get boot () { return this.kick; }
+  , get baddj () { return this.removedj; }
   //, get ddg () { return this.duckduckgo; }
   , get dp () { return this.donkeypunch; }
   , get jarplug () { return this.plugin; }

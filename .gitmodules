@@ -4,3 +4,6 @@
 [submodule "lib/simple-lastfm"]
 	path = lib/simple-lastfm
 	url = https://github.com/martindale/simple-lastfm.git
+[submodule "lib/plugapi"]
+	path = lib/plugapi
+	url = https://github.com/martindale/plugapi.git

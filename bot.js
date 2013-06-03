@@ -1,7 +1,7 @@
 var config = require('./config')
   , subtitles = require('./subtitles')
   , fs =  require('fs')
-  , PlugAPI = require('plugapi')
+  , PlugAPI = require('./lib/plugapi')
   , repl = require('repl')
   , messages = require('./messages')
   , _ = require('underscore')
@@ -15,8 +15,9 @@ var config = require('./config')
   , app = express()
   , mongoose = require('mongoose')
   , ObjectId = mongoose.Schema.Types.ObjectId
-  , Schema = mongoose.Schema
-  , db = mongoose.createConnection('localhost', 'snarl');
+  , Schema = mongoose.Schema;
+
+mongoose.connect('localhost', 'snarl');
 
 var AUTH = config.auth; // Put your auth token here, it's the cookie value for usr
 var ROOM = config.room;
@@ -27,7 +28,7 @@ twss.threshold = 0.99995;
 var bot = new PlugAPI(AUTH);
 bot.currentSong = {};
 bot.currentRoom = {};
-bot.room = {
+bot.customRoom = {
     djs: {}
   , track: {}
   , audience: {}
@@ -45,15 +46,15 @@ bot.on('connected', function() {
     console.log(JSON.stringify(data));
 
     bot.updateDJs(data.room.djs, function() {
-      for (var dj in bot.room.djs) {
-        bot.room.djs[dj].onDeckTime = new Date();
-        bot.room.djs[dj].onDeckTimeISO = bot.room.djs[dj].onDeckTime.toISOString();
+      for (var dj in bot.customRoom.djs) {
+        bot.customRoom.djs[dj].onDeckTime = new Date();
+        bot.customRoom.djs[dj].onDeckTimeISO = bot.customRoom.djs[dj].onDeckTime.toISOString();
       }
     });
     bot.currentSong       = data.room.media;
 
     Song.findOne({ id: data.room.media.id }).exec(function(err, song) {
-      bot.room.track  = song;
+      bot.customRoom.track  = song;
     });
     bot.getBoss(function(boss) {
       bot.records.boss = boss;
@@ -64,7 +65,7 @@ bot.on('connected', function() {
           plugID: plugID
         , role: data.room.staff[plugID]
       }, function(person) {
-        bot.room.staff[person.plugID] = person;
+        bot.customRoom.staff[person.plugID] = person;
       });
     }
 
@@ -77,7 +78,7 @@ bot.on('connected', function() {
     findOrCreatePerson({
       plugID: data.currentDJ
     }, function(dj) {
-      bot.room.currentDJ    = dj;
+      bot.customRoom.currentDJ    = dj;
     });
 
   });
@@ -655,7 +656,7 @@ app.get('/djs/:plugID', function(req, res, next) {
 app.get('/', function(req, res) {
   History.find().sort('-timestamp').limit(10).populate('_song').populate('_dj').exec(function(err, history) {
 
-    /* bot.room.djs = _.toArray(bot.room.djs).map(function(dj) {
+    /* bot.customRoom.djs = _.toArray(bot.customRoom.djs).map(function(dj) {
       dj.avatarImage = 'http://plug.dj' + avatarManifest.getAvatarUrl('default', dj.avatar.key, '')
       return dj;
     }); */
@@ -663,7 +664,7 @@ app.get('/', function(req, res) {
     res.render('index', {
         currentSong: bot.currentSong
       , history: history
-      , room: bot.room
+      , room: bot.customRoom
       , wideformat: true
       , subtitle: subtitles[Math.round(Math.random()*(subtitles.length-1))]
     });
@@ -690,21 +691,21 @@ bot.on('curateUpdate', function(data) {
 
     console.log(person.name + ' just added this song to their playlist.');
 
-    if (typeof(bot.room.currentPlay) != 'undefined' && typeof(bot.room.currentPlay.curates) != 'undefined') {
-      bot.room.currentPlay.curates.push({
+    if (typeof(bot.customRoom.currentPlay) != 'undefined' && typeof(bot.customRoom.currentPlay.curates) != 'undefined') {
+      bot.customRoom.currentPlay.curates.push({
         _person: person._id
       });
 
-      bot.room.currentPlay.save(function(err) {
+      bot.customRoom.currentPlay.save(function(err) {
         if (err) { console.log(err); }
         console.log('completed curation update.')
-        console.log('comparing curate records: ' + bot.records.boss.curates.length + ' and ' + bot.room.currentPlay.curates.length);
+        console.log('comparing curate records: ' + bot.records.boss.curates.length + ' and ' + bot.customRoom.currentPlay.curates.length);
         console.log('CURRENT DJ:');
-        console.log(bot.room.currentPlay._dj);
+        console.log(bot.customRoom.currentPlay._dj);
 
 
-        if (bot.records.boss.curates.length <= bot.room.currentPlay.curates.length) {
-          bot.chat('@' + bot.room.currentDJ.name + ' just stole the curation record from @' + bot.records.boss._dj.name + ' thanks to @' + person.name + '\'s playlist add!');
+        if (bot.records.boss.curates.length <= bot.customRoom.currentPlay.curates.length) {
+          bot.chat('@' + bot.customRoom.currentDJ.name + ' just stole the curation record from @' + bot.records.boss._dj.name + ' thanks to @' + person.name + '\'s playlist add!');
           bot.getBoss(function(boss) {
             bot.records.boss = boss;
           });
@@ -722,7 +723,7 @@ bot.on('voteUpdate', function(data) {
   findOrCreatePerson({
     plugID: data.id
   }, function(person) {
-    bot.room.audience[data.id] = person;
+    bot.customRoom.audience[data.id] = person;
 
 
 
@@ -746,7 +747,7 @@ bot.on('userLeave', function(data) {
   console.log('USERLEAVE EVENT:');
   console.log(data);
 
-  delete bot.room.audience[data.id];
+  delete bot.customRoom.audience[data.id];
 });
 
 bot.on('userJoin', function(data) {
@@ -768,8 +769,8 @@ bot.on('djUpdate', function(data) {
   //console.log(data);
 
   var currentDJs = [];
-  for (var dj in bot.room.djs) {
-    currentDJs.push(bot.room.djs[dj].plugID.toString());
+  for (var dj in bot.customRoom.djs) {
+    currentDJs.push(bot.customRoom.djs[dj].plugID.toString());
   }
 
   var newDJs = data.map(function(dj) {
@@ -782,7 +783,7 @@ bot.on('djUpdate', function(data) {
 
   currentDJs.forEach(function(plugID) {
     if (newDJs.indexOf(plugID) == -1) {
-      delete bot.room.djs[ plugID ]; // remove from known DJs.
+      delete bot.customRoom.djs[ plugID ]; // remove from known DJs.
     }
   });
 
@@ -819,8 +820,8 @@ bot.on('djUpdate', function(data) {
 
     bot.updateDJs(data, function() {
       djsAddedThisTime.forEach(function(dj) {
-        bot.room.djs[ dj ].onDeckTime     = new Date();
-        bot.room.djs[ dj ].onDeckTimeISO  = bot.room.djs[ dj ].onDeckTime.toISOString();
+        bot.customRoom.djs[ dj ].onDeckTime     = new Date();
+        bot.customRoom.djs[ dj ].onDeckTimeISO  = bot.customRoom.djs[ dj ].onDeckTime.toISOString();
       });
     });
 
@@ -852,7 +853,7 @@ bot.on('djAdvance', function(data) {
           scrobbleDuration = data.media.duration * 1000 / 2;
         }
 
-        bot.room.track.scrobbleTimer = setTimeout(function() {
+        bot.customRoom.track.scrobbleTimer = setTimeout(function() {
           lastfm.scrobbleTrack({
               artist: data.media.author,
               track: data.media.title,
@@ -907,7 +908,7 @@ bot.on('djAdvance', function(data) {
 
     song.save(function(err) {
 
-      bot.room.track = song;
+      bot.customRoom.track = song;
       bot.currentSongMongoose = song;
 
       findOrCreatePerson({
@@ -921,8 +922,8 @@ bot.on('djAdvance', function(data) {
         });
         history.save(function(err) {
           // hack to makein-memory record look work
-          bot.room.currentDJ    = dj;
-          bot.room.currentPlay  = history;
+          bot.customRoom.currentDJ    = dj;
+          bot.customRoom.currentPlay  = history;
         });
       })
 
@@ -960,8 +961,8 @@ bot.on('chat', function(data) {
 
     data.person = person;
 
-    if (typeof(bot.room.djs[data.fromID]) != 'undefined') {
-      bot.room.djs[data.fromID].lastChat = now;
+    if (typeof(bot.customRoom.djs[data.fromID]) != 'undefined') {
+      bot.customRoom.djs[data.fromID].lastChat = now;
     }
 
     if (data.from == 'roboJar' && data.message != 'Isn\'t this !awesome snarl') {
@@ -1046,7 +1047,7 @@ bot.on('chat', function(data) {
 });
 
 app.get('/audience', function(req, res) {
-  res.send(bot.room.audience);
+  res.send(bot.customRoom.audience);
 });
 
 app.get('/rules', function(req, res) {
@@ -1147,14 +1148,14 @@ PlugAPI.prototype.observeUser = function(user, callback) {
         , dj: user.djPoints
       }
   }, function(person) {
-    bot.room.audience[user.id] = person;
+    bot.customRoom.audience[user.id] = person;
     callback(person);
   });
 }
 
 PlugAPI.prototype.updateDJs = function(djs, callback) {
   var bot = this;
-  //bot.room.djs = {};
+  //bot.customRoom.djs = {};
 
   async.parallel(djs.map(function(dj) {
     return function(innerCallback) {
@@ -1169,15 +1170,15 @@ PlugAPI.prototype.updateDJs = function(djs, callback) {
           }
       }, function(person) {
 
-        person.onDeckTime     = (typeof(bot.room.djs[dj.user.id]) != 'undefined') ? bot.room.djs[dj.user.id].onDeckTime : new Date();
+        person.onDeckTime     = (typeof(bot.customRoom.djs[dj.user.id]) != 'undefined') ? bot.customRoom.djs[dj.user.id].onDeckTime : new Date();
         person.onDeckTimeISO  = person.onDeckTime.toISOString();
 
-        bot.room.djs[dj.user.id]      = person;
-        bot.room.audience[dj.user.id] = person;
+        bot.customRoom.djs[dj.user.id]      = person;
+        bot.customRoom.audience[dj.user.id] = person;
 
         /* Add values that we don't keep permanently (in the database),
            but want to use later. */
-        bot.room.djs[ dj.user.id].plays = dj.plays;
+        bot.customRoom.djs[ dj.user.id].plays = dj.plays;
 
         innerCallback(null, dj);
 

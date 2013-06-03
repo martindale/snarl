@@ -33,7 +33,8 @@
     "node-markdown": ">= 0.1.1",
     "twss": "~0.1.6",
     "passport": "~0.1.17",
-    "passport-local-mongoose": "~0.2.3"
+    "passport-local-mongoose": "~0.2.3",
+    "coffee-script": "~1.6.3"
   },
   "devDependencies": {
     "phantom": "<=0.3.5",
