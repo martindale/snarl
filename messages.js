@@ -5,81 +5,9 @@ var rest = require('restler')
   , github = require('github')
   , _ = require('underscore')
   , async = require('async')
-  , timeago = require('timeago')
-  , mongoose = require('mongoose')
-  , ObjectId = mongoose.Schema.Types.ObjectId
-  , Schema = mongoose.Schema
-  , db = mongoose.createConnection('localhost', 'snarl');
+  , timeago = require('timeago');
 
 var facts = require('./facts');
-
-var personSchema = mongoose.Schema({
-        name: { type: String, index: true }
-      , plugID: { type: String, unique: true, sparse: true }
-      , role: { type: Number }
-      , karma: { type: Number, default: 0 }
-      , points: {
-            listener: { type: Number, default: 0 }
-          , curator: { type: Number, default: 0 }
-          , dj: { type: Number, default: 0 }
-          , man: { type: Number, default: 0 }
-        }
-      , lastChat: { type: Date }
-      , bio: { type: String, max: 1024 }
-      , avatar: {
-            'set': String
-          , 'key': String
-          , 'uri': String
-          , 'thumb': String
-        }
-    });
-var songSchema = mongoose.Schema({
-      author: String
-    , id: { type: String, index: true }
-    , cid: String
-    , plugID: String
-    , format: String
-    , title: String
-    , duration: Number
-    , lastPlay: Date
-    , nsfw: Boolean
-});
-var historySchema = mongoose.Schema({
-    _song: { type: ObjectId, ref: 'Song', required: true }
-  , _dj: { type: ObjectId, ref: 'Person', required: true }
-  , timestamp: { type: Date }
-  , curates: [ new Schema({
-      _person: { type: ObjectId, ref: 'Person', required: true }
-    }) ]
-  , downvotes: { type: Number, default: 0 }
-  , upvotes: { type: Number, default: 0 }
-  , votes: [ new Schema({
-        _person: { type: ObjectId, ref: 'Person', required: true }
-      , vote: { type: String, enum: ['up', 'down'] }
-    }) ]
-});
-var chatSchema = mongoose.Schema({
-    timestamp: { type: Date, default: Date.now }
-  , _person: { type: ObjectId, ref: 'Person', required: true }
-  , message: { type: String, required: true }
-});
-
-personSchema.virtual('points.total').get(function () {
-  return this.points.dj + this.points.curator + this.points.listener;
-});
-
-historySchema.virtual('isoDate').get(function() {
-  return this.timestamp.toISOString();
-});
-
-chatSchema.virtual('isoDate').get(function() {
-  return this.timestamp.toISOString();
-});
-
-var Person  = db.model('Person',  personSchema);
-var Song    = db.model('Song',    songSchema);
-var History = db.model('History', historySchema);
-var Chat    = db.model('Chat',    chatSchema);
 
 module.exports = {
     snarl: "Ohaithar.  I'm a bot created by @remæus.  Blame him for any of my supposed mistakes."
