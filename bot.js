@@ -798,7 +798,6 @@ bot.on('djUpdate', function(data) {
         console.log(currentDJs.indexOf(person.plugID.toString()));
         if (currentDJs.indexOf(person.plugID.toString()) == -1) {
           console.log('NEW DJ FOUND!!! ' + person.name);
-
           djsAddedThisTime.push( dj.user.id );
 
           History.count({ _dj: person._id }).exec(function(err, playCount) {
@@ -924,12 +923,43 @@ bot.on('djAdvance', function(data) {
           // hack to makein-memory record look work
           bot.customRoom.currentDJ    = dj;
           bot.customRoom.currentPlay  = history;
+
+          var now = new Date();
+          Song.count({}).exec(function(err, songCount) {
+            var topPercent = 0.001;
+            var limit = Math.ceil(songCount * topPercent);
+            console.log('top '+topPercent+': ' + limit);
+            History.aggregate([
+              { $group: { _id: '$_song', count: { $sum: 1 } } },
+              { $sort: { 'count': -1 } },
+              { $limit: limit }
+            ], function(err, topSongs) {
+              console.log(err);
+              console.log(topSongs);
+              console.log((new Date()) - now);
+
+              History.count({ _song: song._id }).exec(function(err, currentSongPlays) {
+
+                console.log(err);
+                console.log( currentSongPlays + ' and ' + topSongs[ topSongs.length - 1 ].count );
+
+                if (currentSongPlays >= topSongs[ topSongs.length - 1 ].count) {
+                  bot.chat('This song has now been played ' + currentSongPlays + ' times, which puts it in the top ' + (topPercent * 100) +'% of all songs.  Why not play something a little fresher?');
+                } else {
+                  //bot.chat('This song has now been played ' + currentSongPlays + ' times.');
+                }
+              });
+
+            });
+          });
+
         });
       })
 
     });
 
   });
+
 });
 
 var AI = new ElizaBot();
