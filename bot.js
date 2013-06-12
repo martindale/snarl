@@ -891,7 +891,11 @@ bot.on('djAdvance', function(data) {
       var song = new Song(data.media);
     }
 
-    if(song.nsfw) {
+    if (song.banned) {
+      bot.removeDj(data.currentDJ, function(data) {
+        bot.chat('That track is banned.  Please read the song selection guide: http://codingsoundtrack.org/song-selection');
+      });
+    } else if(song.nsfw) {
       self.chat('Warning: This track may contain NSFW content.');
     }
 
@@ -944,7 +948,7 @@ bot.on('djAdvance', function(data) {
                 console.log( currentSongPlays + ' and ' + topSongs[ topSongs.length - 1 ].count );
 
                 if (currentSongPlays >= topSongs[ topSongs.length - 1 ].count) {
-                  bot.chat('This song has now been played ' + currentSongPlays + ' times, which puts it in the top ' + (topPercent * 100) +'% of all songs.  Why not play something a little fresher?');
+                  bot.chat('Hey @' + dj.name + ': this song has now been played ' + currentSongPlays + ' times, which puts it in the top ' + (topPercent * 100) +'% of all songs.  Why not play something a little fresher?');
                 } else {
                   //bot.chat('This song has now been played ' + currentSongPlays + ' times.');
                 }
