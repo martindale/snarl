@@ -56,6 +56,38 @@ module.exports = {
         self.chat('Hey, wait a second.  This isn\'t smiff.  D:');
       });
     }
+  , banthistrack: function(data) {
+      var self = this;
+      var realModerators = [];
+      _.toArray(self.customRoom.staff).forEach(function(staffMember) {
+        if ( self.customRoom.staff[staffMember.plugID].role > 1 ) {
+          realModerators.push(staffMember);
+        }
+      });
+
+      if (realModerators.map(function(person) { return person.plugID; }).indexOf( data.fromID ) > -1) {
+        Song.findOne({ id: self.currentSong.id }).exec(function(err, song) {
+          if (err) { 
+            console.log(err); 
+          } else {
+            song.banned = true;
+            song.save(function(err) {
+              if (err) { 
+                console.log(err); 
+              } else {
+                Person.findOne({ name: data.params }).exec(function(err, person) {
+                  self.removeDj(person.plugID, function(data) {
+                    self.chat('Yeah, that was a terrible track.  Adding it to the list of banned tracks.');
+                  });
+                });
+              }
+            });
+          }
+        });
+      } else {
+        self.chat('I\'m sorry ' + data.from +', I can\'t do that right now.');
+      }
+    }
   , bio: function(data) {
       var self = this;
       if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {

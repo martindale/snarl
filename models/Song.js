@@ -14,6 +14,7 @@ var SongSchema = new Schema({
   , duration: Number
   , lastPlay: Date
   , nsfw: Boolean
+  , banned: { type: Boolean }
 });
 
 var Song = mongoose.model('Song', SongSchema);
