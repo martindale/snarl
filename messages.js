@@ -75,10 +75,8 @@ module.exports = {
               if (err) { 
                 console.log(err); 
               } else {
-                Person.findOne({ name: data.params }).exec(function(err, person) {
-                  self.removeDj(person.plugID, function(data) {
-                    self.chat('Yeah, that was a terrible track.  Adding it to the list of banned tracks.');
-                  });
+                self.removeDj(self.customRoom.currentDJ.plugID, function(data) {
+                  self.chat('Yeah, that was a terrible track.  Adding it to the list of banned tracks.');
                 });
               }
             });
@@ -146,7 +144,7 @@ module.exports = {
     }
   , cb: function(data) {
       var self = this;
-      self.chat('GTFO, @' + self.from +'!');
+      self.chat('GTFO, @' + data.from +'!');
     }
   , count: function(data) {
       var self = this;

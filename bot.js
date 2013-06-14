@@ -918,6 +918,8 @@ bot.on('djAdvance', function(data) {
         plugID: data.currentDJ
       }, function(dj) {
 
+        bot.customRoom.currentDJ = dj;
+
         var history = new History({
             _song: song._id
           , _dj: dj._id
