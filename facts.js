@@ -93,7 +93,7 @@ module.exports = {
     ]
   , smiff: [
       "Will enjoys playing chess.",
-      "As an early actor on 'The Fresh Price of Bel-Air' Will would memorize the entire script and lip everyone's lines while filming.",
+      "As an early actor on 'The Fresh Prince of Bel-Air' Will would memorize the entire script and lip everyone's lines while filming.",
       "For one of Jada Pinkett Smith's birthdays, Will Smith created a DVD message telling his wife there were clothes upstairs and a car would pick her up in 20 minutes. She was taken to the airport and flown to San Francisco, where Will was waiting for her at a restaurant she'd been reading about. He told PEOPLE, 'That's how Big Will does it!'",
       "'We are who we choose to be.' - Will Smiff",
       "Smiff attended Overbrook High School in West Philadelphia for the majority of his high school years. However, he also spent a short time attending Archbishop John Carroll High School in Radnor.",
