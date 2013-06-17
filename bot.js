@@ -1082,6 +1082,15 @@ bot.on('chat', function(data) {
 
 });
 
+app.get('/banned', function(req, res) {
+  Song.find({ banned: true }).exec(function(err, songs) {
+    res.render('banned', {
+      bannedSongs: songs
+    });
+  });
+  
+});
+
 app.get('/audience', function(req, res) {
   res.send(bot.customRoom.audience);
 });
