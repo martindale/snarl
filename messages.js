@@ -145,6 +145,9 @@ module.exports = {
   , cb: function(data) {
       var self = this;
       self.chat('GTFO, @' + data.from +'!');
+      self.removeDj(data.fromID, function(foo) {
+
+      });
     }
   , count: function(data) {
       var self = this;
