@@ -17,6 +17,7 @@ module.exports = {
   , askforseat: 'Please don\'t ask for seats here.  It\'s first come, first serve, and free for all.'
   , bitch: 'Not a lot of things are against the rules, but bitching about the music is. Stop being a bitch.'
   , cowbell: 'NEEDZ MOAR COWBALLS.'
+  , flow: 'Please try to adjust your selected track based on the DJ ahead of you.  Try to make every new track a smooth transition from the one before it (we call this "flow".)'
   , stfu: 'Please, shut your mouth and just enjoy the music.'
   , overlord: 'ALL HAIL THE OVERLORD!  http://codingsoundtrack.org/boycey'
   , commandments: 'Coding Soundtrack\'s 10 Commandments: http://codingsoundtrack.org/ten-commandments'
