@@ -235,6 +235,10 @@ module.exports = {
       });
 
     }
+  , hardfollow: function(data) {
+      var self = this;
+      self.chat('Hey @' + self.customRoom.currentDJ.name +', this is quite the hard transition from the last song.  Are you actually DJing, or are you AFK?');
+    }
   , manly: function(data) {
       var self = this;
       Person.count({}, function(err, totalPeople) {

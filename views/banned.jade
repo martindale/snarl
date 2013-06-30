@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  header.jumbotron.subhead
+    .container
+      h1 Banned Tracks
+      p.lead
+        | Don't play stuff like this.
+  br
+  .container 
+    ul
+      - for song in bannedSongs
+        li
+          a(href="/songs/#{song.id}") #{song.author} &mdash; #{song.title}
