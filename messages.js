@@ -76,7 +76,7 @@ module.exports = {
               if (err) { 
                 console.log(err); 
               } else {
-                self.removeDj(self.customRoom.currentDJ.plugID, function(data) {
+                self.skipSong(function(data) {
                   self.chat('Yeah, that was a terrible track.  Adding it to the list of banned tracks.');
                 });
               }
