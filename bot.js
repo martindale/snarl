@@ -906,7 +906,7 @@ bot.on('djAdvance', function(data) {
     }
 
     if (song.banned) {
-      bot.removeDj(data.currentDJ, function(data) {
+      bot.skipSong(function(data) {
         bot.chat('That track is banned.  Please read the song selection guide: http://codingsoundtrack.org/song-selection');
       });
     } else if(song.nsfw) {
