@@ -246,6 +246,12 @@ app.get('/history/:songInstance', function(req, res) {
   })
 });
 
+app.get('/songs/100.json', function(req, res) {
+  mostPopularSongsAlltime(function(allTime) {
+    res.send(allTime);
+  });
+});
+
 app.get('/songs', function(req, res) {
   var today = new Date();
 
@@ -513,6 +519,14 @@ app.get('/stats', function(req, res) {
         djs: results
       });
     });
+  });
+});
+
+app.get('/songs/:songID.json', function(req, res, next) {
+  Song.findOne({ id: req.param('songID') }).exec(function(err, song) {
+    if (!song) { return next(); }
+
+    res.send(song);
   });
 });
 
@@ -1003,6 +1017,10 @@ bot.on('chat', function(data) {
 
     if (data.from == 'roboJar' && data.message != 'Isn\'t this !awesome snarl') {
       self.chat( AI.transform(data.message) );
+    }
+
+    if (data.from != 'snarl') {
+      //self.chat( AI.transform(data.message) );
     }
 
     if ((data.from != 'snarl') && (twss.is(data.message))) {
