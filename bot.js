@@ -39,7 +39,7 @@ bot.customRoom = {
 bot.records = {
   boss: {}
 };
-bot.connect();
+//bot.connect();
 
 bot.on('connected', function() {
   bot.joinRoom(config.room, function(data) {
