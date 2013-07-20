@@ -180,7 +180,8 @@ module.exports = {
     remaeus: [
       'remæus\' third word was "combine".  His first was "truck," and his second "bobtail".',
       'remæus was the Director of SkyNet Operations at Mirascape.',
-      'remæus prefers tau to pi.'
+      'remæus prefers tau to pi.',
+      'remæus once chopped down a tree with a baseball bat.'
     ],
     donkey: [
       'http://i.imgur.com/q2DVKAi.jpg',
