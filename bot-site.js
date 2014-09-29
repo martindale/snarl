@@ -7,6 +7,7 @@ var config = require('./config')
   , Schema = mongoose.Schema;
 
 var async = require('async');
+var _ = require('underscore');
 
 mongoose.connect('localhost', 'snarl');
 
@@ -31,6 +32,17 @@ app.set('view engine', 'jade');
 app.locals.config = config; // WARNING: this exposes your config to jade! be careful not to render your bot's cookie.
 app.locals.pretty = true;
 app.locals.wideformat = false;
+
+var avatarManifest = {};
+
+// hack to fix their change to the avatar structure (eric, ~2014-05-23)
+avatarManifest.getAvatarUrl = function() {};
+
+//rest.get('http://plug.dj/_/static/js/avatars.4316486f.js').on('complete', function(data) {
+  // TODO: bug @Boycey to provide an endpoint for this.
+  // eval(data);  // oh christ. this is bad.
+  //avatarManifest = AvatarManifest;
+//});
 
 History.find().limit(1).populate('_song').exec(function(err, oldestHistory) {
   app.locals.oldestPlay = oldestHistory[0];
