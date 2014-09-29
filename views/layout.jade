@@ -44,6 +44,13 @@ html
       footer {
         font-size: 0.8em;
       }
+      .top-padded {
+        padding-top: 60px;
+      }
+      .no-push {
+        margin-bottom: 0;
+      }
+
     link(rel="stylesheet", href="/css/bootstrap-responsive.css")
     link(rel="stylesheet", href="/css/screen.css")
 
@@ -67,10 +74,19 @@ html
             li
               a(href="/chat") Chat
 
+
     if wideformat
       #wide
+        .container.top-padded
+          .alert.no-push
+            h3 We've Moved!
+            p Coding Soundtrack is now <a href="https://soundtrack.io">soundtrack.io</a>.  This site is only available for archival purposes!
         block content
-    else 
+    else
+      .container.top-padded
+        .alert.no-push
+          h3 We've Moved!
+          p Coding Soundtrack is now <a href="https://soundtrack.io">soundtrack.io</a>.  This site is only available for archival purposes!
       block content
 
     .container
