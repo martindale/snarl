@@ -86,10 +86,13 @@ bot.on('connected', function() {
 
 var avatarManifest = {};
 
+// hack to fix their change to the avatar structure (eric, ~2014-05-23)
+avatarManifest.getAvatarUrl = function() {};
+
 rest.get('http://plug.dj/_/static/js/avatars.4316486f.js').on('complete', function(data) {
   // TODO: bug @Boycey to provide an endpoint for this.
-  eval(data);  // oh christ. this is bad. 
-  avatarManifest = AvatarManifest; 
+  // eval(data);  // oh christ. this is bad.
+  //avatarManifest = AvatarManifest;
 });
 
 var lastfm = new LastFM({
@@ -283,7 +286,7 @@ app.get('/boycey', function(req, res) {
 
 var map = function() { //map function
   emit(this._song, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
-} 
+}
 
 var reduce = function(previous, current) { //reduce function
   var count = 0;
@@ -420,7 +423,7 @@ app.get('/stats/plays', function(req, res) {
     } else {
       emit(this._id, this.curates.length);
     }
-  } 
+  }
 
   var reduce = function(previous, current) { //reduce function
     var count = 0;
@@ -476,7 +479,7 @@ app.get('/stats', function(req, res) {
 
   var map = function() { //map function
     emit(this._dj, 1); //sends the url 'key' and a 'value' of 1 to the reduce function
-  } 
+  }
 
   var reduce = function(previous, current) { //reduce function
     var count = 0;
@@ -644,7 +647,10 @@ function mostProlificDJs(time, callback) {
 app.get('/djs/:plugID', function(req, res, next) {
   Person.findOne({ plugID: req.param('plugID') }).exec(function(err, dj) {
     if (dj) {
-      History.find({ _dj: dj._id }).sort('-timestamp').limit(10).populate('_song').exec(function(err, djHistory) {
+
+      var limit = req.param('limit') || 10;
+
+      History.find({ _dj: dj._id }).sort('-timestamp').limit( limit ).populate('_song').exec(function(err, djHistory) {
         dj.playHistory = djHistory;
 
         if (typeof(dj.bio) == 'undefined') {
@@ -886,7 +892,7 @@ bot.on('djAdvance', function(data) {
   }
 
   // deal with plug.djs's failure to serve disconnection events
-  // by expecting the next djAdvance event based on the time of the 
+  // by expecting the next djAdvance event based on the time of the
   // current media.
   clearTimeout(antiPDJSuckageTimer);
   antiPDJSuckageTimer = setTimeout(function() {
@@ -1060,7 +1066,7 @@ bot.on('chat', function(data) {
       } else {
         if (token.indexOf('++') != -1) {
           var target = token.substr(0, token.indexOf('++'));
-          
+
           // remove leading @ if it exists
           if (target.indexOf('@') === 0) {
             target = target.substr(1);
@@ -1106,7 +1112,7 @@ app.get('/banned', function(req, res) {
       bannedSongs: songs
     });
   });
-  
+
 });
 
 app.get('/audience', function(req, res) {

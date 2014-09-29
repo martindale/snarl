@@ -22,7 +22,7 @@
     "restler": ">=2.0.1",
     "mongoose": ">=3.4.0",
     "google": ">=0.1.0",
-    "express": ">=3.0.3",
+    "express": "^3.5.1",
     "jade": ">=0.27.7",
     "underscore": ">=1.4.2",
     "async": ">=0.1.22",
@@ -34,7 +34,11 @@
     "twss": "~0.1.6",
     "passport": "~0.1.17",
     "passport-local-mongoose": "~0.2.3",
-    "coffee-script": "~1.6.3"
+    "coffee-script": "~1.6.3",
+    "ddg-api": "0.0.1",
+    "urban": "^0.2.0",
+    "github": "^0.1.16",
+    "timeago": "^0.1.0"
   },
   "devDependencies": {
     "phantom": "<=0.3.5",

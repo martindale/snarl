@@ -1,4 +1,4 @@
-!!! 5
+doctype html
 html
   head
     meta(charset="utf-8")
@@ -9,12 +9,12 @@ html
     meta(itemprop="image", content="/img/mixer.jpg")
 
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    style
+    style.
       .subhead {
         margin-top: 40px;
       }
     link(rel="stylesheet", href="/css/bootstrap.css")
-    style
+    style.
       #wide {
         background-repeat: no-repeat;
         background-position: center;
@@ -114,7 +114,7 @@ html
     script(src="/js/bootstrap.js")
     script(src="/js/jquery.timeago.js")
 
-    script
+    script.
       $('.plug-sprite').each(function() {
         var self = this;
         setInterval(function() {
@@ -127,7 +127,7 @@ html
     block scripts
 
     - if (typeof(config.ga.account) != 'undefined' && config.ga.account.length > 0)
-      script(type="text/javascript")
+      script.
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', '#{config.ga.account}']);
         _gaq.push(['_trackPageview']);
