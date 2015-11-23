@@ -33,7 +33,7 @@ Slack.prototype._formulate = function(text) {
       }
 
       if (x.substring(1) === 'help') {
-        response = options.length + ' available triggers: `'+join(options)+'`.  To trigger one, ';
+        response = 'There are ' + options.length + ' available triggers: `'+join(options)+'`.  To trigger one, use an `!` anywhere in your message.  For example:\n> Maybe we should get together for a !meetup?  Gosh, that would be fun!';
       }
     });
 
