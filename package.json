@@ -20,6 +20,7 @@
     "coffee-script": "~1.6.3",
     "crypto": ">= 0.0.3",
     "ddg-api": "0.0.1",
+    "erm": "0.0.1",
     "express": "^3.5.1",
     "github": "^0.1.16",
     "google": ">=0.1.0",
