@@ -2,6 +2,7 @@ var Slack = require('./lib/slack');
 var token = require('./config').slack.token;
 var repl = require('repl');
 var _ = require('lodash');
+var join = require('oxford-join');
 
 var commands = require('./commands');
 
@@ -20,6 +21,8 @@ Slack.prototype._formulate = function(text) {
     })
     .forEach(function(x) {
       console.log('matching:', x);
+      var options = Object.keys(commands);
+
       var command = commands[x.substring(1)];
       console.log('command:', command);
       
@@ -27,6 +30,10 @@ Slack.prototype._formulate = function(text) {
         response = command(text);
       } else {
         response = command;
+      }
+
+      if (x.substring(1) === 'help') {
+        response = options.length + ' available triggers: `'+join(options)+'`.  To trigger one, ';
       }
     });
 
