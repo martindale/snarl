@@ -1,6 +1,8 @@
+var repl = require('repl');
+var net = require('net');
+
 var Slack = require('./lib/slack');
 var token = require('./config').slack.token;
-var repl = require('repl');
 var _ = require('lodash');
 var join = require('oxford-join');
 
@@ -79,8 +81,14 @@ slack.on('error', function(err) {
 
 slack.login();
 
-var server = repl.start({
-  prompt: 'snarl> '
-});
+net.createServer(function(socket) {
+  var server = repl.start({
+    prompt: 'snarl> ',
+    input: socket,
+    output: socket
+  }).on('exit', function() {
+    socket.end();
+  });
 
-server.context.slack = slack;
+  server.context.slack = slack;
+}).listen('snarl.sock');
