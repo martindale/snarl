@@ -9,35 +9,31 @@ var commands = require('./commands');
 var autoReconnect = true;
 var autoMark = true;
 
-Slack.prototype._formulate = function(text) {
-  console.log('formulate:', text);
-  
+Slack.prototype._formulate = function(text, cb) {
   var tokens = text.split(' ');
   var response;
-  
-  tokens
-    .filter(function(x) {
-      return x.indexOf('!') === 0;
-    })
-    .forEach(function(x) {
-      console.log('matching:', x);
-      var options = Object.keys(commands);
 
-      var command = commands[x.substring(1)];
-      console.log('command:', command);
-      
-      if (typeof command === 'function') {
-        response = command(text);
-      } else {
-        response = command;
-      }
+  tokens.filter(function(x) {
+    return x.indexOf('!') === 0;
+  }).forEach(function(x) {
+    // remove any non-alpha characters
+    x = x.substring(1).replace(/[\W_]+/g, '').trim();
 
-      if (x.substring(1) === 'help') {
-        response = 'There are ' + options.length + ' available triggers: `'+join(options)+'`.  To trigger one, use an `!` anywhere in your message.  For example:\n> Maybe we should get together for a !meetup?  Gosh, that would be fun!';
-      }
-    });
+    var options = Object.keys(commands);
+    var command = commands[x];
 
-  return response;
+    if (typeof command === 'function') {
+      return command(text, cb);
+    } else {
+      response = command;
+    }
+
+    if (x.substring(1) === 'help') {
+      response = 'There are ' + options.length + ' available triggers: `'+join(options)+'`.  To trigger one, use an `!` anywhere in your message.  For example:\n> Maybe we should get together for a !meetup?  Gosh, that would be fun!';
+    }
+  });
+
+  return cb(null, response);
 
 };
 
@@ -66,7 +62,9 @@ slack.on('message', function(message) {
 
   switch (message.subtype) {
     case undefined:
-      slack.__reply(message, slack._formulate(message.text));
+      slack._formulate(message.text, function(err, response) {
+        slack.__reply(message, response);
+      });
       break;
     case 'channel_join':
       //slack.__reply(message, slack._formulate(message.text));

@@ -30,9 +30,35 @@ module.exports = {
     return randomFact('remaeus');
   },
   erm: function(data) {
-    return ermgerd(data.params);
+    return erm(data);
   },
-  trout: function(data) {
+  brew: function(data, cb) {
+    var tokens = data.split(' ');
+    
+    console.log('brew called, tokens:', tokens);
+    var query = tokens.filter(function(x) {
+      return x !== '!brew';
+    }).join(' ');
+
+    if (query.length) {
+      rest.get('http://api.brewerydb.com/v2/search?q=' + query + '&key=7c05e35f30f5fbb823ec4731735eb2eb').on('complete', function(api) {
+        if (typeof(api.data) != 'undefined' && api.data.length > 0) {
+          if (typeof(api.data[0].description) != 'undefined') {
+            cb(null, api.data[0].name + ': ' + api.data[0].description);
+          } else {
+            cb(null, api.data[0].name + ' is a good beer, but I don\'t have a good way to describe it.');
+          }
+        } else {
+          self.chat('Damn, I\'ve never heard of that.  Where do I need to go to find it?');
+        }
+      });
+    } else {
+      return 'How about asking for something in specific?';
+    }
+  }
+  /* trout: function(data) {
+    console.log('message:', message);
+    
     var target = data.from;
 
     if (typeof(data.params) != 'undefined' && data.params.trim().length > 0) {
@@ -43,7 +69,7 @@ module.exports = {
   },
   falconpunch: function(data) {
     return '/me falcon punches ' + data.from + ' out of a 13-story window.';
-  }
+  } */
 }
 
 function randomFact(type) {
