@@ -78,15 +78,3 @@ slack.on('error', function(err) {
 });
 
 slack.login();
-
-net.createServer(function(socket) {
-  var server = repl.start({
-    prompt: 'snarl> ',
-    input: socket,
-    output: socket
-  }).on('exit', function() {
-    socket.end();
-  });
-
-  server.context.slack = slack;
-}).listen('snarl.sock');
