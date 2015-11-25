@@ -16,21 +16,21 @@ module.exports = {
   meetup: 'Many of us have met in person, usually for drinks.  Join #beer to coordinate!',
   force: '/me senses a disturbance in the force.',
   ping: 'pong!',
-  topologyfacts: function(data) {
-    return randomFact('topology');
+  topologyfacts: function(data, cb) {
+    return cb(null, randomFact('topology'));
   },
-  interstellafacts: function(data) {
-    return randomFact('interstella');
+  interstellafacts: function(data, cb) {
+    return cb(null, randomFact('interstella'));
   },
   get smifffax () { return this.smifffacts },
-  smifffacts: function(data) {
-    return randomFact('smiff');
+  smifffacts: function(data, cb) {
+    return cb(null, randomFact('smiff'));
   },
-  remæusfacts: function(data) {
-    return randomFact('remaeus');
+  remæusfacts: function(data, cb) {
+    return cb(null, randomFact('remaeus'));
   },
-  erm: function(data) {
-    return erm(data);
+  erm: function(data, cb) {
+    return cb(null, erm(data));
   },
   brew: function(data, cb) {
     var tokens = data.split(' ');

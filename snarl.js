@@ -30,7 +30,7 @@ Slack.prototype._formulate = function(text, cb) {
       response = command;
     }
 
-    if (x.substring(1) === 'help') {
+    if (x === 'help') {
       response = 'There are ' + options.length + ' available triggers: `'+join(options)+'`.  To trigger one, use an `!` anywhere in your message.  For example:\n> Maybe we should get together for a !meetup?  Gosh, that would be fun!';
     }
   });
@@ -60,8 +60,6 @@ slack.on('open', function() {
 });
 
 slack.on('message', function(message) {
-  console.log('hey, message:', message.subtype, Object.keys(message));
-
   switch (message.subtype) {
     case undefined:
       slack._formulate(message.text, function(err, response) {
