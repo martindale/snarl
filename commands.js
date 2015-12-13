@@ -49,7 +49,7 @@ module.exports = {
             cb(null, api.data[0].name + ' is a good beer, but I don\'t have a good way to describe it.');
           }
         } else {
-          self.chat('Damn, I\'ve never heard of that.  Where do I need to go to find it?');
+          cb(null, 'Damn, I\'ve never heard of that.  Where do I need to go to find it?');
         }
       });
     } else {
