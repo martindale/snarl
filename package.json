@@ -4,52 +4,32 @@
     "email": "eric@ericmartindale.com"
   },
   "name": "snarl",
-  "description": "snarl, a bot based on @chrisinajar's plugapi",
+  "description": "snarl is a big soft gorilla that helps us in chat.",
   "homepage": "https://github.com/martindale/snarl",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/martindale/snarl"
   },
-  "main": "bot.js",
+  "main": "snarl.js",
   "engines": {
     "node": ">=v0.4.9"
   },
   "dependencies": {
-    "async": ">=0.1.22",
-    "coffee-script": "~1.6.3",
-    "crypto": ">= 0.0.3",
-    "ddg-api": "0.0.1",
     "erm": "0.0.1",
-    "express": "^3.5.1",
-    "github": "^0.1.16",
-    "google": ">=0.1.0",
-    "jade": ">=0.27.7",
-    "jquery": ">= 1.6.3",
     "lodash": "^3.10.1",
-    "mongoose": ">=3.4.0",
-    "node-markdown": ">= 0.1.1",
-    "node-slack": "0.0.7",
     "oxford-join": "0.0.1",
-    "passport": "~0.1.17",
-    "passport-local-mongoose": "~0.2.3",
-    "phantom": "<=0.3.5",
-    "plugapi": ">=0.2.0",
-    "querystring": ">= 0.1.0",
-    "repl": ">=0.1.3",
-    "restler": ">=2.0.1",
-    "slack-client": "^1.4.1",
-    "timeago": "^0.1.0",
-    "twss": "~0.1.6",
-    "underscore": "^1.7.0",
-    "urban": "^0.2.0",
-    "xml2js": ">= 0.1.13"
+    "slack-client": "^1.4.1"
   },
-  "devDependencies": {
-    "phantom": "<=0.3.5",
-    "plugapi": ">=0.2.0",
-    "repl": ">=0.1.3"
-  },
+  "keywords": [
+    "slack",
+    "bot",
+    "chat",
+    "triggers",
+    "ai",
+    "machine learning",
+    "snarl"
+  ],
   "licenses": {
     "type": "MIT",
     "url": "http://www.opensource.org/licenses/MIT"

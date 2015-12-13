@@ -1,8 +1,0 @@
-h3
-  - if (typeof(dj.avatar) != 'undefined' && typeof(dj.avatar.thumb) != 'undefined')
-    img(src="#{dj.avatar.thumb}")
-    |  
-  - if (typeof(dj.plugID) != 'undefined')
-    a(href="/djs/#{dj.plugID}") #{dj.name}
-  - else
-    | #{dj.name}

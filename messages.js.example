@@ -1,3 +1,0 @@
-module.exports = {
-  about: "I am an unconfigured bot.  Please add messages to messages.js."
-}
