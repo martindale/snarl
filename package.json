@@ -16,10 +16,12 @@
     "node": ">=v0.4.9"
   },
   "dependencies": {
+    "async": "^1.5.0",
     "erm": "0.0.1",
     "lodash": "^3.10.1",
     "oxford-join": "0.0.1",
-    "slack-client": "^1.4.1"
+    "restler": "^3.4.0",
+    "slack-client": "^1.5.0"
   },
   "keywords": [
     "slack",

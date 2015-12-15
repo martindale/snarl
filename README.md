@@ -1,20 +1,44 @@
 snarl
 =====
 
-snarl is a bot designed for the [Coding Soundtrack Music Room](http://snarl.ericmartindale.com) on plug.dj.
+Our fuzzy and friendly gorilla, snarl.  He's an awesome automaton that helps us
+with a great many things.
 
-# Requirements
-The following things need to be installed in your environment to proceed.
+## Quick Start
+snarl's basic implementation is for Slack.  You'll need to create a Bot User for
+your Slack organization, generally found at
+`https://YOUR-TEAM-NAME.slack.com/services/new/bot`.  Once the integration is
+added, you'll be given an API token: **place this token into
+`config/index.json`**.  For more help, Slack has [great documentation on bot
+users][slack-bots].
 
-node.js
-MongoDB
+To run snarl, simply execute:
 
-# Instructions
+```bash
+node snarl.js
+```
 
-Copy `config.js.example` to `config.js` and configure the values therein.  Most importantly, copy `auth` from the cookies of your bot account's plug.dj account.
+That's it.  You'll see snarl come online!
 
-Run `npm install` to install all the necessary packages.
+[slack-bots]: https://api.slack.com/bot-users
 
-Run `cd lib && git clone git://github.com/atomjack/simple-lastfm.git` to install `simple-lastfm`.
+## Plugins
+snarl supports plugins.  We've kept the default list short but fun.  We'd also love to see even more contributions!
 
-Run `node bot.js` to get the bot started. :)
+Plugins for snarl can add commands or other functionality.  For example, the included `karma` plugin lets snarl keep track of karma for various users.
+
+To use a plugin, simply require it, as follows:
+
+```js
+var Snarl = require('./lib/snarl');
+var snarl = new Snarl();
+
+// import the karma plugin
+var karma = require('./plugins/karma');
+
+// use the karma plugin we required above
+snarl.use(karma);
+
+// start snarl, as normal
+snarl.start();
+```

@@ -1,5 +1,6 @@
 {
+  "name": "snarl",
   "slack": {
-    "token": "get a bot token for slack"
+    "token": "xoxb-15091635750-TtP80Wc8amRwwPSQhA45vAkU"
   }
 }
