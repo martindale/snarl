@@ -16,6 +16,7 @@
     "async": "^1.5.0",
     "cleverbot-node": "^0.2.1",
     "erm": "0.0.1",
+    "level": "^1.4.0",
     "lodash": "^3.10.1",
     "maki": "git://github.com/martindale/maki",
     "oxford-join": "0.0.1",
