@@ -1,8 +1,5 @@
 {
-  "author": {
-    "name": "Eric Martindale",
-    "email": "eric@ericmartindale.com"
-  },
+  "author": "Eric Martindale <eric@ericmartindale.com>",
   "name": "snarl",
   "description": "snarl is a big soft gorilla that helps us in chat.",
   "homepage": "https://github.com/martindale/snarl",
@@ -38,6 +35,12 @@
     "type": "MIT",
     "url": "http://www.opensource.org/licenses/MIT"
   },
-  "readme": "# snarl",
-  "_id": "snarl"
+  "bugs": {
+    "url": "https://github.com/martindale/snarl/issues"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "MIT"
 }
