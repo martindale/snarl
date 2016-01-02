@@ -1,7 +1,7 @@
 {
   "author": "Eric Martindale <eric@ericmartindale.com>",
   "name": "snarl",
-  "description": "snarl is a big soft gorilla that helps us in chat.",
+  "description": "Simple chat bot for Slack, extensible with plugins.",
   "homepage": "https://github.com/martindale/snarl",
   "version": "0.2.0",
   "repository": {
@@ -9,9 +9,6 @@
     "url": "https://github.com/martindale/snarl"
   },
   "main": "snarl.js",
-  "engines": {
-    "node": ">=v0.4.9"
-  },
   "dependencies": {
     "async": "^1.5.0",
     "cleverbot-node": "^0.2.1",
