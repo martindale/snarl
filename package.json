@@ -10,7 +10,7 @@
   },
   "main": "snarl.js",
   "engines": {
-    "node": ">=v0.4.9"
+    "node": ">=v0.12.0"
   },
   "dependencies": {
     "async": "^1.5.0",
@@ -38,13 +38,17 @@
   "bugs": {
     "url": "https://github.com/martindale/snarl/issues"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "coveralls": "^2.11.6",
+    "istanbul": "^0.4.1",
+    "mocha": "^2.3.4"
+  },
   "bin": {
     "snarl": "bin/snarl.js"
   },
   "preferGlobal": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "license": "MIT"
 }
