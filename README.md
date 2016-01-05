@@ -1,5 +1,5 @@
-snarl
-=====
+snarl ![snarl](/snarl-headshot.png)
+===================================
 [![NPM version](	https://img.shields.io/npm/v/snarl.svg?style=flat-square)](https://www.npmjs.com/package/snarl)
 [![Build Status](https://img.shields.io/travis/martindale/snarl.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/snarl)
 
@@ -9,6 +9,9 @@ Despite his name, snarl is just a fuzzy and friendly goofball.  He's been with
 us for several years, since the beginning of [the Coding
 Soundtrack](https://soundtrack.io) community.  He's an awesome automaton that
 helps us with a great many things, so be nice to him.
+
+Avatar for snarl is by [@yiyinglu](https://github.com/yiyinglu), who designed
+the original avatars for tuntable.fm.
 
 ## Quick Start
 You'll need to create a Bot User for your Slack organization, generally found at
