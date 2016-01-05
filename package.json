@@ -48,6 +48,7 @@
   },
   "preferGlobal": true,
   "scripts": {
+    "start": "node snarl.js",
     "test": "mocha",
     "coverage": "istanbul cover _mocha"
   },
