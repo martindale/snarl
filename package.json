@@ -48,7 +48,8 @@
   },
   "preferGlobal": true,
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "coverage": "istanbul cover _mocha"
   },
   "license": "MIT"
 }
