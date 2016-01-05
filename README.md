@@ -17,6 +17,10 @@ added, you'll be given an API token: **place this token into
 `config/index.json`**.  For more help, Slack has [great documentation on bot
 users][slack-bots].
 
+**Install via `npm install snarl -g` or simply clone<sup>1</sup> this repository.**
+
+<small>1: preferrably fork it first!</small>
+
 To run snarl, simply execute:
 
 ```bash
