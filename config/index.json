@@ -1,5 +1,6 @@
 {
   "name": "snarl",
+  "plugins": [],
   "store": "data/store",
   "slack": {
     "token": "xoxb-********-*************"

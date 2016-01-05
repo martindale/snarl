@@ -1,6 +1,7 @@
 var async = require('async');
 
 module.exports = {
+  // special "all messages" handler
   '{*}': function(msg, cb) {
     var self = this;
     var karmic = msg.tokens.filter(function(x) {
