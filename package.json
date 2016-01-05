@@ -3,7 +3,7 @@
   "name": "snarl",
   "description": "snarl is a big soft gorilla that helps us in chat.",
   "homepage": "https://github.com/martindale/snarl",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/martindale/snarl"
@@ -14,11 +14,9 @@
   },
   "dependencies": {
     "async": "^1.5.0",
-    "cleverbot-node": "^0.2.1",
     "erm": "0.0.1",
     "level": "^1.4.0",
     "lodash": "^3.10.1",
-    "maki": "git://github.com/martindale/maki",
     "oxford-join": "0.0.1",
     "restler": "^3.4.0",
     "slack-client": "^1.5.0"
@@ -27,6 +25,7 @@
     "slack",
     "bot",
     "chat",
+    "chatbot",
     "triggers",
     "ai",
     "machine learning",
@@ -40,6 +39,10 @@
     "url": "https://github.com/martindale/snarl/issues"
   },
   "devDependencies": {},
+  "bin": {
+    "snarl": "bin/snarl.js"
+  },
+  "preferGlobal": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
