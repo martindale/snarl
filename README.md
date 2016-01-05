@@ -36,7 +36,7 @@ to see even more contributions!
 Plugins for snarl can add commands or other functionality.  For example, the
 included `karma` plugin lets snarl keep track of karma for various users.
 
-To use a plugin, simply require it, as follows:
+To use another plugin, simply require it, as follows:
 
 ```js
 var Snarl = require('./lib/snarl');
@@ -51,6 +51,19 @@ snarl.use(karma);
 // start snarl, as normal
 snarl.start();
 ```
+
+### Included Plugins
+The list of available plugins (via `./plugins/plugin-name`) is as follows:
+
+- `karma`, which keeps track of user karma, as incremented by `@username++`.
+- `facts`, which provides `!TopologyFacts` (mathematical topology facts), `!SmiffFacts` (facts about Will Smith), and `!InterstellaFacts` (facts about [Interstella 5555](https://en.wikipedia.org/wiki/Interstella_5555:_The_5tory_of_the_5ecret_5tar_5ystem))
+- `meetups`, which responds with a simple message telling your community about in-person meetups.
+- `erm`, which transforms the text of a user message into `ERMEGERD` speech using [martindale/erm](https://github.com/martindale/erm).
+- `beer-lookup`, which provides `!brew <beerName>` to look up and describe a beer via [BreweryDB](http://www.brewerydb.com/).
+
+### Other Plugins
+- [snarl-eliza](https://github.com/martindale/snarl-eliza) is a simple AI using
+the ELIZA self-help chatbot created by Joseph Weizenbaum between 1964 and 1966.
 
 ### Writing Plugins
 To write a snarl plugin, create a new NPM module that exports a map of triggers
