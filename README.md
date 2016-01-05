@@ -1,5 +1,7 @@
 snarl
 =====
+[![NPM version](	https://img.shields.io/npm/v/snarl.svg?style=flat-square)](https://www.npmjs.com/package/snarl)
+[![Build Status](https://img.shields.io/travis/martindale/snarl.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/snarl)
 
 Simple chat bot (currently for Slack), extensible with plugins.
 
@@ -21,7 +23,9 @@ To run snarl, simply execute:
 npm start
 ```
 
-That's it.  You'll see snarl come online!  If you install snarl globally via `npm install snarl -g`, you can simply type `snarl` at any time (for example, inside of a screen or a tmux session) to run the bot.
+That's it.  You'll see snarl come online!  If you install snarl globally via
+`npm install snarl -g`, you can simply type `snarl` at any time (for example,
+inside of a screen or a tmux session) to run the bot.
 
 [slack-bots]: https://api.slack.com/bot-users
 
@@ -39,7 +43,8 @@ included `karma` plugin lets snarl keep track of karma for various users.
 ### Using Plugins
 Plugins can be autoloaded from either a single file in
 `./plugins/plugin-name.js` or an NPM module named `snarl-plugin-name`.  To
-autoload a plugin, add the plugin name to the plugins array in `config/index.json`:
+autoload a plugin, add the plugin name to the plugins array in
+`config/index.json`:
 
 ```json
 {
