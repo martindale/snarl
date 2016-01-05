@@ -17,18 +17,12 @@ added, you'll be given an API token: **place this token into
 `config/index.json`**.  For more help, Slack has [great documentation on bot
 users][slack-bots].
 
-**Install via `npm install snarl -g` or simply clone<sup>1</sup> this repository.**
-
-<small>1: preferrably fork it first!</small>
-
-To run snarl, simply execute:
-
-```bash
-npm start
-```
+1. Install via `npm install snarl -g`, or simply clone<sup>1</sup> this repository and run `npm install` as usual.
+2. Modify `config/index.json` to contain your Slack token.
+3. Execute `npm run` in the source directory, or `snarl` if you installed globally.
 
 That's it.  You'll see snarl come online!  If you install snarl globally via
-`npm install snarl -g`, you can simply type `snarl` at any time (for example,
+`npm install snarl -g`, you can also simply type `snarl` at any time (for example,
 inside of a screen or a tmux session) to run the bot.
 
 [slack-bots]: https://api.slack.com/bot-users
