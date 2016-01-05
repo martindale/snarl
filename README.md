@@ -18,8 +18,8 @@ added, you'll be given an API token: **place this token into
 users][slack-bots].
 
 1. Install via `npm install snarl -g`, or simply clone<sup>1</sup> this repository and run `npm install` as usual.
-2. Modify `config/index.json` to contain your Slack token.
-3. Execute `npm run` in the source directory, or `snarl` if you installed globally.
+2. Modify `config/index.json` to contain your Slack token (see paragraph above).
+3. Execute `npm start` in the source directory, or `snarl` if you installed globally.
 
 That's it.  You'll see snarl come online!  If you install snarl globally via
 `npm install snarl -g`, you can also simply type `snarl` at any time (for example,
