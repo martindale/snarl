@@ -25,7 +25,10 @@ That's it.  You'll see snarl come online!  If you install snarl globally via
 `npm install snarl -g`, you can also simply type `snarl` at any time (for example,
 inside of a screen or a tmux session) to run the bot.
 
+<small>1: if you want to make modifications, you should [fork it first][fork]!</small>
+
 [slack-bots]: https://api.slack.com/bot-users
+[fork]: https://github.com/martindale/snarl/fork
 
 ## Naming Your Bot
 If you want to give snarl a different name, you can configure it via Slack (see
