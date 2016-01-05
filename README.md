@@ -18,10 +18,10 @@ users][slack-bots].
 To run snarl, simply execute:
 
 ```bash
-node snarl.js
+npm start
 ```
 
-That's it.  You'll see snarl come online!
+That's it.  You'll see snarl come online!  If you install snarl globally via `npm install snarl -g`, you can simply type `snarl` at any time (for example, inside of a screen or a tmux session) to run the bot.
 
 [slack-bots]: https://api.slack.com/bot-users
 
@@ -36,10 +36,39 @@ to see even more contributions!
 Plugins for snarl can add commands or other functionality.  For example, the
 included `karma` plugin lets snarl keep track of karma for various users.
 
+### Using Plugins
+Plugins can be autoloaded from either a single file in
+`./plugins/plugin-name.js` or an NPM module named `snarl-plugin-name`.  To
+autoload a plugin, add the plugin name to the plugins array in `config/index.json`:
+
+```json
+{
+  "name": "snarl",
+  "plugins": ["erm", "karma"],
+  "store": "data/store",
+  "slack": {
+    "token": "some-token-xxxooooo",
+  },
+}
+```
+
+...and simply call `autoload()`:
+
+```js
+var Snarl = require('snarl');
+var snarl = new Snarl();
+
+// autoload plugins found in `config/index.json`
+snarl.autoload();
+
+// start snarl, as normal
+snarl.start();
+```
+
 To use another plugin, simply require it, as follows:
 
 ```js
-var Snarl = require('./lib/snarl');
+var Snarl = require('snarl');
 var snarl = new Snarl();
 
 // import the karma plugin
