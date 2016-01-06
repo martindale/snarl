@@ -13,6 +13,8 @@ helps us with a great many things, so be nice to him.
 Avatar for snarl is by [@yiyinglu](https://github.com/yiyinglu), who designed
 the original avatars for tuntable.fm.
 
+If you'd like to test him out, join us on [the Maki Slack](https://chat.maki.io), where snarl helps us develop [the Maki Framework](https://maki.io).
+
 ## Quick Start
 You'll need to create a Bot User for your Slack organization, generally found at
 `https://YOUR-TEAM-NAME.slack.com/services/new/bot`.  Once the integration is
