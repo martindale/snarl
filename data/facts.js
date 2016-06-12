@@ -181,7 +181,7 @@ module.exports = {
       'remæus\' third word was "combine".  His first was "truck," and his second "bobtail".',
       'remæus was the Director of SkyNet Operations at Mirascape.',
       'remæus prefers tau to pi.',
-      'remæus once chopped down a tree with a baseball bat.'
+      'remæus once chopped down a tree with a baseball bat.',
       'remæus thinks Chuck Norris jokes aren\'t funny or impressive.'
     ],
     donkey: [
