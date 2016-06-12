@@ -182,6 +182,7 @@ module.exports = {
       'remæus was the Director of SkyNet Operations at Mirascape.',
       'remæus prefers tau to pi.',
       'remæus once chopped down a tree with a baseball bat.'
+      'remæus thinks Chuck Norris jokes aren\'t funny or impressive.'
     ],
     donkey: [
       'http://i.imgur.com/q2DVKAi.jpg',
@@ -192,5 +193,13 @@ module.exports = {
       'manly as fuck',
       'a damn smooth mother',
       'one manly mother',
-    ]
+    ],
+    insult: [
+        'you egg',
+        'you sandy bathing suit',
+        'you chunky carton of milk',
+        'you white crayon',
+        'you coatless eskimo',
+        'you wobbly chair leg',
+    ],
 };
