@@ -19,5 +19,8 @@ module.exports = {
   },
   remæusfacts: function(data, cb) {
     return cb(null, randomFact('remaeus'));
+  },
+  insults: function(data, cb) {
+    return cb(null, randomFact ('insult'));
   }
 }
