@@ -1,6 +1,6 @@
 {
-  "name": "snarl",
-  "plugins": [],
+  "name": "eliza",
+  "plugins": ["eliza"],
   "store": "data/store",
   "slack": {
     "token": "xoxb-********-*************"

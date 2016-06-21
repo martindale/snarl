@@ -19,7 +19,8 @@
     "lodash": "^3.10.1",
     "oxford-join": "0.0.1",
     "restler": "^3.4.0",
-    "slack-client": "^1.5.0"
+    "slack-client": "^1.5.0",
+    "snarl-eliza": "git://github.com/martindale/snarl-eliza"
   },
   "keywords": [
     "slack",
