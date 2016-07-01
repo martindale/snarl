@@ -104,6 +104,7 @@ The list of available plugins (via `./plugins/plugin-name`) is as follows:
 ### Other Plugins
 - [snarl-eliza](https://github.com/martindale/snarl-eliza) is a simple AI using
 the ELIZA self-help chatbot created by Joseph Weizenbaum between 1964 and 1966.
+- [snarl-wine-lookup](https://github.com/naterchrdsn/snarl-wine-lookup) is a simple plugin for performing wine-lookups via the [snooth wine api](http://api.snooth.com/), using the !vino command and several optional parameters. Cheers!
 
 ### Writing Plugins
 To write a snarl plugin, create a new NPM module that exports a map of triggers
