@@ -18,9 +18,11 @@ remote.on('message', function(msg) {
         console.log('invitation:', invitation);
         
         // TODO: investigate whether Slack API allows this...
-        /* var channels = invitation.topics.map(function(topic) {
-          return snarl.slack.channelMap[topic].id;
-        }); */
+        var channels = invitation.topics.map(function(topic) {
+          return snarl.slack.channelNameMap[topic].id;
+        });
+        
+        console.log('channels to submit to:', channels);
         
         // TODO: contact Slack and figure out how to make this work in a single call
         /*var channels = invitation.topics[0].split(',').map(function(topic) {
@@ -32,7 +34,8 @@ remote.on('message', function(msg) {
         rest.post('https://slack.com/api/users.admin.invite', {
           data: {
             email: invitation.email,
-            //channels: channels.join(','),
+            channels: channels.join(','),
+            extra_message: invitation.message,
             token: config.slack.token
           }
         }).on('complete', function(data) {
