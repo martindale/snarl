@@ -20,7 +20,10 @@ module.exports = {
   remæusfacts: function(data, cb) {
     return cb(null, randomFact('remaeus'));
   },
-  insults: function(data, cb) {
+  insult: function(data, cb) {
     return cb(null, randomFact ('insult'));
+  },
+  compliment: function(data, cb)
+    returncb(null, randomFact('compliment'));
   }
 }
