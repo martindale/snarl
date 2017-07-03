@@ -1,8 +1,11 @@
 {
   "name": "snarl",
-  "plugins": [],
+  "plugins": ["erm", "beer-lookup", "wine-lookup", "facts", "catfacts", "welcome", "gif", "community", "insults", "bitcoin"],
   "store": "data/store",
   "slack": {
-    "token": "xoxb-********-*************"
-  }
+    "token": "xoxb-15091635750-TtP80Wc8amRwwPSQhA45vAkU"
+  },
+  "welcome": [
+        "Hey there, {{user}}!  My name is @snarl, and I'm the friendly neighborhood bot.  I do what I can to help people with simple tasks, like reminders and tasklists.  I'm also open source [1], so you can change my behavior by writing extensions for me!\n\nThe best way to get started is to read the welcome post [2].  It gives an introduction to our grand vision, and sets you up for the next part of your quest.\n\nWe have many {{channel:projects}} you might be interested in, including:\n\n{{channel:melody}}, the censorship-proof storytelling platform\n{{channel:soundtrack}}, the decentralized music streaming app\n{{channel:roleplaygateway}}, the collaborative writing platform\n\nThere are a _ton_ of other topical channels, like {{channel:writing}} and {{channel:biology}}, so make sure to check the channel list.  We're always on the lookout for new, talented members of the community, and we view the list of channels as a list of topics we need expertise in.\n\nMake sure to introduce yourself in {{channel:community}} when you're ready!  See you around!\n\n[1]: https://github.com/martindale/snarl\n[2]: https://maki-dev.slack.com/files/martindale/F1827U79U/Why_are_we_here_"
+              ]
 }

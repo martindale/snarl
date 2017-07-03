@@ -89,7 +89,7 @@ module.exports = {
       'A subset of X is dense if its closure is X.',
       'A function between two topological spaces is continuous if the inverse image of every open set is open.',
       'A closed subset of a normal space is normal.',
-      'A path connected space is connected. The converse does not always hold.'
+      'A path connected space is connected. The converse does not always hold.',
       'A C_60 molecule is an allotrope called buckminsterfullerene, after the inventor of the geodesic dome Buckminster Fuller. It is sometimes called a buckyball because the atoms are arranged like a soccer ball.'  
     ]
   , smiff: [
@@ -184,7 +184,7 @@ module.exports = {
       'remæus prefers tau to pi.',
       'remæus once chopped down a tree with a baseball bat.',
       'remæus thinks Chuck Norris jokes aren\'t funny or impressive.',
-      'remæus crashes browser tabs on purpose.'
+      'remæus crashes browser tabs on purpose.',
       'remæus sometimes stealth-edits the posts of others to add borders to images.'  
     ],
     donkey: [
