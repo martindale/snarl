@@ -184,7 +184,7 @@ module.exports = {
       'remæus prefers tau to pi.',
       'remæus once chopped down a tree with a baseball bat.',
       'remæus thinks Chuck Norris jokes aren\'t funny or impressive.',
-      'remæus crashes browser tabs on purpose.'
+      'remæus crashes browser tabs on purpose.',
       'remæus sometimes stealth-edits the posts of others to add borders to images.'  
     ],
     donkey: [
