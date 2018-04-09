@@ -1,11 +1,12 @@
-var config = require('./config');
+'use strict';
 
-var Snarl = require('./lib/snarl');
-var snarl = new Snarl(config);
+const config = require('./config');
+const Snarl = require('./lib/snarl');
 
-snarl.use(require('./plugins/erm'));
-snarl.autoload();
+function main () {
+  let snarl = new Snarl(config);
+  console.log('Snarl starting...');
+  snarl.start();
+}
 
-snarl.start(function(err) {
-  console.log('snarl is started.');
-});
+main();
