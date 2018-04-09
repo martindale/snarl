@@ -11,7 +11,9 @@ describe('Snarl', function () {
   });
 
   it('should emit a ready event on default startup', function (done) {
-    let snarl = new Snarl(config);
+    let snarl = new Snarl(Object.assign({}, config, {
+      services: []
+    }));
     snarl.bot.on('ready', done);
     snarl.bot.start();
   });
