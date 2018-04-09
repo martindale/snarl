@@ -1,27 +1,22 @@
 {
   "author": "Eric Martindale <eric@ericmartindale.com>",
   "name": "snarl",
-  "description": "Simple chat bot for Slack, extensible with plugins.",
+  "description": "Friendly chatbot for soundtrack.io and more.  Powered by `doorman`.",
   "homepage": "https://github.com/martindale/snarl",
-  "version": "0.3.3",
+  "version": "0.4.0-pre",
   "repository": {
     "type": "git",
     "url": "https://github.com/martindale/snarl"
   },
-  "main": "snarl.js",
+  "main": "lib/snarl.js",
   "engines": {
-    "node": ">=v0.12.0"
+    "node": ">= 8.0.0"
   },
   "dependencies": {
-    "async": "^1.5.0",
+    "doorman": "github:martindale/doorman#simple-start",
     "erm": "0.0.1",
-    "level": "^1.4.0",
-    "lodash": "^3.10.1",
-    "maki-remote": "git://github.com/martindale/maki-remote#events",
-    "oxford-join": "0.0.1",
-    "restler": "^3.4.0",
-    "slack-client": "^1.5.0",
-    "snarl-community": "git://github.com/martindale/snarl-community"
+    "snarl-community": "git://github.com/martindale/snarl-community",
+    "snarl-wine-lookup": "^0.1.0"
   },
   "keywords": [
     "slack",
@@ -31,7 +26,8 @@
     "triggers",
     "ai",
     "machine learning",
-    "snarl"
+    "snarl",
+    "doorman"
   ],
   "licenses": {
     "type": "MIT",
@@ -44,9 +40,6 @@
     "coveralls": "^2.11.6",
     "istanbul": "^0.4.1",
     "mocha": "^2.3.4"
-  },
-  "bin": {
-    "snarl": "bin/snarl.js"
   },
   "preferGlobal": true,
   "scripts": {

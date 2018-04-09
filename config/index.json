@@ -1,8 +1,11 @@
 {
   "name": "snarl",
-  "plugins": [],
+  "plugins": ["community", "facts", "erm", "meetups"],
+  "services": ["slack", "matrix"],
   "store": "data/store",
   "slack": {
     "token": "xoxb-********-*************"
-  }
+  },
+  "debug": true,
+  "home": "https://maki.io/"
 }

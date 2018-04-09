@@ -1,15 +1,13 @@
 #! /usr/bin/env node
-var config = require('../config');
+'use strict';
 
-var Snarl = require('../lib/snarl');
-var snarl = new Snarl(config);
+const Doorman = require('doorman');
+const config = require('../config');
 
-// you can add plugins here:
-// snarl.use(require('snarl-karma'));
+function main () {
+  let snarl = new Doorman(config);
+  snarl.scribe.log('Snarl starting...');
+  snarl.start();
+}
 
-// or, simply add them to `config/index.json` and they will be auto-loaded:
-snarl.autoload();
-
-snarl.start(function(err) {
-  console.log('snarl is started.');
-});
+main();
