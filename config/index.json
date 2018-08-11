@@ -1,6 +1,6 @@
 {
   "name": "snarl",
-  "plugins": ["community", "facts", "erm", "meetups"],
+  "plugins": ["erm", "soundtrack"],
   "services": ["slack", "matrix"],
   "store": "data/store",
   "slack": {

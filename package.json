@@ -13,10 +13,7 @@
     "node": ">= 8.0.0"
   },
   "dependencies": {
-    "doorman": "github:martindale/doorman#simple-start",
-    "erm": "0.0.1",
-    "snarl-community": "git://github.com/martindale/snarl-community",
-    "snarl-wine-lookup": "^0.1.0"
+    "doorman": "FabricLabs/doorman#63b62fa5bb0eb7ffcc649b531df064ac32655b66"
   },
   "keywords": [
     "slack",
@@ -37,9 +34,9 @@
     "url": "https://github.com/martindale/snarl/issues"
   },
   "devDependencies": {
-    "coveralls": "^2.11.6",
-    "istanbul": "^0.4.1",
-    "mocha": "^2.3.4"
+    "coveralls": "^3.0.2",
+    "istanbul": "^0.4.5",
+    "mocha": "^5.2.0"
   },
   "preferGlobal": true,
   "scripts": {
