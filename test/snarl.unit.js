@@ -14,6 +14,7 @@ describe('Snarl', function () {
     let snarl = new Snarl(Object.assign({}, config, {
       services: []
     }));
+
     snarl.bot.on('ready', done);
     snarl.bot.start();
   });
