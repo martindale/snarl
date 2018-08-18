@@ -19,17 +19,34 @@
       }
     },
     "resources": {
+      "Identity": {
+        "id": { "type": "String", "id": true, "max": 200 },
+        "name": { "type": "String", "max": 70 },
+        "keys": { "type": "Map", "ref": "Key" },
+        "created": { "type": "Number", "required": true },
+        "updated": { "type": "Number" }
+      },
       "Person": {
-        "username": { "type": "String" }
+        "id": { "type": "String", "id": true, "max": 200 },
+        "name": { "type": "String", "max": 70 },
+        "keys": { "type": "Map", "ref": "Key" },
+        "created": { "type": "Number", "required": true },
+        "updated": { "type": "Number" }
       },
       "Channel": {
-        "name": { "type": "String", "max": 70 }
+        "id": { "type": "String", "id": true, "max": 200 },
+        "name": { "type": "String", "max": 70 },
+        "description": { "type": "String", "max": 255 },
+        "created": { "type": "Number", "required": true },
+        "updated": { "type": "Number" }
       },
       "Message": {
-        "content": { "type": "String" }
+        "author": { "type": "String", "ref": "Identity", "required": true },
+        "content": { "type": "String", "required": true },
+        "created": { "type": "Number", "required": true }
       }
     }
   },
-  "debug": true,
+  "debug": false,
   "home": "https://maki.io/"
 }
