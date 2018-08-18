@@ -15,7 +15,7 @@
   "dependencies": {
     "doorman": "FabricLabs/doorman#2a658fcbec2c38feb9c3056f3f83b681a1b16497",
     "erm": "0.0.1",
-    "maki": "github:FabricLabs/maki"
+    "maki": "FabricLabs/maki#fabric"
   },
   "keywords": [
     "slack",
