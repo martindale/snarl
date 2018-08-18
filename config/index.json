@@ -6,6 +6,30 @@
   "slack": {
     "token": "xoxb-********-*************"
   },
+  "matrix": {
+    "token": "insert matrix token here",
+    "authority": "https://fabric.pub",
+    "user": "@username:fabric.pub",
+    "room": "#test:fabric.pub"
+  },
+  "maki": {
+    "services": {
+      "http": {
+        "port": 9244
+      }
+    },
+    "resources": {
+      "Person": {
+        "username": { "type": "String" }
+      },
+      "Channel": {
+        "name": { "type": "String", "max": 70 }
+      },
+      "Message": {
+        "content": { "type": "String" }
+      }
+    }
+  },
   "debug": true,
   "home": "https://maki.io/"
 }
