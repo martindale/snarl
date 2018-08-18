@@ -44,6 +44,9 @@
         "author": { "type": "String", "ref": "Identity", "required": true },
         "content": { "type": "String", "required": true },
         "created": { "type": "Number", "required": true }
+      },
+      "Key": {
+        "hash": { "type": "String", "required": true }
       }
     }
   },
