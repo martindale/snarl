@@ -37,16 +37,19 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.2",
-    "istanbul": "^0.4.5",
+    "http-server": "^0.11.1",
+    "istanbul": "^1.1.0-alpha.1",
     "jsdoc": "^3.5.5",
     "mocha": "^5.2.0"
   },
   "preferGlobal": true,
   "scripts": {
+    "docs": "npm run make:docs && http-server docs/",
     "start": "node snarl.js",
     "test": "mocha",
     "coverage": "istanbul cover _mocha",
-    "make:docs": "jsdoc lib/ README.md -d docs/"
+    "make:docs": "jsdoc lib/ README.md -c jsdoc.json -d docs/",
+    "review:coverage": "npm run coverage && http-server coverage/lcov-report"
   },
   "license": "MIT"
 }

@@ -38,7 +38,8 @@
         "name": { "type": "String", "max": 70 },
         "description": { "type": "String", "max": 255 },
         "created": { "type": "Number", "required": true },
-        "updated": { "type": "Number" }
+        "updated": { "type": "Number" },
+        "members": { "type": "Array" }
       },
       "Message": {
         "author": { "type": "String", "ref": "Identity", "required": true },
