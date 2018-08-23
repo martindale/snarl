@@ -2,6 +2,8 @@
 
 const assert = require('assert');
 const config = require('../config');
+const source = require('../plugins/source');
+const soundtrack = require('../plugins/soundtrack');
 
 const Snarl = require('../lib/snarl');
 
@@ -77,12 +79,12 @@ describe('Snarl', function () {
   });
 
   describe('Plugin', function () {
-    it('should respond to the !source request', function (done) {
+    it('should respond to a !source request', function (done) {
       let snarl = new Snarl();
 
       snarl.bot.on('response', async function (message) {
         assert.equal(message.parent.id, 'local/messages/test');
-        assert.equal(message.response, plugin.test);
+        assert.equal(message.response, source.source());
         await snarl.stop();
         return done();
       });
@@ -92,7 +94,29 @@ describe('Snarl', function () {
           id: 'test',
           actor: 'Alice',
           target: 'test',
-          object: 'Hello, world!  This is a !test of the message handling flow.'
+          object: 'Use the !source Luke!'
+        });
+      });
+
+      snarl.start();
+    });
+
+    it('give credit to the !soundtrack community', function (done) {
+      let snarl = new Snarl();
+
+      snarl.bot.on('response', async function (message) {
+        assert.equal(message.parent.id, 'local/messages/test');
+        assert.equal(message.response, soundtrack.soundtrack());
+        await snarl.stop();
+        return done();
+      });
+
+      snarl.on('ready', async function () {
+        snarl.bot.services.local.emit('message', {
+          id: 'test',
+          actor: 'Alice',
+          target: 'test',
+          object: 'Listen to the !soundtrack of life...'
         });
       });
 
