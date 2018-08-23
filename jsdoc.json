@@ -1,0 +1,9 @@
+{
+  "chat": "https://chat.fabric.pub/#/room/#bots:matrix.org",
+  "source": "https://github.com/martindale/snarl",
+  "templates": {
+    "default": {
+      "layoutFile": "assets/docs.tmpl"
+    }
+  }
+}

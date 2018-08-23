@@ -3,7 +3,7 @@
   "name": "snarl",
   "description": "Friendly chatbot for soundtrack.io and more.  Powered by `doorman`.",
   "homepage": "https://github.com/martindale/snarl",
-  "version": "0.4.0-pre",
+  "version": "0.4.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/martindale/snarl"
@@ -13,10 +13,9 @@
     "node": ">= 8.0.0"
   },
   "dependencies": {
-    "doorman": "github:martindale/doorman#simple-start",
+    "doorman": "FabricLabs/doorman#6d4b2e6c3f07c8daf4e1071b61765ba9440fde40",
     "erm": "0.0.1",
-    "snarl-community": "git://github.com/martindale/snarl-community",
-    "snarl-wine-lookup": "^0.1.0"
+    "maki": "FabricLabs/maki#4db636cc3685d098b151235b0df78f89c52780d7"
   },
   "keywords": [
     "slack",
@@ -37,15 +36,20 @@
     "url": "https://github.com/martindale/snarl/issues"
   },
   "devDependencies": {
-    "coveralls": "^2.11.6",
-    "istanbul": "^0.4.1",
-    "mocha": "^2.3.4"
+    "coveralls": "^3.0.2",
+    "http-server": "^0.11.1",
+    "istanbul": "^1.1.0-alpha.1",
+    "jsdoc": "^3.5.5",
+    "mocha": "^5.2.0"
   },
   "preferGlobal": true,
   "scripts": {
+    "docs": "npm run make:docs && http-server docs/",
     "start": "node snarl.js",
-    "test": "mocha",
-    "coverage": "istanbul cover _mocha"
+    "test": "mocha --exit",
+    "coverage": "istanbul cover _mocha -- --exit",
+    "make:docs": "jsdoc lib/ README.md -c jsdoc.json -d docs/",
+    "review:coverage": "npm run coverage && http-server coverage/lcov-report"
   },
   "license": "MIT"
 }

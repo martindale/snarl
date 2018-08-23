@@ -1,11 +1,56 @@
 {
   "name": "snarl",
-  "plugins": ["community", "facts", "erm", "meetups"],
+  "plugins": ["erm", "soundtrack", "source"],
   "services": ["slack", "matrix"],
   "store": "data/store",
   "slack": {
     "token": "xoxb-********-*************"
   },
-  "debug": true,
+  "matrix": {
+    "token": "insert matrix token here",
+    "authority": "https://fabric.pub",
+    "user": "@username:fabric.pub",
+    "room": "#test:fabric.pub"
+  },
+  "maki": {
+    "services": {
+      "http": {
+        "port": 9244
+      }
+    },
+    "resources": {
+      "Identity": {
+        "id": { "type": "String", "id": true, "max": 200 },
+        "name": { "type": "String", "max": 70 },
+        "keys": { "type": "Map", "ref": "Key" },
+        "created": { "type": "Number", "required": true },
+        "updated": { "type": "Number" }
+      },
+      "Person": {
+        "id": { "type": "String", "id": true, "max": 200 },
+        "name": { "type": "String", "max": 70 },
+        "keys": { "type": "Map", "ref": "Key" },
+        "created": { "type": "Number", "required": true },
+        "updated": { "type": "Number" }
+      },
+      "Channel": {
+        "id": { "type": "String", "id": true, "max": 200 },
+        "name": { "type": "String", "max": 70 },
+        "description": { "type": "String", "max": 255 },
+        "created": { "type": "Number", "required": true },
+        "updated": { "type": "Number" },
+        "members": { "type": "Array" }
+      },
+      "Message": {
+        "author": { "type": "String", "ref": "Identity", "required": true },
+        "content": { "type": "String", "required": true },
+        "created": { "type": "Number", "required": true }
+      },
+      "Key": {
+        "hash": { "type": "String", "required": true }
+      }
+    }
+  },
+  "debug": false,
   "home": "https://maki.io/"
 }
