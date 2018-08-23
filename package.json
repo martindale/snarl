@@ -3,7 +3,7 @@
   "name": "snarl",
   "description": "Friendly chatbot for soundtrack.io and more.  Powered by `doorman`.",
   "homepage": "https://github.com/martindale/snarl",
-  "version": "0.4.0-pre",
+  "version": "0.4.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/martindale/snarl"
@@ -13,7 +13,7 @@
     "node": ">= 8.0.0"
   },
   "dependencies": {
-    "doorman": "FabricLabs/doorman#2a658fcbec2c38feb9c3056f3f83b681a1b16497",
+    "doorman": "FabricLabs/doorman#6d4b2e6c3f07c8daf4e1071b61765ba9440fde40",
     "erm": "0.0.1",
     "maki": "FabricLabs/maki#4db636cc3685d098b151235b0df78f89c52780d7"
   },
