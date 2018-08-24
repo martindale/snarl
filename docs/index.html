@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Home &middot; Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  </head>
+  <body>
+    <div id="main">
+      <h1 class="page-title">Home</h1>
+      
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>snarl <img src="/snarl-headshot.png" alt="snarl"></h1><p><a href="https://www.npmjs.com/package/snarl"><img src="https://img.shields.io/npm/v/snarl.svg?style=flat-square" alt="NPM version"></a>
+<a href="https://travis-ci.org/martindale/snarl"><img src="https://img.shields.io/travis/martindale/snarl.svg?branch=master&amp;style=flat-square" alt="Build Status"></a></p>
+<p>Simple chat bot (currently for Slack), extensible with plugins.</p>
+<p>Despite his name, snarl is just a fuzzy and friendly goofball.  He's been with
+us for several years, since the beginning of <a href="https://soundtrack.io">the Coding
+Soundtrack</a> community.  He's an awesome automaton that
+helps us with a great many things, so be nice to him.</p>
+<p>Avatar for snarl is by <a href="https://github.com/yiyinglu">@yiyinglu</a>, who designed
+the original avatars for tuntable.fm.</p>
+<p>If you'd like to test him out, join us on <a href="https://chat.maki.io">the Maki Slack</a>, where snarl helps us develop <a href="https://maki.io">the Maki Framework</a>.</p>
+<h2>Quick Start</h2><p>You'll need to create a Bot User for your Slack organization, generally found at
+<code>https://YOUR-TEAM-NAME.slack.com/services/new/bot</code>.  Once the integration is
+added, you'll be given an API token: <strong>place this token into
+<code>config/index.json</code></strong>.  For more help, Slack has <a href="https://api.slack.com/bot-users">great documentation on bot
+users</a>.</p>
+<ol>
+<li>Install via <code>npm install snarl -g</code>, or simply clone<sup>1</sup> this repository and run <code>npm install</code> as usual.</li>
+<li>Modify <code>config/index.json</code> to contain your Slack token (see paragraph above).</li>
+<li>Execute <code>npm start</code> in the source directory, or <code>snarl</code> if you installed globally.</li>
+</ol>
+<p>That's it.  You'll see snarl come online!  If you install snarl globally via
+<code>npm install snarl -g</code>, you can also simply type <code>snarl</code> at any time (for example,
+inside of a screen or a tmux session) to run the bot.</p>
+<p><small>1: if you want to make modifications, you should <a href="https://github.com/martindale/snarl/fork">fork it first</a>!</small></p>
+<h2>Naming Your Bot</h2><p>If you want to give snarl a different name, you can configure it via Slack (see
+link above), or add a <code>name</code> property to <code>config/index.json</code>.</p>
+<h2>Plugins</h2><p>snarl supports plugins.  We've kept the default list short but fun.  We'd love
+to see even more contributions!</p>
+<p>Plugins for snarl can add commands or other functionality.  For example, the
+included <code>karma</code> plugin lets snarl keep track of karma for various users.</p>
+<h3>Using Plugins</h3><p>Plugins can be autoloaded from either a single file in
+<code>./plugins/plugin-name.js</code> or an NPM module named <code>snarl-plugin-name</code>.  To
+autoload a plugin, add the plugin name to the plugins array in
+<code>config/index.json</code>:</p>
+<pre class="prettyprint source lang-json"><code>{
+  &quot;name&quot;: &quot;snarl&quot;,
+  &quot;plugins&quot;: [&quot;erm&quot;, &quot;karma&quot;],
+  &quot;store&quot;: &quot;data/store&quot;,
+  &quot;slack&quot;: {
+    &quot;token&quot;: &quot;some-token-xxxooooo&quot;,
+  },
+}</code></pre><p>...and simply call <code>autoload()</code>:</p>
+<pre class="prettyprint source lang-js"><code>var Snarl = require('snarl');
+var snarl = new Snarl();
+
+// autoload plugins found in `config/index.json`
+snarl.autoload();
+
+// start snarl, as normal
+snarl.start();</code></pre><p>To use another plugin, simply require it, as follows:</p>
+<pre class="prettyprint source lang-js"><code>var Snarl = require('snarl');
+var snarl = new Snarl();
+
+// import the karma plugin
+var karma = require('./plugins/karma');
+
+// use the karma plugin we required above
+snarl.use(karma);
+
+// start snarl, as normal
+snarl.start();</code></pre><h3>Included Plugins</h3><p>The list of available plugins (via <code>./plugins/plugin-name</code>) is as follows:</p>
+<ul>
+<li><code>karma</code>, which keeps track of user karma, as incremented by <code>@username++</code>.</li>
+<li><code>facts</code>, which provides <code>!TopologyFacts</code> (mathematical topology facts), <code>!SmiffFacts</code> (facts about Will Smith), and <code>!InterstellaFacts</code> (facts about <a href="https://en.wikipedia.org/wiki/Interstella_5555:_The_5tory_of_the_5ecret_5tar_5ystem">Interstella 5555</a>)</li>
+<li><code>meetups</code>, which responds with a simple message telling your community about in-person meetups.</li>
+<li><code>erm</code>, which transforms the text of a user message into <code>ERMEGERD</code> speech using <a href="https://github.com/martindale/erm">martindale/erm</a>.</li>
+<li><code>beer-lookup</code>, which provides <code>!brew &lt;beerName&gt;</code> to look up and describe a beer via <a href="http://www.brewerydb.com/">BreweryDB</a>.</li>
+</ul>
+<h3>Other Plugins</h3><ul>
+<li><a href="https://github.com/martindale/snarl-eliza">snarl-eliza</a> is a simple AI using
+the ELIZA self-help chatbot created by Joseph Weizenbaum between 1964 and 1966.</li>
+<li><a href="https://github.com/naterchrdsn/snarl-wine-lookup">snarl-wine-lookup</a> is a simple plugin for performing wine-lookups via the <a href="http://api.snooth.com/">snooth wine api</a>, using the !vino command and several optional parameters. Cheers!</li>
+</ul>
+<h3>Writing Plugins</h3><p>To write a snarl plugin, create a new NPM module that exports a map of triggers
+your bot will respond to.  You can use either a simple message string, or a
+function that expects a callback:</p>
+<pre class="prettyprint source lang-js"><code>module.exports = {
+  'test': 'Hello, world'
+};</code></pre><p>For more complex functionality, use the callback feature:</p>
+<pre class="prettyprint source lang-js"><code>module.exports = {
+  'test': function(msg, done) {
+    // simulate an asynchronous task...
+    setTimeout(function() {
+      // error is first parameter, response is second
+      done(null, 'Your message was: ' + msg.text + '\nYour triggers were:' + msg.triggers);
+    }, 1000);
+  };
+}</code></pre><p>We ask that you publish your plugins via npm, name them <code>snarl-yourplugin</code>, and
+add both the <code>snarl</code> and <code>slack</code> keywords to your <code>package.json</code>.</p>
+<p>Thanks!  We hope you enjoy.</p></article>
+    </section>
+
+
+
+
+
+
+    </div>
+    <nav><h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Snarl.html">Snarl</a></li></ul></nav>
+    <br class="clear">
+    <footer>
+        <a href="https://github.com/martindale/snarl">git://</a>
+        
+          &middot; <a href="https://chat.fabric.pub/#/room/#bots:matrix.org">Community</a>
+        
+    </footer>
+    <script> prettyPrint(); </script>
+    <script src="scripts/linenumber.js"> </script>
+  </body>
+</html>
