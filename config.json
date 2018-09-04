@@ -1,16 +1,21 @@
 {
   "name": "snarl",
-  "plugins": ["erm", "soundtrack", "source"],
+  "plugins": ["welcome", "soundtrack", "source"],
   "services": ["slack", "matrix"],
   "store": "data/store",
   "slack": {
+    "mirror": true,
     "token": "xoxb-********-*************"
   },
   "matrix": {
+    "mirror": false,
     "token": "insert matrix token here",
     "authority": "https://fabric.pub",
     "user": "@username:fabric.pub",
     "room": "#test:fabric.pub"
+  },
+  "welcome": {
+    "channels": ["#test"]
   },
   "maki": {
     "services": {
