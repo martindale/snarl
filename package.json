@@ -13,8 +13,8 @@
     "node": ">= 8.0.0"
   },
   "dependencies": {
+    "@fabric/core": "github:FabricLabs/fabric#fabric-core",
     "doorman": "FabricLabs/doorman#6d4b2e6c3f07c8daf4e1071b61765ba9440fde40",
-    "erm": "0.0.1",
     "maki": "FabricLabs/maki#4db636cc3685d098b151235b0df78f89c52780d7"
   },
   "keywords": [

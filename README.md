@@ -5,7 +5,8 @@ snarl ![snarl](/snarl-headshot.png)
 
 Snarl is a powerful chatbot built with [Doorman][doorman], [Maki][maki], and
 [the Fabric Protocol][fabric].  Currently, he's running things over in [the
-Fabric Chat][fabric-chat], but you can add him to Slack, Discord, and/or Matrix.
+Fabric Chat][fabric-chat], but you can also add him to Slack, Discord, and/or
+Matrix.
 
 Despite his name, snarl is just a fuzzy and friendly goofball.  He's been with
 us for several years, since the beginning of [the Coding
