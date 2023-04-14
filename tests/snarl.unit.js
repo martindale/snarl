@@ -5,7 +5,7 @@ const config = require('../config');
 const source = require('../plugins/source');
 const soundtrack = require('../plugins/soundtrack');
 
-const Snarl = require('../lib/snarl');
+const Snarl = require('../services/snarl');
 
 describe('Snarl', function () {
   this.timeout(60000);
