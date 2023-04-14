@@ -8,14 +8,14 @@
     "type": "git",
     "url": "https://github.com/martindale/snarl"
   },
-  "main": "lib/snarl.js",
+  "main": "services/snarl.js",
   "engines": {
-    "node": ">= 8.0.0"
+    "node": ">= 16.17.1"
   },
   "dependencies": {
     "@fabric/core": "FabricLabs/fabric#feature/v0.1.0-RC1",
     "@fabric/http": "FabricLabs/fabric-http#feature/graphql",
-    "doorman": "FabricLabs/doorman#6d4b2e6c3f07c8daf4e1071b61765ba9440fde40"
+    "doorman": "FabricLabs/doorman#develop"
   },
   "keywords": [
     "slack",
