@@ -39,18 +39,21 @@
 
 
     <section>
-        <article><h1>snarl <img src="/snarl-headshot.png" alt="snarl"></h1><p><a href="https://www.npmjs.com/package/snarl"><img src="https://img.shields.io/npm/v/snarl.svg?style=flat-square" alt="NPM version"></a>
+        <article><h1>snarl <img src="/snarl-headshot.png" alt="snarl"></h1>
+<p><a href="https://www.npmjs.com/package/snarl"><img src="https://img.shields.io/npm/v/snarl.svg?style=flat-square" alt="NPM version"></a>
 <a href="https://travis-ci.org/martindale/snarl"><img src="https://img.shields.io/travis/martindale/snarl.svg?branch=master&amp;style=flat-square" alt="Build Status"></a></p>
 <p>Snarl is a powerful chatbot built with <a href="https://github.com/FabricLabs/doorman">Doorman</a>, <a href="https://maki.io">Maki</a>, and
 <a href="https://fabric.pub">the Fabric Protocol</a>.  Currently, he's running things over in <a href="https://chat.fabric.pub">the
-Fabric Chat</a>, but you can add him to Slack, Discord, and/or Matrix.</p>
+Fabric Chat</a>, but you can also add him to Slack, Discord, and/or
+Matrix.</p>
 <p>Despite his name, snarl is just a fuzzy and friendly goofball.  He's been with
 us for several years, since the beginning of <a href="https://soundtrack.io">the Coding
 Soundtrack</a> community.  He's an awesome automaton that
 helps us with a great many things, so be nice to him.</p>
 <p>Avatar for snarl is by <a href="https://github.com/yiyinglu">@yiyinglu</a>, who designed
 the original avatars for tuntable.fm.</p>
-<h2>Quick Start</h2><p>To connect with Slack, Discord, or Matrix, you'll need an access token for each
+<h2>Quick Start</h2>
+<p>To connect with Slack, Discord, or Matrix, you'll need an access token for each
 service.  Once acquired, add them to <code>config.json</code>.</p>
 <ol>
 <li>Install via <code>npm install snarl -g</code>, or simply clone<sup>1</sup> this repository and run <code>npm install</code> as usual.</li>
@@ -61,24 +64,30 @@ service.  Once acquired, add them to <code>config.json</code>.</p>
 <code>npm install snarl -g</code>, you can also simply type <code>snarl</code> at any time (for example,
 inside of a screen or a tmux session) to run the bot.</p>
 <p><small>1: if you want to make modifications, you should <a href="https://github.com/martindale/snarl/fork">fork it first</a>!</small></p>
-<h3>Naming Your Bot</h3><p>If you want to give snarl a different name, you can configure it via Slack (see
+<h3>Naming Your Bot</h3>
+<p>If you want to give snarl a different name, you can configure it via Slack (see
 link above), or add a <code>name</code> property to <code>config.json</code>.</p>
-<h2>Plugins</h2><p>Snarl comes pre-configured with several convenient plugins, but more can be
+<h2>Plugins</h2>
+<p>Snarl comes pre-configured with several convenient plugins, but more can be
 enabled by adding them to the <code>plugins</code> list in <code>config.json</code>.</p>
-<h3>Included Plugins</h3><p>The list of available plugins (via <code>./plugins/plugin-name</code>) is as follows:</p>
+<h3>Included Plugins</h3>
+<p>The list of available plugins (via <code>./plugins/plugin-name</code>) is as follows:</p>
 <ul>
 <li><code>welcome</code>, which provides a welcome message to users joining specified channels.</li>
 <li><code>erm</code>, which transforms the text of a user message into <code>ERMEGERD</code> speech using <a href="https://github.com/martindale/erm">martindale/erm</a>.</li>
 </ul>
-<h3>Other Plugins</h3><ul>
+<h3>Other Plugins</h3>
+<ul>
 <li><a href="https://github.com/martindale/snarl-eliza">snarl-eliza</a> is a simple AI using
 the ELIZA self-help chatbot created by Joseph Weizenbaum between 1964 and 1966.</li>
 <li><a href="https://github.com/naterchrdsn/snarl-wine-lookup">snarl-wine-lookup</a> is a simple plugin for performing wine-lookups via the <a href="http://api.snooth.com/">snooth wine api</a>, using the !vino command and several optional parameters. Cheers!</li>
 </ul>
-<h3>Writing Plugins</h3><p>To write a snarl plugin, create a new NPM module that exports a map of triggers
+<h3>Writing Plugins</h3>
+<p>To write a snarl plugin, create a new NPM module that exports a map of triggers
 your bot will respond to.  You can use either a simple message string, or a
 function that expects a callback:</p>
-<h3>Deprecated Plugins</h3><p>Snarl has a long history, and we'd like to keep him up to date — so we've
+<h3>Deprecated Plugins</h3>
+<p>Snarl has a long history, and we'd like to keep him up to date — so we've
 deprecated the following plugins as to focus on core functionality.</p>
 <ul>
 <li><code>karma</code>, which keeps track of user karma, as incremented by <code>@username++</code>.</li>
@@ -95,7 +104,7 @@ deprecated the following plugins as to focus on core functionality.</p>
 
 
     </div>
-    <nav><h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Snarl.html">Snarl</a></li><li><a href="WelcomePlugin.html">WelcomePlugin</a></li></ul></nav>
+    <nav><h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="WelcomePlugin.html">WelcomePlugin</a></li></ul></nav>
     <br class="clear">
     <footer>
         <a href="https://github.com/martindale/snarl">git://</a>
