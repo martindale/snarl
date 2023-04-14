@@ -1,7 +1,6 @@
 'use strict';
 
 const Doorman = require('doorman');
-const Maki = require('maki');
 
 const defaults = require('../config');
 const meta = require('../package');
@@ -29,7 +28,7 @@ class Snarl extends EventEmitter {
       }
     }, this.config.maki);
 
-    this.app = new Maki(this.meta);
+    // this.app = new Maki(this.meta);
     this.bot = new Doorman(this.config);
 
     return this;
@@ -50,7 +49,7 @@ Snarl.prototype.start = async function () {
   snarl.bot.on('ready', snarl._signalReady.bind(snarl));
 
   if (snarl.config.services.web) {
-    await snarl.app.start();
+    // await snarl.app.start();
   }
 
   await snarl.bot.start();
@@ -67,7 +66,7 @@ Snarl.prototype.stop = async function () {
   let snarl = this;
 
   await snarl.bot.stop();
-  await snarl.app.stop();
+  // await snarl.app.stop();
 
   return snarl;
 };
@@ -92,7 +91,7 @@ Snarl.prototype._registerChannel = function registerChannel (channel) {
 
   if (this.config.services.web) {
     // TODO: ensure idempotent creations
-    snarl.app.resources.Channel.create(instance);
+    // snarl.app.resources.Channel.create(instance);
   }
 
   return snarl;
@@ -116,7 +115,7 @@ Snarl.prototype._registerUser = function registerUser (user) {
 
   if (this.config.services.web) {
     // TODO: ensure idempotent creations
-    snarl.app.resources.Identity.create(instance);
+    // snarl.app.resources.Identity.create(instance);
   }
 
   return snarl;
@@ -140,7 +139,7 @@ Snarl.prototype._registerMessage = function (message) {
 
   if (this.config.services.web) {
     // TODO: ensure idempotent creations
-    snarl.app.resources.Message.create(instance);
+    // snarl.app.resources.Message.create(instance);
   }
 
   return snarl;
