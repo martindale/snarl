@@ -8,14 +8,14 @@
     "type": "git",
     "url": "https://github.com/martindale/snarl"
   },
-  "main": "lib/snarl.js",
+  "main": "services/snarl.js",
   "engines": {
-    "node": ">= 8.0.0"
+    "node": ">= 16.17.1"
   },
   "dependencies": {
     "@fabric/core": "FabricLabs/fabric#feature/v0.1.0-RC1",
     "@fabric/http": "FabricLabs/fabric-http#feature/graphql",
-    "doorman": "FabricLabs/doorman#6d4b2e6c3f07c8daf4e1071b61765ba9440fde40"
+    "doorman": "FabricLabs/doorman#develop"
   },
   "keywords": [
     "slack",
@@ -38,19 +38,20 @@
     "url": "https://github.com/martindale/snarl/issues"
   },
   "devDependencies": {
-    "coveralls": "^3.0.2",
-    "http-server": "^0.11.1",
-    "istanbul": "^1.1.0-alpha.1",
-    "jsdoc": "^3.5.5",
-    "mocha": "^5.2.0"
+    "c8": "7.13.0",
+    "http-server": "0.11.1",
+    "jsdoc": "3.5.5",
+    "mocha": "10.2.0"
   },
   "preferGlobal": true,
   "scripts": {
     "docs": "npm run make:docs && http-server docs/",
     "start": "node scripts/snarl.js",
-    "test": "mocha --exit",
-    "coverage": "istanbul cover _mocha -- --exit",
+    "test": "mocha tests",
+    "coverage": "c8 npm test",
+    "make:coverage": "npm run coverage && c8 report --reporter html",
     "make:docs": "jsdoc lib/ plugins/ README.md -c jsdoc.json -d docs/",
+    "report:coverage": "npm run make:coverage && c8 report --reporter=text-lcov > reports/coverage.lcov",
     "report:install": "rm -rf node_modules && echo \"\n\" > package-lock.json && echo \"$ npm i\" > reports/install.log && npm i >> reports/install.log",
     "review:coverage": "npm run coverage && http-server coverage/lcov-report"
   },
