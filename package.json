@@ -38,6 +38,7 @@
     "url": "https://github.com/martindale/snarl/issues"
   },
   "devDependencies": {
+    "c8": "7.13.0",
     "http-server": "0.11.1",
     "jsdoc": "3.5.5",
     "mocha": "10.2.0"
