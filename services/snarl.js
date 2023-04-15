@@ -1,6 +1,6 @@
 'use strict';
 
-const Doorman = require('doorman');
+const Doorman = require('@fabric/doorman');
 
 const defaults = require('../config');
 const meta = require('../package');
