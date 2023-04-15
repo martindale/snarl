@@ -48,7 +48,9 @@
     "start": "node scripts/snarl.js",
     "test": "mocha tests",
     "coverage": "c8 npm test",
+    "make:coverage": "npm run coverage && c8 report --reporter html",
     "make:docs": "jsdoc lib/ plugins/ README.md -c jsdoc.json -d docs/",
+    "report:coverage": "npm run make:coverage && c8 report --reporter=text-lcov > reports/coverage.lcov",
     "report:install": "rm -rf node_modules && echo \"\n\" > package-lock.json && echo \"$ npm i\" > reports/install.log && npm i >> reports/install.log",
     "review:coverage": "npm run coverage && http-server coverage/lcov-report"
   },
